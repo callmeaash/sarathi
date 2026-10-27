@@ -54,6 +54,8 @@ Run from the project root:
 .venv\Scripts\python -m pipeline --snapshot data\raw\district-20261027T120000Z   # re-run from a saved download
 ```
 
+Before downloading, the pipeline checks that the database is reachable and has PostGIS and every table and column it writes to (it never creates tables itself; the schema belongs to `backend/`). If something is missing it stops and tells you to run `alembic upgrade head`. `--dry-run` skips this check.
+
 Steps:
 
 1. **Extract**: download the drivable road network and facilities (hospitals, police, pharmacies, fire stations), and save them unchanged as a raw snapshot in `data/raw/`.

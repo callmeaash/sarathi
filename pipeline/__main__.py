@@ -10,6 +10,7 @@ from pipeline.extract import (
     area_polygon, configure_osmnx, download_facilities, download_roads, load_snapshot, save_snapshot,
 )
 from pipeline.load import run_import
+from pipeline.schema import SchemaError, check_schema
 from pipeline.transform import transform
 from pipeline.validate import validate
 
@@ -37,6 +38,16 @@ def main(argv: list[str] | None = None) -> int:
     logging.getLogger("pyogrio").setLevel(logging.WARNING)
     started_at = datetime.now(timezone.utc)
     configure_osmnx()
+
+    engine = None
+    if not args.dry_run:
+        # Check the database before a long download, not after it.
+        try:
+            engine = create_engine(settings.database_url())
+            check_schema(engine)
+        except (RuntimeError, SchemaError) as exc:
+            log.error("%s", exc)
+            return 1
 
     if args.snapshot:
         graph, raw_facilities, meta = load_snapshot(args.snapshot)
@@ -73,7 +84,7 @@ def main(argv: list[str] | None = None) -> int:
         log.info("dry run: validation passed, database not changed")
         return 0
 
-    result = run_import(create_engine(settings.database_url()), data, area.name, snapshot, started_at)
+    result = run_import(engine, data, area.name, snapshot, started_at)
     log.info("loaded into the database: %s", result)
     return 0
 

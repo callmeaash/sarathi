@@ -1,31 +1,20 @@
-import os
-
 import geopandas as gpd
 import pandas as pd
 import pytest
 from shapely.geometry import Point
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 
 from pipeline import settings
 from pipeline.load import run_import
+from pipeline.tests.conftest import needs_db
 from pipeline.transform import transform
 
-TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
-pytestmark = pytest.mark.skipif(not TEST_DATABASE_URL, reason="set TEST_DATABASE_URL to run database tests")
+pytestmark = needs_db
 
 
-@pytest.fixture(scope="module")
-def engine():
-    from alembic import command
-    from alembic.config import Config
-
-    os.environ["ALEMBIC_DATABASE_URL"] = TEST_DATABASE_URL
-    cfg = Config(str(settings.PROJECT_DIR / "backend" / "alembic.ini"))
-    command.downgrade(cfg, "base")
-    command.upgrade(cfg, "head")
-    eng = create_engine(TEST_DATABASE_URL)
-    yield eng
-    eng.dispose()
+@pytest.fixture
+def engine(db_engine):
+    return db_engine
 
 
 @pytest.fixture(autouse=True)

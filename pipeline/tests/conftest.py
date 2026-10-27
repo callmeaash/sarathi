@@ -1,7 +1,31 @@
+import os
+
 import geopandas as gpd
 import networkx as nx
 import pytest
 from shapely.geometry import Point, Polygon
+from sqlalchemy import create_engine
+
+from pipeline import settings
+
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
+needs_db = pytest.mark.skipif(not TEST_DATABASE_URL, reason="set TEST_DATABASE_URL to run database tests")
+
+
+@pytest.fixture(scope="session")
+def db_engine():
+    from alembic import command
+    from alembic.config import Config
+
+    # Rebuild the test database from the backend's migrations, as a fresh install would.
+    os.environ["ALEMBIC_DATABASE_URL"] = TEST_DATABASE_URL
+    cfg = Config(str(settings.PROJECT_DIR / "backend" / "alembic.ini"))
+    command.downgrade(cfg, "base")
+    command.upgrade(cfg, "head")
+    engine = create_engine(TEST_DATABASE_URL)
+    yield engine
+    engine.dispose()
+
 
 COORDS = {
     1: (85.3000, 27.6900),
