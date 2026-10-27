@@ -23,7 +23,7 @@ function TopBar() {
 /** Phones: app icon, name and what the app is for, where the desktop has the blue brand panel. */
 function MobileBrand() {
   return (
-    <Link to="/" aria-label="Sarathi home" className="mt-2 mb-8 flex items-center gap-3 self-start lg:hidden">
+    <Link to="/" aria-label="Sarathi home" className="mb-8 flex items-center gap-3 self-start lg:hidden">
       <img src="/brand/svg/sarathi-icon.svg" alt="" className="size-14" />
       <span>
         <span className="flex items-center gap-2">
@@ -54,9 +54,12 @@ export function AuthLayout() {
         </Link>
         <div className="mx-auto flex w-full max-w-105 flex-1 flex-col lg:flex-none">
           <TopBar />
-          <MobileBrand />
-          <Outlet />
-          <footer className="mt-auto flex items-center justify-center gap-1.5 pt-12 pb-6 text-body-sm text-text-secondary lg:hidden">
+          {/* my-auto centres the brand and form between the top bar and the footer on tall phones. */}
+          <div className="my-auto flex flex-col py-6 lg:py-0">
+            <MobileBrand />
+            <Outlet />
+          </div>
+          <footer className="flex items-center justify-center gap-1.5 pt-6 pb-6 text-body-sm text-text-secondary lg:hidden">
             <Icon name="map" className="text-[16px]" />
             Map data © OpenStreetMap contributors
           </footer>
