@@ -26,8 +26,3 @@ export function MyReportsPage() {
 export function ReportPage() {
   return <PageHeader title="Report a hazard" subtitle="Mark a blocked or damaged road for moderators to check." />
 }
-
-/** Profile and sign-out. */
-export function AccountPage() {
-  return <PageHeader title="Account" />
-}

@@ -3,6 +3,7 @@
 /* Design tokens from ui/bato_civic_navigation/DESIGN.md, named as in the screen designs so their classes carry over. */
 @theme {
   --font-sans: "Roboto Flex", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-devanagari: "Noto Sans Devanagari", "Nirmala UI", sans-serif;
 
   --color-surface: #faf9fb;
   --color-surface-dim: #dbd9dc;
@@ -37,6 +38,7 @@
   --color-secondary-container: #d8e2fd;
   --color-on-secondary-container: #5a647b;
   --color-tertiary: #00561d;
+  --color-tertiary-fixed: #9bf7a1;
   --color-open-green: #1e7b34;
   --color-error: #ba1a1a;
   --color-error-container: #ffdad6;
@@ -59,6 +61,10 @@
   --text-display-lg--line-height: 44px;
   --text-display-lg--letter-spacing: -0.02em;
   --text-display-lg--font-weight: 700;
+  --text-display-lg-mobile: 28px;
+  --text-display-lg-mobile--line-height: 36px;
+  --text-display-lg-mobile--letter-spacing: -0.01em;
+  --text-display-lg-mobile--font-weight: 700;
   --text-headline-lg: 28px;
   --text-headline-lg--line-height: 36px;
   --text-headline-lg--font-weight: 700;

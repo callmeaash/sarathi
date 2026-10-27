@@ -38,13 +38,18 @@ describe('app shell', () => {
   it('links to reporting and the account from the header', () => {
     renderApp('/')
     expect(screen.getByRole('link', { name: /Report hazard/ })).toHaveAttribute('href', '/report')
-    expect(screen.getAllByRole('link', { name: 'Account' })[0]).toHaveAttribute('href', '/account')
+    expect(screen.getAllByRole('link', { name: /Account/ }).at(-1)).toHaveAttribute('href', '/account')
   })
 
   it('sets the browser tab title for the page', async () => {
-    renderApp('/reports')
-    await screen.findByRole('heading', { level: 1, name: 'My reports' })
-    expect(document.title).toBe('My reports · Sarathi')
+    renderApp('/hazards')
+    await screen.findByRole('heading', { level: 1, name: 'Hazards' })
+    expect(document.title).toBe('Hazards · Sarathi')
+  })
+
+  it('offers to log in when signed out', () => {
+    renderApp('/')
+    expect(screen.getAllByRole('link', { name: 'Log in' })[0]).toHaveAttribute('href', '/login')
   })
 
   it('shows a not-found page inside the app frame', () => {

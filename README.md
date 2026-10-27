@@ -178,6 +178,8 @@ Open http://localhost:5173. In development Vite forwards `/api` to the API on po
 
 API calls go through `src/api/client.ts`, a client typed from the backend's OpenAPI schema, so a renamed field or a wrong parameter fails the type check instead of failing in the browser.
 
+Sign-in: the access token is kept only in memory and the session in the httpOnly cookie, so nothing secret is stored where page scripts can read it. On load the app restores the session from the cookie; an expired access token is renewed and the request retried automatically. Pages that need an account send visitors to log in and back again afterwards.
+
 ## Tests
 
 ```

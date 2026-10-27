@@ -1,20 +1,35 @@
 import { Link, NavLink, Outlet } from 'react-router'
 
+import { useAuth } from '../auth/context'
 import { Icon } from '../components/Icon'
 import { Logo } from '../components/Logo'
 import { DESKTOP_NAV, MOBILE_NAV } from './navigation'
 
-/** Round button to the account page, shown in both headers. */
+/** The user's initial linking to their account, or a log-in button; shown in both headers. */
 function AccountButton({ onBlue }: { onBlue: boolean }) {
+  const { status, user } = useAuth()
+  if (status === 'loading') return <span className="size-10" aria-hidden />
+  if (!user) {
+    return (
+      <Link
+        to="/login"
+        className={`flex h-10 items-center rounded-full px-4 text-label-lg ${
+          onBlue ? 'border border-white/60 text-white hover:bg-white/15' : 'text-primary hover:bg-surface-tint-light'
+        }`}
+      >
+        Log in
+      </Link>
+    )
+  }
   return (
     <Link
       to="/account"
-      aria-label="Account"
-      className={`grid size-10 place-items-center rounded-full ${
-        onBlue ? 'text-white hover:bg-white/15' : 'text-on-surface-variant hover:bg-surface-container'
+      aria-label={`Account: ${user.full_name}`}
+      className={`grid size-10 place-items-center rounded-full text-label-lg ${
+        onBlue ? 'bg-white text-primary' : 'bg-primary text-white'
       }`}
     >
-      <Icon name="account_circle" className="text-[28px]" />
+      {user.full_name.trim()[0]?.toUpperCase()}
     </Link>
   )
 }

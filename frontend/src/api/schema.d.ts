@@ -115,7 +115,7 @@ export interface paths {
         put?: never;
         /**
          * Verify Email
-         * @description Confirm an email address with the emailed code.
+         * @description Confirm an email address with the emailed code and sign in.
          */
         post: operations["verify_email_api_auth_verify_email_post"];
         delete?: never;
@@ -175,7 +175,7 @@ export interface paths {
         put?: never;
         /**
          * Refresh
-         * @description Get a new access token; the refresh token is replaced each time.
+         * @description Get a new access token from the session cookie; the cookie's token is replaced each time.
          */
         post: operations["refresh_api_auth_refresh_post"];
         delete?: never;
@@ -195,7 +195,7 @@ export interface paths {
         put?: never;
         /**
          * Logout
-         * @description Sign out of this session.
+         * @description Sign out of this session and remove the cookie.
          */
         post: operations["logout_api_auth_logout_post"];
         delete?: never;
@@ -809,11 +809,6 @@ export interface components {
             /** Similar Reports */
             similar_reports: number;
         };
-        /** RefreshIn */
-        RefreshIn: {
-            /** Refresh Token */
-            refresh_token: string;
-        };
         /** RegisterIn */
         RegisterIn: {
             /** Full Name */
@@ -883,19 +878,10 @@ export interface components {
             edge_ids: number[];
             geometry: components["schemas"]["LineString"];
         };
-        /** SnapOut */
-        SnapOut: {
-            /** Node Id */
-            node_id: number;
-            /** Distance M */
-            distance_m: number;
-        };
-        /** TokenOut */
-        TokenOut: {
+        /** SessionOut */
+        SessionOut: {
             /** Access Token */
             access_token: string;
-            /** Refresh Token */
-            refresh_token: string;
             /**
              * Token Type
              * @default bearer
@@ -905,6 +891,13 @@ export interface components {
             /** Expires In */
             expires_in: number;
             user: components["schemas"]["UserOut"];
+        };
+        /** SnapOut */
+        SnapOut: {
+            /** Node Id */
+            node_id: number;
+            /** Distance M */
+            distance_m: number;
         };
         /** UserOut */
         UserOut: {
@@ -1148,7 +1141,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserOut"];
+                    "application/json": components["schemas"]["SessionOut"];
                 };
             };
             /** @description Validation Error */
@@ -1214,7 +1207,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TokenOut"];
+                    "application/json": components["schemas"]["SessionOut"];
                 };
             };
             /** @description Validation Error */
@@ -1233,13 +1226,11 @@ export interface operations {
             query?: never;
             header?: never;
             path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RefreshIn"];
+            cookie?: {
+                sarathi_refresh?: string | null;
             };
         };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -1247,7 +1238,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TokenOut"];
+                    "application/json": components["schemas"]["SessionOut"];
                 };
             };
             /** @description Validation Error */
@@ -1266,13 +1257,11 @@ export interface operations {
             query?: never;
             header?: never;
             path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RefreshIn"];
+            cookie?: {
+                sarathi_refresh?: string | null;
             };
         };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             204: {
