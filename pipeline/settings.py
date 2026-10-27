@@ -18,16 +18,20 @@ PROJECTED_CRS = "EPSG:32645"  # UTM zone 45N, metres; covers the Kathmandu valle
 @dataclass(frozen=True)
 class Area:
     name: str
-    place: str | None = None                   # geocoded administrative boundary
+    label: str
+    # Administrative boundary by OSM relation id. Free-text place names are not used: Nominatim matched
+    # "Kathmandu District" to the District Attorney's Office building.
+    osm_relation: int | None = None
+    min_area_km2: float = 0.0                  # sanity check for the downloaded boundary
     center: tuple[float, float] | None = None  # (lat, lon) for small test areas
     radius_m: int = 0
     min_nodes: int = 1
 
 
 AREAS = {
-    "district": Area("district", place="Kathmandu District, Bagmati Province, Nepal", min_nodes=10_000),
-    "kmc": Area("kmc", place="Kathmandu Metropolitan City, Bagmati Province, Nepal", min_nodes=5_000),
-    "teku": Area("teku", center=(27.6950, 85.3040), radius_m=1500, min_nodes=300),
+    "district": Area("district", "Kathmandu District", osm_relation=4583247, min_area_km2=350, min_nodes=10_000),
+    "kmc": Area("kmc", "Kathmandu Metropolitan City", osm_relation=12394677, min_area_km2=40, min_nodes=5_000),
+    "teku": Area("teku", "Teku test area", center=(27.6950, 85.3040), radius_m=1500, min_nodes=300),
 }
 DEFAULT_BUFFER_M = 2000
 

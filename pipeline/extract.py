@@ -36,14 +36,21 @@ def buffer_polygon(boundary: gpd.GeoDataFrame, buffer_m: float) -> BaseGeometry:
     return shape
 
 
+def check_boundary(boundary: gpd.GeoDataFrame, area: Area) -> None:
+    if boundary.empty or not boundary.geom_type.isin(["Polygon", "MultiPolygon"]).all():
+        raise ValueError(f"{area.label}: OSM relation {area.osm_relation} is not a boundary polygon")
+    km2 = boundary.to_crs(settings.PROJECTED_CRS).area.sum() / 1e6
+    if km2 < area.min_area_km2:
+        raise ValueError(f"{area.label}: boundary is only {km2:.1f} km², expected at least {area.min_area_km2:g} km²")
+
+
 def area_polygon(area: Area, buffer_m: float) -> BaseGeometry:
-    if area.place:
-        boundary = ox.geocode_to_gdf(area.place)
-        if not boundary.geom_type.isin(["Polygon", "MultiPolygon"]).all():
-            raise ValueError(f"'{area.place}' did not geocode to a boundary polygon")
+    if area.osm_relation:
+        boundary = ox.geocode_to_gdf(f"R{area.osm_relation}", by_osmid=True)
+        check_boundary(boundary, area)
         return buffer_polygon(boundary, buffer_m)
     if not area.center or area.radius_m <= 0:
-        raise ValueError(f"area '{area.name}' needs either a place or a center and radius")
+        raise ValueError(f"area '{area.name}' needs either an OSM relation or a center and radius")
     lat, lon = area.center
     return buffer_polygon(gpd.GeoDataFrame(geometry=[Point(lon, lat)], crs=settings.WGS84), area.radius_m)
 
@@ -75,7 +82,7 @@ def save_snapshot(graph: nx.MultiDiGraph, facilities: gpd.GeoDataFrame, area: Ar
     _stringify_lists(facilities).to_file(path / FACILITIES_FILE, driver="GeoJSON")
     meta = {
         "area": area.name,
-        "buffer_m": buffer_m if area.place else area.radius_m,
+        "buffer_m": buffer_m if area.osm_relation else area.radius_m,
         "downloaded_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "osmnx_version": ox.__version__,
         "nodes": graph.number_of_nodes(),

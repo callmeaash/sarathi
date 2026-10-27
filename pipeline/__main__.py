@@ -56,10 +56,11 @@ def main(argv: list[str] | None = None) -> int:
         log.info("loaded snapshot %s (%s, downloaded %s)", snapshot, area.name, meta["downloaded_at"])
     else:
         area = settings.AREAS[args.area]
-        if area.place:
-            log.info("downloading %s with a %.0f m buffer", area.place, args.buffer_m)
+        if area.osm_relation:
+            log.info("downloading %s (OSM relation %d) with a %.0f m buffer",
+                     area.label, area.osm_relation, args.buffer_m)
         else:
-            log.info("downloading %s: %d m around %s", area.name, area.radius_m, area.center)
+            log.info("downloading %s: %d m around %s", area.label, area.radius_m, area.center)
         polygon = area_polygon(area, args.buffer_m)
         graph = download_roads(polygon)
         raw_facilities = download_facilities(polygon)
