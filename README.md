@@ -15,10 +15,17 @@ Find open roads in Kathmandu: verified road closures, routes around them, and th
 
 ## Setup
 
-1. Create the `sarathi` user and enable PostGIS (asks for the `postgres` password, then a password for the `sarathi` user):
+1. Create the `sarathi` user and enable PostGIS. Connect as the `postgres` superuser:
    ```
-   psql -U postgres -h localhost -f backend/db/setup.sql
+   psql -U postgres -h localhost
    ```
+   and run (choose your own password):
+   ```sql
+   CREATE ROLE sarathi WITH LOGIN CREATEDB PASSWORD 'your-password';
+   \connect template1
+   CREATE EXTENSION IF NOT EXISTS postgis;
+   ```
+   Enabling PostGIS in `template1` means every database `sarathi` creates has it (only a superuser can enable PostGIS).
    Then create the database as `sarathi`:
    ```
    psql -U sarathi -h localhost -d postgres -c "CREATE DATABASE sarathi;"
