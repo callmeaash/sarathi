@@ -6,9 +6,11 @@ from fastapi.testclient import TestClient
 from sqlalchemy import text
 
 from app import cli
+from app.api.auth import REFRESH_COOKIE
 from app.auth.email import MemoryEmail
 from app.auth.service import MAX_CODE_ATTEMPTS, MAX_FAILED_LOGINS
 from app.auth.tokens import create_access_token
+from app.config import AuthSettings
 from app.main import create_app
 from app.routing.graph import build_graph
 from app.routing.nearest import FacilityIndex
@@ -58,6 +60,21 @@ def verified_account(client, outbox):
     client.post("/api/auth/verify-email", json={"email": EMAIL, "code": last_code(outbox)})
 
 
+def session_cookie(response) -> str:
+    return response.cookies[REFRESH_COOKIE]
+
+
+def refresh(client, token=None):
+    # Without a token the client's cookie jar is used, as a browser would; with one, that cookie is sent instead.
+    headers = {"Cookie": f"{REFRESH_COOKIE}={token}"} if token else {}
+    return client.post("/api/auth/refresh", headers=headers)
+
+
+def logout(client, token=None):
+    headers = {"Cookie": f"{REFRESH_COOKIE}={token}"} if token else {}
+    return client.post("/api/auth/logout", headers=headers)
+
+
 def auth(tokens) -> dict:
     return {"Authorization": f"Bearer {tokens['access_token']}"}
 
@@ -101,12 +118,21 @@ def test_register_rejects_a_blank_name(client):
     assert register(client, name="    ").status_code == 422
 
 
-def test_verify_email_with_the_code(client, outbox):
+def test_verify_email_with_the_code_signs_in(client, outbox):
     register(client)
     response = client.post("/api/auth/verify-email", json={"email": EMAIL, "code": last_code(outbox)})
-    assert response.status_code == 200 and response.json()["email_verified"] is True
+    assert response.status_code == 200
+    body = response.json()
+    assert body["user"]["email_verified"] is True and REFRESH_COOKIE in response.cookies
+    assert client.get("/api/me", headers=auth(body)).json()["email_verified"] is True
+
+
+def test_verified_accounts_cannot_be_signed_into_with_a_code(client, outbox):
+    verified_account(client, outbox)
     again = client.post("/api/auth/verify-email", json={"email": EMAIL, "code": "000000"})
-    assert again.status_code == 200  # already verified: nothing to check
+    unknown = client.post("/api/auth/verify-email", json={"email": "nobody@example.com", "code": "000000"})
+    assert again.status_code == unknown.status_code == 400
+    assert again.json() == unknown.json()  # does not reveal that the account exists
 
 
 def test_wrong_codes_are_counted_and_then_blocked(client, outbox):
@@ -178,6 +204,7 @@ def test_login_and_me(client, outbox):
     register(client)
     tokens = login(client).json()
     assert tokens["token_type"] == "bearer" and tokens["expires_in"] == 30 * 60
+    assert "refresh_token" not in tokens  # only in the httpOnly cookie
     me = client.get("/api/me", headers=auth(tokens)).json()
     assert me["email"] == EMAIL and me["email_verified"] is False  # unverified users can still browse
 
@@ -215,7 +242,7 @@ def test_suspended_accounts_are_shut_out(client):
     sql(client, "UPDATE users SET status = 'suspended'")
     assert login(client).status_code == 403
     assert client.get("/api/me", headers=auth(tokens)).status_code == 403
-    assert client.post("/api/auth/refresh", json={"refresh_token": tokens["refresh_token"]}).status_code == 403
+    assert refresh(client).status_code == 403
 
 
 @pytest.mark.parametrize("headers", [{}, {"Authorization": "Bearer nonsense"}, {"Authorization": "Basic abc"}])
@@ -240,45 +267,80 @@ def test_token_for_a_deleted_account(client):
 
 # --- refresh tokens and sign-out ---
 
+def test_session_cookie_is_out_of_reach_of_scripts(client):
+    register(client)
+    cookie = login(client).headers["set-cookie"]
+    assert "HttpOnly" in cookie and "SameSite=strict" in cookie and "Path=/api/auth" in cookie
+    assert f"Max-Age={30 * 86400}" in cookie and "Secure" not in cookie  # tests run over plain http
+
+
+def test_session_cookie_is_https_only_by_default(db_engine):
+    with db_engine.begin() as conn:
+        conn.execute(text("TRUNCATE users RESTART IDENTITY CASCADE"))
+    routing = RoutingState(build_graph([(1, 85.3, 27.7)], []), FacilityIndex({}, 0))
+    settings = AuthSettings(jwt_secret=TEST_AUTH.jwt_secret)
+    app = create_app(engine=db_engine, routing_state=routing, auth_settings=settings, sender=MemoryEmail())
+    with TestClient(app, base_url="https://testserver") as secure_client:
+        register(secure_client)
+        assert "Secure" in login(secure_client).headers["set-cookie"]
+
+
 def test_refresh_rotates_the_token(client):
     register(client)
-    first = login(client).json()
-    second = client.post("/api/auth/refresh", json={"refresh_token": first["refresh_token"]}).json()
-    assert second["refresh_token"] != first["refresh_token"]
-    assert client.get("/api/me", headers=auth(second)).status_code == 200
+    first = session_cookie(login(client))
+    response = refresh(client)
+    assert response.status_code == 200 and session_cookie(response) != first
+    assert client.get("/api/me", headers=auth(response.json())).status_code == 200
+
+
+def test_refresh_needs_the_cookie(client):
+    response = client.post("/api/auth/refresh")
+    assert response.status_code == 401 and response.json()["detail"] == "not signed in"
+
+
+def test_two_tabs_refreshing_at_once_is_not_treated_as_theft(client):
+    register(client)
+    first = session_cookie(login(client))
+    second = session_cookie(refresh(client))
+    late = refresh(client, first)  # the other tab, a moment later, still with the old cookie
+    assert late.status_code == 409
+    assert refresh(client, second).status_code == 200
 
 
 def test_reusing_an_old_refresh_token_ends_every_session(client):
     register(client)
-    first = login(client).json()
-    second = client.post("/api/auth/refresh", json={"refresh_token": first["refresh_token"]}).json()
-    reuse = client.post("/api/auth/refresh", json={"refresh_token": first["refresh_token"]})
-    assert reuse.status_code == 401
-    assert client.post("/api/auth/refresh", json={"refresh_token": second["refresh_token"]}).status_code == 401
+    first = session_cookie(login(client))
+    second = session_cookie(refresh(client))
+    sql(client, "UPDATE refresh_tokens SET revoked_at = now() - interval '1 minute' WHERE revoke_reason = 'rotated'")
+    assert refresh(client, first).status_code == 401
+    assert refresh(client, second).status_code == 401
 
 
 def test_expired_and_unknown_refresh_tokens(client):
     register(client)
-    tokens = login(client).json()
+    login(client)
     sql(client, "UPDATE refresh_tokens SET expires_at = now() - interval '1 second'")
-    assert client.post("/api/auth/refresh", json={"refresh_token": tokens["refresh_token"]}).status_code == 401
-    assert client.post("/api/auth/refresh", json={"refresh_token": "made-up"}).status_code == 401
+    assert refresh(client).status_code == 401
+    assert refresh(client, "made-up").status_code == 401
 
 
-def test_logout_ends_only_that_session(client):
+def test_logout_ends_only_that_session_and_removes_the_cookie(client):
     register(client)
-    phone, laptop = login(client).json(), login(client).json()
-    assert client.post("/api/auth/logout", json={"refresh_token": phone["refresh_token"]}).status_code == 204
-    assert client.post("/api/auth/refresh", json={"refresh_token": phone["refresh_token"]}).status_code == 401
-    assert client.post("/api/auth/refresh", json={"refresh_token": laptop["refresh_token"]}).status_code == 200
-    assert client.post("/api/auth/logout", json={"refresh_token": "made-up"}).status_code == 204
+    phone, laptop = session_cookie(login(client)), session_cookie(login(client))
+    response = logout(client, phone)
+    assert response.status_code == 204 and "Max-Age=0" in response.headers["set-cookie"]
+    assert refresh(client, phone).status_code == 401
+    assert refresh(client, laptop).status_code == 200
+    assert logout(client, "made-up").status_code == 204
+    client.cookies.clear()
+    assert client.post("/api/auth/logout").status_code == 204
 
 
 # --- password reset ---
 
 def test_forgot_and_reset_password(client, outbox):
     register(client)
-    old_session = login(client).json()
+    old_session = session_cookie(login(client))
     assert client.post("/api/auth/forgot-password", json={"email": EMAIL}).status_code == 202
     assert "password reset code" in outbox.outbox[-1][1]
     response = client.post("/api/auth/reset-password", json={
@@ -286,7 +348,7 @@ def test_forgot_and_reset_password(client, outbox):
     assert response.status_code == 200
     assert login(client).status_code == 401
     assert login(client, password="a brand new passphrase").json()["user"]["email_verified"] is True
-    assert client.post("/api/auth/refresh", json={"refresh_token": old_session["refresh_token"]}).status_code == 401
+    assert refresh(client, old_session).status_code == 401
 
 
 def test_reset_with_a_weak_password_keeps_the_code_usable(client, outbox):

@@ -8,7 +8,8 @@ from app.config import AuthSettings
 from app.routing.graph import build_graph, haversine_m
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
-TEST_AUTH = AuthSettings(jwt_secret="test-secret-" + "x" * 40, access_token_minutes=30, refresh_token_days=30)
+TEST_AUTH = AuthSettings(jwt_secret="test-secret-" + "x" * 40, access_token_minutes=30, refresh_token_days=30,
+                         cookie_secure=False)  # the test client talks plain http
 TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
 needs_db = pytest.mark.skipif(not TEST_DATABASE_URL, reason="set TEST_DATABASE_URL to run database tests")
 

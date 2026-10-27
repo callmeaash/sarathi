@@ -31,6 +31,7 @@ class AuthSettings:
     smtp_user: str = ""
     smtp_password: str = ""
     smtp_from: str = "Sarathi <no-reply@sarathi.app>"
+    cookie_secure: bool = True  # send the session cookie over HTTPS only (browsers also allow it on localhost)
 
 
 def load_auth_settings() -> AuthSettings:
@@ -53,4 +54,5 @@ def load_auth_settings() -> AuthSettings:
         smtp_user=os.getenv("SMTP_USER", ""),
         smtp_password=os.getenv("SMTP_PASSWORD", ""),
         smtp_from=os.getenv("SMTP_FROM", AuthSettings.smtp_from),
+        cookie_secure=os.getenv("COOKIE_SECURE", "true").lower() != "false",
     )

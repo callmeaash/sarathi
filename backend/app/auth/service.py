@@ -18,6 +18,7 @@ RESEND_COOLDOWN = timedelta(seconds=60)
 MAX_CODES_PER_HOUR = 5
 MAX_FAILED_LOGINS = 10
 LOCK_DURATION = timedelta(minutes=15)
+REFRESH_RACE_WINDOW = timedelta(seconds=10)  # two tabs refreshing at once is not a stolen token
 MAX_NAME_LENGTH = 100
 
 
@@ -43,6 +44,10 @@ class InvalidCode(AuthError):
 
 class AccountSuspended(AuthError):
     status_code = 403
+
+
+class RefreshRace(AuthError):
+    status_code = 409
 
 
 @dataclass
@@ -143,12 +148,14 @@ def check_code(session: Session, settings: AuthSettings, user: User, purpose: st
 def verify_email(session: Session, settings: AuthSettings, email: str, code: str, now: datetime) -> User:
     """Mark an account's email as verified with the emailed code."""
     user = find_user(session, email)
-    if user is None:
+    # An already verified account has no code to check; answering differently would reveal it exists.
+    if user is None or user.email_verified:
         raise InvalidCode("this code is invalid or has expired; ask for a new one")
-    if not user.email_verified:
-        check_code(session, settings, user, "verify", code, now)
-        user.email_verified = True
-        session.commit()
+    if user.status == "suspended":
+        raise AccountSuspended("this account has been suspended")
+    check_code(session, settings, user, "verify", code, now)
+    user.email_verified = True
+    session.commit()
     return user
 
 
@@ -197,6 +204,9 @@ def refresh(session: Session, settings: AuthSettings, raw_token: str, now: datet
     if row is None:
         raise InvalidRefreshToken("invalid refresh token")
     if row.revoked_at is not None:
+        if row.revoke_reason == "rotated" and row.revoked_at > now - REFRESH_RACE_WINDOW:
+            # Another tab (or a retried request) swapped this token a moment ago; the browser already has the new one.
+            raise RefreshRace("this session was just refreshed; try again")
         if row.revoke_reason == "rotated":
             # A token that was already swapped for a new one is back: it was copied. End every session.
             revoke_all_tokens(session, row.user_id, now, "reuse")

@@ -104,10 +104,6 @@ class LoginIn(BaseModel):
     password: str = Field(min_length=1, max_length=200)
 
 
-class RefreshIn(BaseModel):
-    refresh_token: str = Field(min_length=1, max_length=200)
-
-
 class ResetPasswordIn(EmailCodeIn):
     new_password: str = Field(min_length=1, max_length=200)
 
@@ -123,9 +119,8 @@ class UserOut(BaseModel):
     created_at: datetime
 
 
-class TokenOut(BaseModel):
-    access_token: str
-    refresh_token: str
+class SessionOut(BaseModel):
+    access_token: str  # the refresh token is set as an httpOnly cookie, out of reach of page scripts
     token_type: Literal["bearer"] = "bearer"
     expires_in: int
     user: UserOut
