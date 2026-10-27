@@ -11,7 +11,8 @@ from app.db import Base
 
 config = context.config
 if config.config_file_name:
-    fileConfig(config.config_file_name)
+    # Keep loggers that already exist (e.g. the pipeline's when tests run migrations) working.
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 # Tests point migrations at a separate database through ALEMBIC_DATABASE_URL.
 url = os.getenv("ALEMBIC_DATABASE_URL") or database_url()
