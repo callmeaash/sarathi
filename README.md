@@ -63,6 +63,26 @@ Steps:
 3. **Validate**: stop before loading if the data looks wrong (too few roads, broken edges, no hospitals).
 4. **Load**: copy into staging tables, then replace the live road network and OSM facilities in one transaction, and link each facility to its nearest road node. Facilities edited by moderators (`source = 'manual'`) are never overwritten. Every run is recorded in `import_runs`.
 
+## Running the API
+
+From `backend/`:
+
+```
+..\.venv\Scripts\python -m uvicorn app.main:app --reload
+```
+
+The road graph and facilities load into memory at startup (about 1 s). Interactive docs: http://127.0.0.1:8000/docs. Run a single worker: the graph and its closures live in that process's memory.
+
+| Endpoint | What it returns |
+|---|---|
+| `GET /api/health` | Status and how much map data is loaded |
+| `GET /api/route?from_lat&from_lon&to_lat&to_lon&weight=time&algorithm=astar` | Route between two map points that avoids closed roads: distance, time, search stats and the line to draw |
+| `GET /api/nearest?lat&lon&kind=hospital&limit=4` | Closest facilities of a kind by road, each with its route line and straight-line distance |
+| `GET /api/facilities?bbox=minLon,minLat,maxLon,maxLat&kind=hospital` | Facilities in the visible map area as GeoJSON points (repeat `kind` for several) |
+| `GET /api/facilities/{id}?from_lat&from_lon` | Full facility details, plus the road distance from a point if given |
+
+Clicked points snap to the nearest road junction (up to 1 km away); points further from any road get a 422 error. `CORS_ORIGINS` (comma separated) sets which front ends may call the API; it defaults to the Vite dev server.
+
 ## Routing engine
 
 `backend/app/routing/` holds the routing engine, written from scratch:
