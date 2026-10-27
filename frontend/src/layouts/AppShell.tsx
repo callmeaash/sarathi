@@ -1,9 +1,12 @@
-import { Link, NavLink, Outlet } from 'react-router'
+import { useState } from 'react'
+import { Link, NavLink, Outlet, useLocation, useMatches } from 'react-router'
 
 import { useAuth } from '../auth/context'
 import { Icon } from '../components/Icon'
 import { Logo } from '../components/Logo'
+import { MapView } from '../map/MapView'
 import { DESKTOP_NAV, MOBILE_NAV } from './navigation'
+import { SheetHandle, type SheetState } from './SheetHandle'
 
 /** The user's initial linking to their account, or a log-in button; shown in both headers. */
 function AccountButton({ onBlue }: { onBlue: boolean }) {
@@ -134,19 +137,53 @@ function BottomNav() {
   )
 }
 
-/** The frame around every page: headers and navigation, the page panel, and the map beside it on desktop. */
+/** Whether the current page is drawn over the map on phones (route handle `{ map: true }`). */
+function useMapPage(): boolean {
+  return useMatches().some((match) => (match.handle as { map?: boolean } | undefined)?.map)
+}
+
+// Heights of the phone's bottom sheet; the map buttons and Leaflet's scale and credits sit just above it.
+const SHEET_HEIGHTS: Record<SheetState, string> = {
+  peek: '[--sheet-height:40dvh]',
+  expanded: '[--sheet-height:78dvh]',
+}
+
+/**
+ * The frame around every page. Desktop: side navigation, a 400 px page panel and the map. Phones: map pages sit in
+ * a bottom sheet over the map, other pages fill the screen. The map stays loaded throughout, so it never reloads.
+ */
 export function AppShell() {
+  const mapPage = useMapPage()
+  const { pathname } = useLocation()
+  const [sheet, setSheet] = useState<SheetState>('peek')
+  const [sheetPath, setSheetPath] = useState(pathname)
+  if (sheetPath !== pathname) {  // each new page starts with the sheet lowered
+    setSheetPath(pathname)
+    setSheet('peek')
+  }
+
   return (
     <div className="flex h-dvh flex-col">
       <DesktopHeader />
       <MobileHeader />
-      <div className="flex min-h-0 flex-1">
+      <div className={`relative flex min-h-0 flex-1 lg:[--sheet-height:0px] ${
+        mapPage ? SHEET_HEIGHTS[sheet] : '[--sheet-height:0px]'}`}>
         <SideNav />
-        <main className="min-w-0 flex-1 overflow-y-auto px-4 py-5 lg:w-100 lg:flex-none lg:border-r lg:border-border-muted lg:px-6">
-          <Outlet />
+        <main
+          className={`min-w-0 lg:static lg:z-auto lg:flex lg:h-auto lg:w-100 lg:flex-none lg:flex-col lg:rounded-none lg:border-r lg:border-border-muted lg:shadow-none ${
+            mapPage
+              ? 'absolute inset-x-0 bottom-0 z-10 flex h-(--sheet-height) flex-col rounded-t-sheet bg-surface-container-lowest shadow-[0_-4px_16px_rgb(27_28_30/0.12)] transition-[height] duration-200'
+              : 'flex-1 overflow-y-auto'
+          }`}
+        >
+          {mapPage && <SheetHandle state={sheet} onChange={setSheet} />}
+          <div className={mapPage ? 'min-h-0 flex-1 overflow-y-auto px-4 pb-5 lg:px-6 lg:py-5' : 'px-4 py-5 lg:px-6'}>
+            <Outlet />
+          </div>
         </main>
-        {/* The Leaflet map goes here in the map phase; on phones it will sit under a bottom sheet. */}
-        <section aria-label="Map" className="hidden flex-1 bg-surface-tint-medium lg:block" />
+        <section aria-label="Map" className={`${mapPage ? 'absolute inset-0' : 'hidden'} lg:relative lg:block lg:flex-1`}>
+          <MapView />
+        </section>
       </div>
       <BottomNav />
     </div>

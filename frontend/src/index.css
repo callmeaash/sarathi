@@ -128,6 +128,16 @@
   }
 }
 
+/* Leaflet: use the app font, and lift its bottom controls (scale, attribution) above the phone's bottom sheet. */
+.leaflet-container {
+  font-family: inherit;
+}
+
+.leaflet-bottom {
+  bottom: var(--sheet-height, 0px);
+  transition: bottom 0.2s;
+}
+
 @utility icon {
   font-family: "Material Symbols Outlined";
   font-weight: normal;
