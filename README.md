@@ -70,10 +70,18 @@ Steps:
 - `graph.py` loads `road_nodes` and `road_edges` into memory as a compact adjacency list (about 1 s for Kathmandu District).
 - `search.py` has one search function, `find_route`, that runs Dijkstra or A* (`algorithm="dijkstra" | "astar"`) for the shortest (`weight="length"`) or fastest (`weight="time"`) route. A* uses the straight-line distance (divided by the top speed in the graph for fastest routes), which never overestimates, so both algorithms return the same optimal cost.
 
+- `nearest.py` finds the closest facilities of a kind by road: one Dijkstra search outward from the start, collecting facilities as their road nodes are reached. The short stretch between a facility and its nearest road node (`snap_distance_m`) is added to the cost, so the search continues until no unreached facility could still be closer.
+
 Benchmark Dijkstra against A* on random routes in the imported network (run from `backend/`):
 
 ```
 ..\.venv\Scripts\python -m app.routing.benchmark --pairs 100 --weight time --csv ..\data\benchmarks\time.csv
+```
+
+Measure how often the facility nearest in a straight line is not the nearest by road:
+
+```
+..\.venv\Scripts\python -m app.routing.evaluate_nearest --points 500
 ```
 
 ## Tests
