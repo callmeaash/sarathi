@@ -13,6 +13,7 @@ FACILITY_KINDS = ("hospital", "police", "pharmacy", "fire_station")
 
 
 def point():
+    """Return a WGS84 point geometry column type."""
     return Geometry("POINT", srid=4326, spatial_index=False)
 
 

@@ -58,6 +58,7 @@ DEDUPE_RADIUS_M = 150
 
 
 def database_url() -> str:
+    """Return the database URL the pipeline should write to."""
     url = os.getenv("PIPELINE_DATABASE_URL") or os.getenv("DATABASE_URL")
     if not url:
         raise RuntimeError("DATABASE_URL is not set. Copy backend/.env.example to backend/.env and fill it in.")

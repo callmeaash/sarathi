@@ -21,6 +21,7 @@ META_FILE = "meta.json"
 
 
 def configure_osmnx() -> None:
+    """Set OSMnx caching, logging and the extra road tags to keep."""
     ox.settings.use_cache = True
     ox.settings.cache_folder = str(settings.CACHE_DIR)
     ox.settings.log_console = False
@@ -28,6 +29,7 @@ def configure_osmnx() -> None:
 
 
 def buffer_polygon(boundary: gpd.GeoDataFrame, buffer_m: float) -> BaseGeometry:
+    """Grow a boundary by a distance in metres and return it as one WGS84 polygon."""
     if buffer_m < 0:
         raise ValueError("buffer must not be negative")
     shape = boundary.to_crs(settings.PROJECTED_CRS).buffer(buffer_m).to_crs(settings.WGS84).union_all()
@@ -37,6 +39,7 @@ def buffer_polygon(boundary: gpd.GeoDataFrame, buffer_m: float) -> BaseGeometry:
 
 
 def check_boundary(boundary: gpd.GeoDataFrame, area: Area) -> None:
+    """Reject a boundary that is not a polygon or is smaller than expected."""
     if boundary.empty or not boundary.geom_type.isin(["Polygon", "MultiPolygon"]).all():
         raise ValueError(f"{area.label}: OSM relation {area.osm_relation} is not a boundary polygon")
     km2 = boundary.to_crs(settings.PROJECTED_CRS).area.sum() / 1e6
@@ -45,6 +48,7 @@ def check_boundary(boundary: gpd.GeoDataFrame, area: Area) -> None:
 
 
 def area_polygon(area: Area, buffer_m: float) -> BaseGeometry:
+    """Return the polygon to download for an area, including its buffer."""
     if area.osm_relation:
         boundary = ox.geocode_to_gdf(f"R{area.osm_relation}", by_osmid=True)
         check_boundary(boundary, area)
@@ -56,11 +60,13 @@ def area_polygon(area: Area, buffer_m: float) -> BaseGeometry:
 
 
 def download_roads(polygon: BaseGeometry) -> nx.MultiDiGraph:
+    """Download the drivable road network inside a polygon."""
     # retain_all keeps disconnected pieces so the transform step can report what it drops
     return ox.graph_from_polygon(polygon, network_type="drive", simplify=True, retain_all=True, truncate_by_edge=True)
 
 
 def download_facilities(polygon: BaseGeometry) -> gpd.GeoDataFrame:
+    """Download hospitals, police, pharmacies and fire stations inside a polygon."""
     try:
         raw = ox.features_from_polygon(polygon, tags=settings.FACILITY_TAGS)
     except InsufficientResponseError:
@@ -70,11 +76,13 @@ def download_facilities(polygon: BaseGeometry) -> gpd.GeoDataFrame:
 
 
 def empty_facilities() -> gpd.GeoDataFrame:
+    """Return an empty facilities frame with the expected columns."""
     return gpd.GeoDataFrame({"osm_type": [], "osm_id": [], "amenity": []}, geometry=[], crs=settings.WGS84)
 
 
 def save_snapshot(graph: nx.MultiDiGraph, facilities: gpd.GeoDataFrame, area: Area, buffer_m: float,
                   root: Path = settings.RAW_DIR) -> Path:
+    """Save the raw download unchanged to a dated folder and return its path."""
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     path = root / f"{area.name}-{stamp}"
     path.mkdir(parents=True)
@@ -94,6 +102,7 @@ def save_snapshot(graph: nx.MultiDiGraph, facilities: gpd.GeoDataFrame, area: Ar
 
 
 def load_snapshot(path: Path) -> tuple[nx.MultiDiGraph, gpd.GeoDataFrame, dict]:
+    """Load a saved raw snapshot: road graph, facilities and metadata."""
     path = Path(path)
     missing = [f for f in (GRAPH_FILE, FACILITIES_FILE, META_FILE) if not (path / f).exists()]
     if missing:
@@ -107,6 +116,7 @@ def load_snapshot(path: Path) -> tuple[nx.MultiDiGraph, gpd.GeoDataFrame, dict]:
 
 
 def _stringify_lists(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    """Turn list values into JSON text so they can be written to GeoJSON."""
     out = gdf.copy()
     for col in out.columns.drop("geometry"):
         if out[col].dtype == object:

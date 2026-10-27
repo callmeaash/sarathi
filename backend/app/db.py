@@ -9,4 +9,5 @@ class Base(DeclarativeBase):
 
 
 def get_engine() -> Engine:
+    """Create a SQLAlchemy engine for the configured database."""
     return create_engine(database_url())

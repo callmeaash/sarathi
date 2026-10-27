@@ -68,12 +68,14 @@ RECORD_RUN = text("""
 
 
 def _value(v):
+    """Convert a pandas value to something psycopg can write (None for missing, plain Python for numpy)."""
     if v is None or (not isinstance(v, str) and pd.isna(v)):
         return None
     return v.item() if hasattr(v, "item") else v  # numpy scalars -> plain Python for psycopg
 
 
 def _copy(conn: Connection, table: str, columns: list[str], rows) -> None:
+    """Bulk insert rows into a table with COPY."""
     cursor = conn.connection.driver_connection.cursor()
     with cursor.copy(f"COPY {table} ({', '.join(columns)}) FROM STDIN") as copy:
         for row in rows:
@@ -81,6 +83,7 @@ def _copy(conn: Connection, table: str, columns: list[str], rows) -> None:
 
 
 def stage(conn: Connection, data: Transformed) -> None:
+    """Create temporary staging tables and copy the transformed data into them."""
     for ddl in STAGING_TABLES:
         conn.exec_driver_sql(ddl)
     _copy(conn, "stage_nodes", ["id", "geom", "street_count"], (
@@ -103,11 +106,13 @@ def stage(conn: Connection, data: Transformed) -> None:
 
 
 def swap(conn: Connection) -> None:
+    """Replace the live road network and OSM facilities with the staged data."""
     for statement in SWAP_STATEMENTS:
         conn.exec_driver_sql(statement)
 
 
 def counts(conn: Connection) -> dict[str, int]:
+    """Return row counts of the road and facility tables."""
     return {
         table: conn.execute(text(f"SELECT count(*) FROM {table}")).scalar_one()
         for table in ("road_nodes", "road_edges", "facilities")
@@ -116,6 +121,7 @@ def counts(conn: Connection) -> dict[str, int]:
 
 def run_import(engine: Engine, data: Transformed, area: str, snapshot: str | None,
                started_at: datetime | None = None) -> dict[str, int]:
+    """Load transformed data in one transaction and record the run, keeping old data on failure."""
     started_at = started_at or datetime.now(timezone.utc)
     try:
         with engine.begin() as conn:

@@ -18,6 +18,7 @@ log = logging.getLogger("pipeline")
 
 
 def parse_args(argv: list[str] | None) -> argparse.Namespace:
+    """Parse and check the command-line arguments."""
     parser = argparse.ArgumentParser(prog="python -m pipeline",
                                      description="Import OpenStreetMap roads and facilities into PostGIS.")
     parser.add_argument("--area", choices=settings.AREAS, default="district")
@@ -33,6 +34,7 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Run extract, transform, validate and load, and return the exit code."""
     args = parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", datefmt="%H:%M:%S")
     logging.getLogger("pyogrio").setLevel(logging.WARNING)

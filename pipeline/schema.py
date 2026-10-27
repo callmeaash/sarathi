@@ -20,6 +20,7 @@ class SchemaError(Exception):
 
 
 def find_problems(actual: dict[str, set[str]], has_postgis: bool) -> list[str]:
+    """List what is missing compared with the tables and columns the pipeline needs."""
     problems = [] if has_postgis else ["the PostGIS extension is not installed in this database"]
     for table, columns in REQUIRED_COLUMNS.items():
         if table not in actual:
@@ -30,6 +31,7 @@ def find_problems(actual: dict[str, set[str]], has_postgis: bool) -> list[str]:
 
 
 def read_schema(conn: Connection) -> tuple[dict[str, set[str]], bool]:
+    """Read the existing columns of the pipeline's tables and whether PostGIS is installed."""
     rows = conn.execute(text("""
         SELECT table_name, column_name FROM information_schema.columns
         WHERE table_schema = current_schema() AND table_name = ANY(:tables)
@@ -42,6 +44,7 @@ def read_schema(conn: Connection) -> tuple[dict[str, set[str]], bool]:
 
 
 def check_schema(engine: Engine) -> None:
+    """Raise SchemaError if the database cannot be reached or lacks the needed schema."""
     try:
         with engine.connect() as conn:
             actual, has_postgis = read_schema(conn)

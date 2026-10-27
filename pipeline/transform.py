@@ -30,11 +30,12 @@ class Transformed:
 
 
 def is_missing(value) -> bool:
+    """Return True for None or NaN."""
     return value is None or (isinstance(value, float) and math.isnan(value))
 
 
 def as_list(value) -> list:
-    # GraphML and GeoJSON round-trips turn OSMnx list attributes into strings like "['a', 'b']"
+    """Return a value as a list, including lists stored as text or numpy arrays after a file round trip."""
     if isinstance(value, str) and value.startswith("[") and value.endswith("]"):
         try:
             value = ast.literal_eval(value)
@@ -46,10 +47,12 @@ def as_list(value) -> list:
 
 
 def first(value):
+    """Return the first non-missing value of a possibly list-valued attribute."""
     return next((v for v in as_list(value) if not is_missing(v)), None)
 
 
 def clean_text(value) -> str | None:
+    """Return the first value as text with extra whitespace removed, or None if empty."""
     value = first(value)
     if value is None:
         return None
@@ -58,10 +61,12 @@ def clean_text(value) -> str | None:
 
 
 def tag_is_set(value) -> bool:
+    """Return True if an OSM tag such as bridge or tunnel has any value other than no."""
     return any(not is_missing(v) and str(v).strip().lower() not in NEGATIVE_VALUES for v in as_list(value))
 
 
 def parse_bool(value) -> bool:
+    """Convert an OSM or GraphML boolean value to bool."""
     value = first(value)
     if isinstance(value, bool):
         return value
@@ -69,6 +74,7 @@ def parse_bool(value) -> bool:
 
 
 def speed_for(highway: str | None, speeds: dict[str, float], fallback: float) -> float:
+    """Return the default speed for a road type, treating _link roads like their main road."""
     if not highway:
         return fallback
     return speeds.get(highway.removesuffix("_link"), fallback)
@@ -76,6 +82,7 @@ def speed_for(highway: str | None, speeds: dict[str, float], fallback: float) ->
 
 def add_speeds(graph: nx.MultiDiGraph, speeds: dict[str, float] = settings.SPEEDS_KPH,
                fallback: float = settings.FALLBACK_SPEED_KPH) -> nx.MultiDiGraph:
+    """Set speed_kph and travel_time_s on every edge from its road type and length."""
     if fallback <= 0 or any(s <= 0 for s in speeds.values()):
         raise ValueError("speeds must be positive")
     for u, v, data in graph.edges(data=True):
@@ -91,6 +98,7 @@ def add_speeds(graph: nx.MultiDiGraph, speeds: dict[str, float] = settings.SPEED
 
 
 def largest_strong_component(graph: nx.MultiDiGraph) -> tuple[nx.MultiDiGraph, int]:
+    """Keep the largest strongly connected part of the graph and count the dropped nodes."""
     if graph.number_of_nodes() == 0:
         raise ValueError("road graph is empty")
     keep = max(nx.strongly_connected_components(graph), key=len)
@@ -98,6 +106,7 @@ def largest_strong_component(graph: nx.MultiDiGraph) -> tuple[nx.MultiDiGraph, i
 
 
 def nodes_table(graph: nx.MultiDiGraph) -> pd.DataFrame:
+    """Turn graph nodes into a table of id, lon, lat and street count."""
     rows = [
         (int(n), float(d["x"]), float(d["y"]), None if is_missing(d.get("street_count")) else int(d["street_count"]))
         for n, d in graph.nodes(data=True)
@@ -106,6 +115,7 @@ def nodes_table(graph: nx.MultiDiGraph) -> pd.DataFrame:
 
 
 def _edge_geometry(graph: nx.MultiDiGraph, u, v, data) -> BaseGeometry:
+    """Return an edge's line, building a straight one from its nodes if it has none."""
     geom = data.get("geometry")
     if isinstance(geom, str):
         geom = shapely_wkt.loads(geom)
@@ -116,6 +126,7 @@ def _edge_geometry(graph: nx.MultiDiGraph, u, v, data) -> BaseGeometry:
 
 
 def edges_table(graph: nx.MultiDiGraph) -> pd.DataFrame:
+    """Turn graph edges into a table with normalised OSM attributes and WKT geometry."""
     rows = []
     for u, v, k, d in graph.edges(keys=True, data=True):
         way = first(d.get("osmid"))
@@ -135,15 +146,17 @@ def edges_table(graph: nx.MultiDiGraph) -> pd.DataFrame:
 
 
 def _column(df: pd.DataFrame, name: str) -> pd.Series:
+    """Return a column, or an empty one if the frame does not have it."""
     return df[name] if name in df.columns else pd.Series(None, index=df.index, dtype=object)
 
 
 def _mapped(series: pd.Series, fn) -> pd.Series:
-    # Build an object column so missing results stay None (string columns in pandas 3 turn None into NaN).
+    """Apply a function to a column, keeping missing results as None (pandas 3 string columns use NaN)."""
     return pd.Series([fn(v) for v in series], index=series.index, dtype=object)
 
 
 def clean_phone(value) -> str | None:
+    """Return the first phone number from a value that may list several."""
     text = clean_text(value)
     if not text:
         return None
@@ -151,6 +164,7 @@ def clean_phone(value) -> str | None:
 
 
 def parse_emergency(value) -> bool | None:
+    """Convert the OSM emergency tag to True, False or None."""
     text = (clean_text(value) or "").lower()
     if text in {"yes", "designated"}:
         return True
@@ -160,13 +174,16 @@ def parse_emergency(value) -> bool | None:
 
 
 def _address(df: pd.DataFrame) -> pd.Series:
+    """Build an address from addr:street and addr:city."""
     pairs = zip(_column(df, "addr:street"), _column(df, "addr:city"))
     values = [", ".join(p for p in (clean_text(s), clean_text(c)) if p) or None for s, c in pairs]
     return pd.Series(values, index=df.index, dtype=object)
 
 
 def is_veterinary(df: pd.DataFrame, pattern: str = settings.VETERINARY_PATTERN) -> pd.Series:
+    """Flag veterinary facilities by healthcare tag or by name in English or Nepali."""
     def matches(v) -> bool:
+        """Return True if the value matches the veterinary name pattern."""
         return bool(re.search(pattern, clean_text(v) or "", re.IGNORECASE))
 
     vet = _mapped(_column(df, "healthcare"), lambda v: clean_text(v) == "veterinary").astype(bool)
@@ -176,11 +193,12 @@ def is_veterinary(df: pd.DataFrame, pattern: str = settings.VETERINARY_PATTERN) 
 
 
 def _name_keys(row) -> set[str]:
+    """Return a facility's normalised names, used to spot duplicates."""
     return {re.sub(r"\W+", "", n.casefold()) for n in (row["name"], row["name_en"], row["name_ne"]) if n} - {""}
 
 
 def dedupe_facilities(gdf: gpd.GeoDataFrame, radius_m: float = settings.DEDUPE_RADIUS_M) -> gpd.GeoDataFrame:
-    # The same place is often mapped twice: as a point and as a building outline.
+    """Merge places mapped twice (point and building outline), keeping the more detailed one."""
     if len(gdf) < 2:
         return gdf
     detail = gdf[["name_en", "phone", "opening_hours", "address", "emergency"]].notna().sum(axis=1)
@@ -202,6 +220,7 @@ def dedupe_facilities(gdf: gpd.GeoDataFrame, radius_m: float = settings.DEDUPE_R
 
 
 def clean_facilities(raw: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    """Filter, normalise and deduplicate raw OSM facilities into one point each."""
     df = raw[_column(raw, "amenity").isin(settings.FACILITY_KINDS)]
     df = df[df.geometry.notna() & ~df.geometry.is_empty]
     df = df[~is_veterinary(df)]
@@ -226,6 +245,7 @@ def clean_facilities(raw: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
 
 def transform(graph: nx.MultiDiGraph, raw_facilities: gpd.GeoDataFrame) -> Transformed:
+    """Run all transform steps on a raw graph and raw facilities."""
     graph, dropped = largest_strong_component(graph)
     add_speeds(graph)
     return Transformed(nodes_table(graph), edges_table(graph), clean_facilities(raw_facilities), dropped)

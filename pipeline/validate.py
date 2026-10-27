@@ -18,15 +18,19 @@ class Report:
 
     @property
     def ok(self) -> bool:
+        """Return True if there are no errors."""
         return not self.errors
 
     def raise_for_errors(self) -> None:
+        """Raise ValidationError if the report has errors."""
         if self.errors:
             raise ValidationError("; ".join(self.errors))
 
 
 def _bad_numbers(series: pd.Series, allow_zero: bool) -> int:
+    """Count values that are missing, infinite, negative or (unless allowed) zero."""
     def bad(v) -> bool:
+        """Return True if the value is not a valid non-negative number."""
         if v is None or not isinstance(v, (int, float)) or math.isnan(v) or math.isinf(v):
             return True
         return v < 0 or (v == 0 and not allow_zero)
@@ -34,6 +38,7 @@ def _bad_numbers(series: pd.Series, allow_zero: bool) -> int:
 
 
 def check_nodes(nodes: pd.DataFrame, min_nodes: int, report: Report) -> None:
+    """Check node count, duplicate ids and coordinates."""
     if len(nodes) < min_nodes:
         report.errors.append(f"only {len(nodes)} road nodes, expected at least {min_nodes}")
     if nodes["id"].duplicated().any():
@@ -44,6 +49,7 @@ def check_nodes(nodes: pd.DataFrame, min_nodes: int, report: Report) -> None:
 
 
 def check_edges(edges: pd.DataFrame, nodes: pd.DataFrame, report: Report) -> None:
+    """Check edges reference existing nodes and have valid numbers and geometry."""
     if edges.empty:
         report.errors.append("no road edges")
         return
@@ -65,6 +71,7 @@ def check_edges(edges: pd.DataFrame, nodes: pd.DataFrame, report: Report) -> Non
 
 
 def check_facilities(facilities: gpd.GeoDataFrame, report: Report) -> None:
+    """Check there are hospitals, no duplicates, and warn about missing kinds or names."""
     counts = facilities["kind"].value_counts() if len(facilities) else pd.Series(dtype=int)
     if counts.get("hospital", 0) == 0:
         report.errors.append("no hospitals found")
@@ -80,6 +87,7 @@ def check_facilities(facilities: gpd.GeoDataFrame, report: Report) -> None:
 
 
 def validate(nodes: pd.DataFrame, edges: pd.DataFrame, facilities: gpd.GeoDataFrame, min_nodes: int) -> Report:
+    """Run all checks and return a report of errors and warnings."""
     report = Report()
     check_nodes(nodes, min_nodes, report)
     check_edges(edges, nodes, report)

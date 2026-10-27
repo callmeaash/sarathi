@@ -15,6 +15,7 @@ depends_on = None
 
 
 def upgrade() -> None:
+    """Create the road network, facilities and import run tables."""
     op.execute("CREATE EXTENSION IF NOT EXISTS postgis")
 
     op.create_table(
@@ -104,6 +105,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Drop the tables created by this migration."""
     op.drop_table("import_runs")
     op.drop_table("facilities")
     op.drop_table("road_edges")
