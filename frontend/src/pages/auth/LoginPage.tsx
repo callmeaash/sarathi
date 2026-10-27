@@ -4,6 +4,7 @@ import { Link, useLocation, useSearchParams } from 'react-router'
 import { ApiError, describeError } from '../../api/client'
 import { logIn } from '../../auth/actions'
 import { Alert } from '../../components/Alert'
+import { ClosuresSummary } from '../../components/ClosuresSummary'
 import { Button } from '../../components/form/Button'
 import { PasswordField } from '../../components/form/PasswordField'
 import { TextField } from '../../components/form/TextField'
@@ -47,7 +48,10 @@ export function LoginPage() {
 
   return (
     <>
-      <AuthHeading title="Log in">Welcome back.</AuthHeading>
+      <AuthHeading title="Log in">Welcome back. Log in to report hazards and follow your reports.</AuthHeading>
+      <div className="mb-6">
+        <ClosuresSummary />
+      </div>
       <form onSubmit={submit} noValidate className="space-y-5">
         {state?.passwordChanged && !error && (
           <Alert tone="success">Password changed. Log in with your new password.</Alert>

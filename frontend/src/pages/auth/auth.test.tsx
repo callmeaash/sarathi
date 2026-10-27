@@ -56,7 +56,7 @@ describe('sign up', () => {
     expect(screen.getByText('Enter a valid email address.')).toBeInTheDocument()
     expect(screen.getByText('Use at least 8 characters.')).toBeInTheDocument()
     expect(screen.getByText('Please confirm to continue.')).toBeInTheDocument()
-    expect(fetch).not.toHaveBeenCalled()
+    expect(await sent(fetch, 'POST', '/api/auth/register')).toHaveLength(0)
   })
 
   it('offers to log in when the email is taken', async () => {

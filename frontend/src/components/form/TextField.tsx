@@ -27,7 +27,8 @@ export function TextField({ label, icon, error, hint, trailing, id, className = 
       >
         <label
           htmlFor={inputId}
-          className={`absolute -top-2 left-3 bg-surface-container-lowest px-1 text-label-sm ${
+          // Only the lower half is filled, so the label sits cleanly on the border over any page background.
+          className={`absolute -top-2 left-3 bg-[linear-gradient(to_bottom,transparent_50%,var(--color-surface-container-lowest)_50%)] px-1 text-label-sm ${
             error ? 'text-error' : 'text-on-surface-variant'
           }`}
         >
