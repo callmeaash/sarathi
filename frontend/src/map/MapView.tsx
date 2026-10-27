@@ -8,6 +8,7 @@ import {
 import { Icon } from '../components/Icon'
 import { MAX_ZOOM, MIN_ZOOM, PANNING_BOUNDS, TILES } from './config'
 import { useAppMap } from './context'
+import { LayersControl } from './LayersControl'
 import { saveView, savedView } from './view'
 
 const NOTICE_MS = 6000
@@ -75,7 +76,9 @@ function MapControls() {
   const { map, locate, locateStatus } = useAppMap()
   const locating = locateStatus === 'locating'
   return (
-    <div className="absolute right-3 bottom-[calc(var(--sheet-height,0px)+2.5rem)] z-[1000] flex flex-col gap-2 transition-[bottom] lg:right-4 lg:bottom-10">
+    // Hidden while the phone's sheet is pulled up: the map is mostly covered and they'd run into the header.
+    <div className="absolute right-3 bottom-[calc(var(--sheet-height,0px)+2.5rem)] z-[1000] flex flex-col gap-2 transition-[bottom] in-data-[sheet=expanded]:hidden lg:right-4 lg:bottom-10 lg:in-data-[sheet=expanded]:flex">
+      <LayersControl buttonClass={controlButton} />
       <button type="button" onClick={() => locate()} disabled={locating} aria-label="Show my location"
         className={`${controlButton} rounded-full border border-border-muted shadow-float`}>
         {locating

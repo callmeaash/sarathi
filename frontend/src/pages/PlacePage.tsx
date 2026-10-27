@@ -6,13 +6,12 @@ import { Icon } from '../components/Icon'
 import { Spinner } from '../components/Spinner'
 import { buttonClass } from '../components/form/buttonStyles'
 import { useFacility } from '../facilities/api'
-import { FacilitiesLayer } from '../facilities/FacilitiesLayer'
 import { kindInfo } from '../facilities/kinds'
 import { formatDistance, formatDuration, formatOpeningHours } from '../lib/format'
 import { LOCATE_ZOOM, inDistrict } from '../map/config'
 import { useAppMap } from '../map/context'
 import { focusOn, showAll } from '../map/focus'
-import { MapLayers } from '../map/MapLayers'
+import { BaseLayers } from '../map/BaseLayers'
 
 type Facility = Schemas['FacilityDetail']
 
@@ -174,7 +173,7 @@ export function PlacePage() {
 
   return (
     <>
-      <MapLayers><FacilitiesLayer selectedId={id} /></MapLayers>
+      <BaseLayers facilityId={id} />
       <button type="button" onClick={back}
         className="-ml-2 mb-2 inline-flex items-center gap-1 rounded-full px-2 py-1 text-label-lg text-primary hover:bg-surface-tint-light">
         <Icon name="arrow_back" className="text-[20px]" /> Back

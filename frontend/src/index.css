@@ -184,6 +184,41 @@
   display: none;
 }
 
+/* Hazard markers: rounded squares, red when verified, amber while waiting for review. */
+.hazard-pin {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border: 2px solid #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgb(27 28 30 / 0.35);
+  cursor: pointer;
+}
+
+.hazard-pin .icon {
+  font-size: 18px;
+}
+
+.hazard-pin--verified {
+  background: var(--color-hazard-closure-red);
+  color: #fff;
+}
+
+.hazard-pin--pending {
+  background: var(--color-pending-amber);
+  color: var(--color-on-surface);
+}
+
+.hazard-pin.is-selected {
+  border-width: 3px;
+  box-shadow: 0 0 0 4px rgb(255 255 255 / 0.6), 0 2px 8px rgb(27 28 30 / 0.4);
+}
+
+.hazard-pin.is-selected .icon {
+  font-size: 24px;
+}
+
 @utility icon {
   font-family: "Material Symbols Outlined";
   font-weight: normal;

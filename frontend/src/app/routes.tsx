@@ -14,7 +14,9 @@ import { SignupPage } from '../pages/auth/SignupPage'
 import { VerifyEmailPage } from '../pages/auth/VerifyEmailPage'
 import { WelcomePage } from '../pages/auth/WelcomePage'
 import { FirstVisit } from '../pages/auth/firstVisit'
-import { DirectionsPage, HazardsPage, MyReportsPage, NearbyPage, ReportPage } from '../pages/sections'
+import { HazardPage } from '../pages/HazardPage'
+import { HazardsPage } from '../pages/HazardsPage'
+import { DirectionsPage, MyReportsPage, NearbyPage, ReportPage } from '../pages/sections'
 
 const MAP_PAGE = { map: true }
 
@@ -47,6 +49,7 @@ export const routes: RouteObject[] = [
           { index: true, element: <FirstVisit><ExplorePage /></FirstVisit>, handle: MAP_PAGE },
           { path: 'directions', element: <DirectionsPage />, handle: MAP_PAGE },
           { path: 'hazards', element: <HazardsPage />, handle: MAP_PAGE },
+          { path: 'hazards/:id', element: <HazardPage />, handle: MAP_PAGE },
           { path: 'nearby', element: <NearbyPage />, handle: MAP_PAGE },
           { path: 'place/:id', element: <PlacePage />, handle: MAP_PAGE },
           {

@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { Marker, Tooltip, useMap, useMapEvents } from 'react-leaflet'
 import { useNavigate } from 'react-router'
 
+import { useLayers } from '../map/layers'
 import { useAllFacilities } from './api'
 import { useShownKinds } from './filter'
 import { kindInfo } from './kinds'
@@ -38,6 +39,7 @@ export function FacilitiesLayer({ selectedId }: { selectedId?: number }) {
   const navigate = useNavigate()
   const { data } = useAllFacilities()
   const kinds = useShownKinds()
+  const { facilities: layerOn } = useLayers()
   const [view, setView] = useState(() => ({ bounds: map.getBounds().pad(VIEW_PADDING), zoom: map.getZoom() }))
   useMapEvents({ moveend: () => setView({ bounds: map.getBounds().pad(VIEW_PADDING), zoom: map.getZoom() }) })
 
@@ -49,7 +51,7 @@ export function FacilitiesLayer({ selectedId }: { selectedId?: number }) {
     const taken = new Set<string>()
     return ordered.filter((facility) => {
       if (facility.id === selectedId) return true
-      const shown = (kinds as string[]).includes(facility.kind) && view.zoom >= kindInfo(facility.kind).minZoom
+      const shown = layerOn && (kinds as string[]).includes(facility.kind) && view.zoom >= kindInfo(facility.kind).minZoom
       if (!shown || (sized && !view.bounds.contains([facility.lat, facility.lon]))) return false
       if (view.zoom >= SHOW_ALL_FROM_ZOOM) return true
       const point = map.project([facility.lat, facility.lon], view.zoom)
@@ -58,7 +60,7 @@ export function FacilitiesLayer({ selectedId }: { selectedId?: number }) {
       taken.add(cell)
       return true
     })
-  }, [ordered, kinds, view, selectedId, map])
+  }, [ordered, kinds, layerOn, view, selectedId, map])
 
   return visible.map((facility) => {
     const selected = facility.id === selectedId

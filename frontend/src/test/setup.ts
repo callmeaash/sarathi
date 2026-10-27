@@ -4,6 +4,7 @@ import { afterEach, beforeEach, vi } from 'vitest'
 
 import { setSession } from '../auth/session'
 import { reloadKinds } from '../facilities/filter'
+import { reloadLayers } from '../map/layers'
 
 // The whole app renders in every test, map included; give async checks room when the suite runs in parallel.
 configure({ asyncUtilTimeout: 3000 })
@@ -17,6 +18,7 @@ afterEach(() => {
   setSession(null)
   window.localStorage.clear()
   reloadKinds()  // back to showing every kind of facility
+  reloadLayers()
   vi.unstubAllGlobals()
   vi.useRealTimers()
 })

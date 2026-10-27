@@ -166,7 +166,7 @@ export function AppShell() {
     <div className="flex h-dvh flex-col">
       <DesktopHeader />
       <MobileHeader />
-      <div className={`relative flex min-h-0 flex-1 lg:[--sheet-height:0px] ${
+      <div data-sheet={mapPage ? sheet : undefined} className={`relative flex min-h-0 flex-1 lg:[--sheet-height:0px] ${
         mapPage ? SHEET_HEIGHTS[sheet] : '[--sheet-height:0px]'}`}>
         <SideNav />
         <main

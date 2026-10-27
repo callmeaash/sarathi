@@ -7,11 +7,6 @@ export function DirectionsPage() {
   return <PageHeader title="Directions" subtitle="Routes that avoid verified road closures." />
 }
 
-/** Verified closures and unconfirmed reports. */
-export function HazardsPage() {
-  return <PageHeader title="Hazards" subtitle="Road closures and reports across Kathmandu District." />
-}
-
 /** Nearest facilities by road. */
 export function NearbyPage() {
   return <PageHeader title="Nearby" subtitle="The closest hospitals, police and pharmacies by road." />
