@@ -170,6 +170,7 @@ export function AppShell() {
         mapPage ? SHEET_HEIGHTS[sheet] : '[--sheet-height:0px]'}`}>
         <SideNav />
         <main
+          data-map-sheet={mapPage || undefined}
           className={`min-w-0 lg:static lg:z-auto lg:flex lg:h-auto lg:w-100 lg:flex-none lg:flex-col lg:rounded-none lg:border-r lg:border-border-muted lg:shadow-none ${
             mapPage
               ? 'absolute inset-x-0 bottom-0 z-10 flex h-(--sheet-height) flex-col rounded-t-sheet bg-surface-container-lowest shadow-[0_-4px_16px_rgb(27_28_30/0.12)] transition-[height] duration-200'

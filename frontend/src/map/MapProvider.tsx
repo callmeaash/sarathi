@@ -2,6 +2,7 @@ import type { Map as LeafletMap } from 'leaflet'
 import { type ReactNode, useCallback, useMemo, useState } from 'react'
 
 import { DISTRICT_BOUNDS, LOCATE_ZOOM, inDistrict } from './config'
+import { focusOn } from './focus'
 import { type LocateStatus, MapContext, type MapState, type UserLocation } from './context'
 import { LOCATE_OPTIONS, NO_GEOLOCATION, OUTSIDE_DISTRICT, locationErrorMessage } from './locate'
 
@@ -11,8 +12,9 @@ export function MapProvider({ children }: { children: ReactNode }) {
   const [location, setLocation] = useState<UserLocation | null>(null)
   const [locateStatus, setLocateStatus] = useState<LocateStatus>('idle')
   const [notice, setNotice] = useState<string | null>(null)
+  const [overlay, setOverlay] = useState<HTMLElement | null>(null)
 
-  const locate = useCallback(() => {
+  const locate = useCallback(({ moveMap = true }: { moveMap?: boolean } = {}) => {
     if (!('geolocation' in navigator)) {
       setLocateStatus('error')
       setNotice(NO_GEOLOCATION)
@@ -26,10 +28,10 @@ export function MapProvider({ children }: { children: ReactNode }) {
         setLocateStatus('found')
         if (inDistrict(found.lat, found.lon)) {
           setNotice(null)
-          map?.flyTo([found.lat, found.lon], Math.max(map.getZoom(), LOCATE_ZOOM))
+          if (map && moveMap) focusOn(map, [found.lat, found.lon], Math.max(map.getZoom(), LOCATE_ZOOM))
         } else {
           setNotice(OUTSIDE_DISTRICT)
-          map?.fitBounds(DISTRICT_BOUNDS)
+          if (moveMap) map?.fitBounds(DISTRICT_BOUNDS)
         }
       },
       (error) => {
@@ -41,8 +43,8 @@ export function MapProvider({ children }: { children: ReactNode }) {
   }, [map])
 
   const value = useMemo<MapState>(() => ({
-    map, setMap, location, locateStatus, locate, notice, showNotice: setNotice,
-  }), [map, location, locateStatus, locate, notice])
+    map, setMap, location, locateStatus, locate, notice, showNotice: setNotice, overlay, setOverlay,
+  }), [map, location, locateStatus, locate, notice, overlay])
 
   return <MapContext value={value}>{children}</MapContext>
 }

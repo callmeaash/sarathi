@@ -30,12 +30,16 @@ async function pressLocate() {
 afterEach(() => vi.restoreAllMocks())
 
 describe('locate me', () => {
-  it('flies to the user inside the district', async () => {
-    const flyTo = vi.spyOn(L.Map.prototype, 'flyTo').mockReturnThis()
+  it('centres on the user inside the district', async () => {
+    // The test map has no size, so it jumps (setView) rather than animating.
+    const setView = vi.spyOn(L.Map.prototype, 'setView')
     const geolocation = fakeGeolocation({ lat: 27.7, lon: 85.31 })
     await pressLocate()
     expect(geolocation).toHaveBeenCalledOnce()
-    expect(flyTo).toHaveBeenCalledWith([27.7, 85.31], 16)
+    const [center, zoom] = setView.mock.lastCall!
+    expect(L.latLng(center).lat).toBeCloseTo(27.7, 5)
+    expect(L.latLng(center).lng).toBeCloseTo(85.31, 5)
+    expect(zoom).toBe(16)
     expect(screen.queryByText(OUTSIDE_DISTRICT)).not.toBeInTheDocument()
   })
 

@@ -2,7 +2,7 @@ import 'leaflet/dist/leaflet.css'
 
 import { useEffect, useState } from 'react'
 import {
-  AttributionControl, Circle, CircleMarker, MapContainer, ScaleControl, TileLayer, Tooltip, useMap, useMapEvents,
+  AttributionControl, Circle, CircleMarker, MapContainer, Pane, ScaleControl, TileLayer, Tooltip, useMap, useMapEvents,
 } from 'react-leaflet'
 
 import { Icon } from '../components/Icon'
@@ -53,8 +53,9 @@ function YouAreHere() {
   const { location } = useAppMap()
   if (!location) return null
   const center: [number, number] = [location.lat, location.lon]
+  // Its own pane above the markers (600), so facility badges never hide where the user is.
   return (
-    <>
+    <Pane name="you-are-here" style={{ zIndex: 650 }}>
       {location.accuracy <= SHOW_ACCURACY_UP_TO_M && (
         <Circle center={center} radius={location.accuracy} interactive={false}
           pathOptions={{ color: PRIMARY, weight: 1, opacity: 0.4, fillColor: PRIMARY, fillOpacity: 0.08 }} />
@@ -63,7 +64,7 @@ function YouAreHere() {
         pathOptions={{ color: '#ffffff', weight: 3, fillColor: PRIMARY, fillOpacity: 1 }}>
         <Tooltip direction="top" offset={[0, -8]}>You are here</Tooltip>
       </CircleMarker>
-    </>
+    </Pane>
   )
 }
 
@@ -75,7 +76,7 @@ function MapControls() {
   const locating = locateStatus === 'locating'
   return (
     <div className="absolute right-3 bottom-[calc(var(--sheet-height,0px)+2.5rem)] z-[1000] flex flex-col gap-2 transition-[bottom] lg:right-4 lg:bottom-10">
-      <button type="button" onClick={locate} disabled={locating} aria-label="Show my location"
+      <button type="button" onClick={() => locate()} disabled={locating} aria-label="Show my location"
         className={`${controlButton} rounded-full border border-border-muted shadow-float`}>
         {locating
           ? <span className="size-5 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden />
@@ -94,6 +95,12 @@ function MapControls() {
   )
 }
 
+/** Strip along the top of the map where a page can put controls, such as the facility filters on phones. */
+function OverlaySlot() {
+  const { setOverlay } = useAppMap()
+  return <div ref={setOverlay} className="pointer-events-none absolute inset-x-0 top-0 z-[1000] *:pointer-events-auto" />
+}
+
 /** Short message over the map (e.g. location blocked); goes away by itself. */
 function MapNotice() {
   const { notice, showNotice } = useAppMap()
@@ -104,7 +111,7 @@ function MapNotice() {
   }, [notice, showNotice])
   if (!notice) return null
   return (
-    <div role="status" className="absolute inset-x-3 top-3 z-[1000] mx-auto flex max-w-md items-start gap-3 rounded-xl bg-inverse-surface px-4 py-3 text-body-md text-inverse-on-surface shadow-float">
+    <div role="status" className="absolute inset-x-3 top-16 z-[1001] lg:top-3 mx-auto flex max-w-md items-start gap-3 rounded-xl bg-inverse-surface px-4 py-3 text-body-md text-inverse-on-surface shadow-float">
       <Icon name="info" className="text-[20px]" />
       <p className="flex-1">{notice}</p>
       <button type="button" onClick={() => showNotice(null)} aria-label="Dismiss" className="-my-1 -mr-1 grid size-8 place-items-center rounded-full hover:bg-white/10">
@@ -130,6 +137,7 @@ export function MapView() {
         <FitContainer />
         <YouAreHere />
       </MapContainer>
+      <OverlaySlot />
       <MapControls />
       <MapNotice />
     </div>

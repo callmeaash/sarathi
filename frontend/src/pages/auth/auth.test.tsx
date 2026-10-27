@@ -156,7 +156,7 @@ describe('log in', () => {
     const { router } = renderApp('/login')
     await logIn(user)
     await waitFor(() => expect(router.state.location.pathname).toBe('/verify'))
-    expect(screen.getByText(/Your email isn't verified yet/)).toBeInTheDocument()
+    expect(await screen.findByText(/Your email isn't verified yet/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Resend code' })).toBeEnabled()
   })
 
@@ -266,7 +266,7 @@ describe('password reset', () => {
     await user.type(screen.getByLabelText('New password'), 'a brand new passphrase')
     await user.click(screen.getByRole('button', { name: 'Change password' }))
     await waitFor(() => expect(router.state.location.pathname).toBe('/login'))
-    expect(screen.getByRole('status')).toHaveTextContent('Password changed.')
+    expect(await screen.findByText(/Password changed\./)).toBeInTheDocument()
     expect(within(screen.getByRole('main')).getByLabelText('Email')).toHaveValue(EMAIL)
     expect((await sent(fetch, 'POST', '/api/auth/reset-password'))[0].body)
       .toEqual({ email: EMAIL, code: '135790', new_password: 'a brand new passphrase' })

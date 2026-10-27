@@ -6,6 +6,7 @@ import { AuthLayout } from '../layouts/AuthLayout'
 import { AccountPage } from '../pages/AccountPage'
 import { NotFoundPage, RouteErrorPage } from '../pages/ErrorPages'
 import { ExplorePage } from '../pages/ExplorePage'
+import { PlacePage } from '../pages/PlacePage'
 import { ForgotPasswordPage } from '../pages/auth/ForgotPasswordPage'
 import { LoginPage } from '../pages/auth/LoginPage'
 import { ResetPasswordPage } from '../pages/auth/ResetPasswordPage'
@@ -47,6 +48,7 @@ export const routes: RouteObject[] = [
           { path: 'directions', element: <DirectionsPage />, handle: MAP_PAGE },
           { path: 'hazards', element: <HazardsPage />, handle: MAP_PAGE },
           { path: 'nearby', element: <NearbyPage />, handle: MAP_PAGE },
+          { path: 'place/:id', element: <PlacePage />, handle: MAP_PAGE },
           {
             element: <RequireAuth />,
             children: [

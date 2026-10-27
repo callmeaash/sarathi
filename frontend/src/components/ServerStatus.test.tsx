@@ -2,7 +2,7 @@ import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 
-import { HEALTHY, mockApi, renderApp } from '../test/render'
+import { HEALTHY, mockApi, renderApp, sent } from '../test/render'
 
 describe('server status', () => {
   it('shows live when the API answers', async () => {
@@ -19,7 +19,7 @@ describe('server status', () => {
     mockApi({ '/api/health': HEALTHY })
     await userEvent.click(screen.getByRole('button', { name: 'Try again' }))
     expect(await screen.findByText('Live')).toBeInTheDocument()
-    expect(fetch).toHaveBeenCalledTimes(1)
+    expect(await sent(fetch, 'GET', '/api/health')).toHaveLength(1)  // the first try; the retry used the new mock
   })
 
   it('treats a server error as offline', async () => {

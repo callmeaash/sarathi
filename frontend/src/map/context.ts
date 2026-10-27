@@ -10,9 +10,11 @@ export type MapState = {
   setMap: (map: LeafletMap | null) => void
   location: UserLocation | null
   locateStatus: LocateStatus
-  locate: () => void
+  locate: (options?: { moveMap?: boolean }) => void  // moveMap: false leaves the view to the caller
   notice: string | null
   showNotice: (message: string | null) => void
+  overlay: HTMLElement | null  // strip along the top of the map that pages can place controls in
+  setOverlay: (element: HTMLElement | null) => void
 }
 
 export const MapContext = createContext<MapState | null>(null)
