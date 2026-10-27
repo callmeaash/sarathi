@@ -33,7 +33,7 @@ Find open roads in Kathmandu: verified road closures, routes around them, and th
 3. Create the Python environment and install dependencies:
    ```
    python -m venv .venv
-   .venv\Scripts\python -m pip install -r backend\requirements.txt -r pipeline\requirements.txt
+   .venv\Scripts\python -m pip install -r backend\requirements-dev.txt -r pipeline\requirements.txt
    ```
 
 4. Create the tables:
@@ -62,6 +62,19 @@ Steps:
 2. **Transform**: keep the largest strongly connected part of the road network, set default speeds and travel times, clean facility names, phones and addresses, remove veterinary hospitals, and merge facilities mapped twice.
 3. **Validate**: stop before loading if the data looks wrong (too few roads, broken edges, no hospitals).
 4. **Load**: copy into staging tables, then replace the live road network and OSM facilities in one transaction, and link each facility to its nearest road node. Facilities edited by moderators (`source = 'manual'`) are never overwritten. Every run is recorded in `import_runs`.
+
+## Routing engine
+
+`backend/app/routing/` holds the routing engine, written from scratch:
+
+- `graph.py` loads `road_nodes` and `road_edges` into memory as a compact adjacency list (about 1 s for Kathmandu District).
+- `search.py` has one search function, `find_route`, that runs Dijkstra or A* (`algorithm="dijkstra" | "astar"`) for the shortest (`weight="length"`) or fastest (`weight="time"`) route. A* uses the straight-line distance (divided by the top speed in the graph for fastest routes), which never overestimates, so both algorithms return the same optimal cost.
+
+Benchmark Dijkstra against A* on random routes in the imported network (run from `backend/`):
+
+```
+..\.venv\Scripts\python -m app.routing.benchmark --pairs 100 --weight time --csv ..\data\benchmarks\time.csv
+```
 
 ## Tests
 
