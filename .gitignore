@@ -3,6 +3,9 @@ __pycache__/
 .env
 data/cache/
 data/explore/
+data/raw/
+.pytest_cache/
 scripts/
 ui/
 brand/
+CLAUDE.md
