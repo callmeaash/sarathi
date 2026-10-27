@@ -1,0 +1,148 @@
+@import "tailwindcss";
+
+/* Design tokens from ui/bato_civic_navigation/DESIGN.md, named as in the screen designs so their classes carry over. */
+@theme {
+  --font-sans: "Roboto Flex", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --color-surface: #faf9fb;
+  --color-surface-dim: #dbd9dc;
+  --color-surface-bright: #faf9fb;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f5f3f5;
+  --color-surface-container: #efedf0;
+  --color-surface-container-high: #e9e8ea;
+  --color-surface-container-highest: #e3e2e4;
+  --color-surface-variant: #e3e2e4;
+  --color-surface-tint-light: #f3f6fd;
+  --color-surface-tint-medium: #e8edfa;
+  --color-on-surface: #1b1c1e;
+  --color-on-surface-variant: #434655;
+  --color-inverse-surface: #303032;
+  --color-inverse-on-surface: #f2f0f3;
+  --color-outline: #747686;
+  --color-outline-variant: #c3c5d7;
+  --color-border-muted: #d0d7de;
+  --color-text-secondary: #5a5f66;
+  --color-background: #faf9fb;
+  --color-on-background: #1b1c1e;
+
+  --color-primary: #1f55e0;
+  --color-primary-hover: #1642b0;
+  --color-on-primary: #ffffff;
+  --color-primary-deep: #003db8;
+  --color-primary-fixed: #dce1ff;
+  --color-primary-fixed-dim: #b6c4ff;
+  --color-on-primary-fixed: #00164f;
+  --color-secondary: #545e75;
+  --color-secondary-container: #d8e2fd;
+  --color-on-secondary-container: #5a647b;
+  --color-tertiary: #00561d;
+  --color-open-green: #1e7b34;
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+
+  --color-hazard-closure-red: #c62828;
+  --color-pending-amber: #f2a900;
+  --color-hazard-flood-blue: #1e7fd8;
+  --color-hazard-landslide-brown: #8d5a3b;
+  --color-hazard-accident-orange: #e8590c;
+  --color-hazard-blocked-red: #d32f2f;
+  --color-hazard-works-amber: #e09100;
+  --color-facility-hospital-pink: #d23f57;
+  --color-facility-police-blue: #1f55e0;
+  --color-facility-pharmacy-green: #178a3e;
+  --color-facility-fire-orange: #e8710a;
+  --color-map-water: #3b82f6;
+
+  --text-display-lg: 36px;
+  --text-display-lg--line-height: 44px;
+  --text-display-lg--letter-spacing: -0.02em;
+  --text-display-lg--font-weight: 700;
+  --text-headline-lg: 28px;
+  --text-headline-lg--line-height: 36px;
+  --text-headline-lg--font-weight: 700;
+  --text-headline-md: 22px;
+  --text-headline-md--line-height: 28px;
+  --text-headline-md--font-weight: 600;
+  --text-headline-sm: 18px;
+  --text-headline-sm--line-height: 24px;
+  --text-headline-sm--font-weight: 600;
+  --text-title-md: 16px;
+  --text-title-md--line-height: 24px;
+  --text-title-md--letter-spacing: 0.01em;
+  --text-title-md--font-weight: 600;
+  --text-body-lg: 16px;
+  --text-body-lg--line-height: 24px;
+  --text-body-md: 14px;
+  --text-body-md--line-height: 20px;
+  --text-body-sm: 12px;
+  --text-body-sm--line-height: 16px;
+  --text-label-lg: 14px;
+  --text-label-lg--line-height: 20px;
+  --text-label-lg--letter-spacing: 0.01em;
+  --text-label-lg--font-weight: 600;
+  --text-label-md: 12px;
+  --text-label-md--line-height: 16px;
+  --text-label-md--letter-spacing: 0.02em;
+  --text-label-md--font-weight: 500;
+  --text-label-sm: 11px;
+  --text-label-sm--line-height: 14px;
+  --text-label-sm--letter-spacing: 0.03em;
+  --text-label-sm--font-weight: 500;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-sheet: 28px;
+
+  --shadow-float: 0 4px 12px rgb(27 28 30 / 0.08);
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-surface);
+    color: var(--color-on-surface);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}
+
+@utility icon {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  direction: ltr;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+@utility icon-filled {
+  font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}

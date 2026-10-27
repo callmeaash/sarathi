@@ -6,12 +6,14 @@ Find open roads in Kathmandu: verified road closures, routes around them, and th
 
 - `backend/` FastAPI app; owns the database schema (`app/models.py`, Alembic migrations)
 - `pipeline/` ETL that imports OpenStreetMap roads and facilities into PostGIS
+- `frontend/` React web app (mobile-first, with a desktop layout)
 - `data/` raw snapshots and download cache (not committed)
 
 ## Requirements
 
 - Python 3.12 or newer
 - PostgreSQL 18 with PostGIS (installed locally, e.g. with the EDB installer and Stack Builder)
+- Node.js 22.12 or newer (for the frontend)
 
 ## Setup
 
@@ -153,6 +155,28 @@ Measure how often the facility nearest in a straight line is not the nearest by 
 ```
 ..\.venv\Scripts\python -m app.routing.evaluate_nearest --points 500
 ```
+
+## Frontend
+
+React + TypeScript + Vite, styled with Tailwind using the design tokens from `ui/bato_civic_navigation/DESIGN.md`. Run the API first, then from `frontend/`:
+
+```
+npm install
+npm run dev
+```
+
+Open http://localhost:5173. In development Vite forwards `/api` to the API on port 8000 (`SARATHI_API_URL` changes this), so no CORS setup is needed.
+
+| Command | What it does |
+|---|---|
+| `npm run dev` | Development server with hot reload |
+| `npm test` | Unit and component tests (Vitest + Testing Library) |
+| `npm run typecheck` | TypeScript check |
+| `npm run lint` | Lint (oxlint) |
+| `npm run build` | Production build into `frontend/dist/` |
+| `npm run api:types` | Regenerate `src/api/schema.d.ts` from the backend after changing an endpoint |
+
+API calls go through `src/api/client.ts`, a client typed from the backend's OpenAPI schema, so a renamed field or a wrong parameter fails the type check instead of failing in the browser.
 
 ## Tests
 

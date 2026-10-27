@@ -14,6 +14,7 @@ from app.db import get_engine
 from app.errors import AppError
 from app.routing.geo import SnapError
 from app.routing.search import NoRouteError
+from app.schemas import HealthOut
 from app.state import RoutingState, load_routing_state
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -66,12 +67,12 @@ def create_app(engine: Engine | None = None, routing_state: RoutingState | None 
         """No open road connects the two points, e.g. because of closures."""
         return JSONResponse(status_code=404, content={"detail": "no open route between these points"})
 
-    @app.get("/api/health", tags=["health"])
-    def health(request: Request) -> dict:
+    @app.get("/api/health", tags=["health"], response_model=HealthOut)
+    def health(request: Request) -> HealthOut:
         """Report that the API is up and how much map data is loaded."""
         state: RoutingState = request.app.state.routing
-        return {"status": "ok", "nodes": state.graph.node_count, "edges": state.graph.edge_count,
-                "closed_edges": len(state.graph.closed_edge_ids()), "loaded_at": state.loaded_at.isoformat()}
+        return HealthOut(nodes=state.graph.node_count, edges=state.graph.edge_count,
+                         closed_edges=len(state.graph.closed_edge_ids()), loaded_at=state.loaded_at)
 
     return app
 

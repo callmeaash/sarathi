@@ -6,6 +6,14 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from app.routing.closures import DEFAULT_RADIUS_M
 
 
+class HealthOut(BaseModel):
+    status: Literal["ok"] = "ok"
+    nodes: int
+    edges: int
+    closed_edges: int
+    loaded_at: datetime
+
+
 class LineString(BaseModel):
     type: Literal["LineString"] = "LineString"
     coordinates: list[list[float]]
