@@ -3,6 +3,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
+from app.routing.closures import DEFAULT_RADIUS_M
+
 
 class LineString(BaseModel):
     type: Literal["LineString"] = "LineString"
@@ -123,3 +125,88 @@ class TokenOut(BaseModel):
 
 class MessageOut(BaseModel):
     message: str
+
+
+IncidentKind = Literal["landslide", "flood", "accident", "road_blocked", "road_works", "other"]
+Passable = Literal["no", "partly", "unsure"]
+
+
+class IncidentIn(BaseModel):
+    kind: IncidentKind
+    passable: Passable = "unsure"
+    note: str | None = Field(None, max_length=1000)  # the exact limit is checked after trimming whitespace
+    lon: float = Field(ge=-180, le=180)
+    lat: float = Field(ge=-90, le=90)
+
+
+class IncidentOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    kind: str
+    passable: str
+    note: str | None
+    status: str
+    lon: float  # on the road; the pin as dropped is kept for moderators only
+    lat: float
+    road_name: str | None
+    snap_distance_m: float
+    closure_radius_m: float | None
+    created_at: datetime
+    reviewed_at: datetime | None
+    review_note: str | None  # the reason a report was rejected
+    cleared_at: datetime | None
+    merged_into_id: int | None
+
+
+class ReporterOut(BaseModel):
+    id: int
+    name: str
+    verified_reports: int  # verified or later cleared
+    reviewed_reports: int  # verified, cleared or rejected
+
+
+class QueueItem(IncidentOut):
+    reporter: ReporterOut | None  # None once the account is deleted
+    similar_reports: int  # other pending reports close by and close in time
+
+
+class VerifyIn(BaseModel):
+    radius_m: float = Field(DEFAULT_RADIUS_M, ge=5, le=200)
+
+
+class RejectIn(BaseModel):
+    reason: str = Field(min_length=3, max_length=300)
+
+
+class MergeIn(BaseModel):
+    into_id: int
+
+
+class ModerationOut(BaseModel):
+    incident: IncidentOut
+    closed_edges: int = 0    # road segments closed by this action
+    reopened_edges: int = 0  # road segments open again (some may stay closed by another hazard)
+
+
+class ClosureOut(BaseModel):
+    incident_id: int
+    kind: str
+    road_name: str | None
+    radius_m: float
+    verified_at: datetime
+    lon: float
+    lat: float
+    edges: int
+    geometry: dict | None  # GeoJSON of the closed segments
+
+
+class AuditOut(BaseModel):
+    id: int
+    created_at: datetime
+    actor_id: int | None
+    actor_name: str | None
+    action: str
+    target_type: str
+    target_id: int
+    details: dict

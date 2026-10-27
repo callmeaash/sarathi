@@ -5,6 +5,7 @@ from sqlalchemy import (
     BigInteger, Boolean, CheckConstraint, DateTime, Double, ForeignKey, Index, Integer,
     SmallInteger, String, Text, UniqueConstraint, func,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -173,3 +174,57 @@ class RefreshToken(Base):
         CheckConstraint(f"revoke_reason IN {REVOKE_REASONS}", name="ck_refresh_tokens_reason"),
         Index("ix_refresh_tokens_user", "user_id"),
     )
+
+
+INCIDENT_KINDS = ("landslide", "flood", "accident", "road_blocked", "road_works", "other")
+INCIDENT_STATUSES = ("pending", "verified", "rejected", "cleared", "merged")
+PASSABLE = ("no", "partly", "unsure")
+
+
+# A hazard reported by a user. A verified incident closes every road segment within closure_radius_m of geom;
+# closures are recomputed from these rows at startup, so they survive restarts and map re-imports.
+class Incident(Base):
+    __tablename__ = "incidents"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    reporter_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id", ondelete="SET NULL"))
+    kind: Mapped[str] = mapped_column(String(20), nullable=False)
+    passable: Mapped[str] = mapped_column(String(10), nullable=False, server_default="unsure")
+    note: Mapped[str | None] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(10), nullable=False, server_default="pending")
+    geom = mapped_column(point(), nullable=False)           # snapped onto the nearest road
+    reported_geom = mapped_column(point(), nullable=False)  # where the pin was dropped
+    road_name: Mapped[str | None] = mapped_column(Text)
+    snap_distance_m: Mapped[float] = mapped_column(Double, nullable=False)
+    closure_radius_m: Mapped[float | None] = mapped_column(Double)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    reviewed_by: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id", ondelete="SET NULL"))
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    review_note: Mapped[str | None] = mapped_column(Text)
+    cleared_by: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id", ondelete="SET NULL"))
+    cleared_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    merged_into_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("incidents.id", ondelete="SET NULL"))
+
+    __table_args__ = (
+        CheckConstraint(f"kind IN {INCIDENT_KINDS}", name="ck_incidents_kind"),
+        CheckConstraint(f"status IN {INCIDENT_STATUSES}", name="ck_incidents_status"),
+        CheckConstraint(f"passable IN {PASSABLE}", name="ck_incidents_passable"),
+        CheckConstraint("status <> 'verified' OR closure_radius_m > 0", name="ck_incidents_verified_radius"),
+        Index("ix_incidents_status", "status"),
+        Index("ix_incidents_reporter", "reporter_id"),
+        Index("ix_incidents_geom", "geom", postgresql_using="gist"),
+    )
+
+
+class AuditLog(Base):
+    __tablename__ = "audit_log"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    actor_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id", ondelete="SET NULL"))
+    action: Mapped[str] = mapped_column(String(20), nullable=False)
+    target_type: Mapped[str] = mapped_column(String(20), nullable=False)
+    target_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    details: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default="{}")
+
+    __table_args__ = (Index("ix_audit_log_created", "created_at"),)

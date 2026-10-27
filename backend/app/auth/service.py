@@ -10,6 +10,7 @@ from app.auth.email import EmailSender, code_email
 from app.auth.passwords import DUMMY_HASH, hash_password, needs_rehash, password_problem, verify_password
 from app.auth.tokens import codes_match, create_access_token, hash_code, hash_token, new_code, new_refresh_token
 from app.config import AuthSettings
+from app.errors import AppError, InvalidInput, TooManyRequests
 from app.models import USER_ROLES, EmailCode, RefreshToken, User
 
 MAX_CODE_ATTEMPTS = 5
@@ -20,18 +21,8 @@ LOCK_DURATION = timedelta(minutes=15)
 MAX_NAME_LENGTH = 100
 
 
-class AuthError(Exception):
-    status_code = 400
-
-    def __init__(self, detail: str, retry_after: int | None = None):
-        """Error with a message for the client and, for rate limits, seconds to wait."""
-        super().__init__(detail)
-        self.detail = detail
-        self.retry_after = retry_after
-
-
-class InvalidInput(AuthError):
-    status_code = 422
+class AuthError(AppError):
+    pass
 
 
 class EmailTaken(AuthError):
@@ -52,10 +43,6 @@ class InvalidCode(AuthError):
 
 class AccountSuspended(AuthError):
     status_code = 403
-
-
-class TooManyRequests(AuthError):
-    status_code = 429
 
 
 @dataclass

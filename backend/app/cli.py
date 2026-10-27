@@ -3,8 +3,9 @@ import sys
 
 from sqlalchemy.orm import Session
 
-from app.auth.service import AuthError, set_role
+from app.auth.service import set_role
 from app.db import get_engine
+from app.errors import AppError
 from app.models import USER_ROLES
 
 
@@ -20,7 +21,7 @@ def main(argv: list[str] | None = None) -> int:
     with Session(get_engine()) as session:
         try:
             user = set_role(session, args.email, args.role)
-        except AuthError as exc:
+        except AppError as exc:
             print(exc.detail, file=sys.stderr)
             return 1
         print(f"{user.email} is now a {user.role}")  # inside the session: the user is reloaded after commit

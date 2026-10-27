@@ -7,11 +7,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import Engine
 
-from app.api import auth, facilities, routing
+from app.api import auth, facilities, incidents, moderation, routing
 from app.auth.email import EmailSender, email_sender
-from app.auth.service import AuthError
 from app.config import AuthSettings, load_auth_settings
 from app.db import get_engine
+from app.errors import AppError
 from app.routing.geo import SnapError
 from app.routing.search import NoRouteError
 from app.state import RoutingState, load_routing_state
@@ -47,10 +47,12 @@ def create_app(engine: Engine | None = None, routing_state: RoutingState | None 
     app.include_router(routing.router, prefix="/api")
     app.include_router(facilities.router, prefix="/api")
     app.include_router(auth.router, prefix="/api")
+    app.include_router(incidents.router, prefix="/api")
+    app.include_router(moderation.router, prefix="/api")
 
-    @app.exception_handler(AuthError)
-    async def auth_error(request: Request, exc: AuthError) -> JSONResponse:
-        """Turn auth rule violations into the matching HTTP status, with Retry-After for rate limits."""
+    @app.exception_handler(AppError)
+    async def app_error(request: Request, exc: AppError) -> JSONResponse:
+        """Turn rule violations into the matching HTTP status, with Retry-After for rate limits."""
         headers = {"Retry-After": str(exc.retry_after)} if exc.retry_after else None
         return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail}, headers=headers)
 
