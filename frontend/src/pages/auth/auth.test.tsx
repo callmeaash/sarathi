@@ -10,7 +10,7 @@ const verifyAt = (state: object = { codeSent: true }, search = `?email=${encodeU
   ({ pathname: '/verify', search, state })
 
 async function typeCode(user: ReturnType<typeof userEvent.setup>, code: string) {
-  await user.click(screen.getByLabelText('Digit 1 of 6'))
+  await user.click(await screen.findByLabelText('Digit 1 of 6'))
   await user.keyboard(code)
 }
 
@@ -175,6 +175,24 @@ describe('log in', () => {
     renderApp('/login')
     await logIn(user)
     expect(await screen.findByRole('alert')).toHaveTextContent('Too many failed attempts. Try again in 10 minutes.')
+  })
+
+  it('lets visitors go back to the map without signing in', async () => {
+    mockApi({ '/api/health': HEALTHY })
+    const user = userEvent.setup()
+    const { router } = renderApp('/reports')
+    await waitFor(() => expect(router.state.location.pathname).toBe('/login'))
+    await user.click(screen.getByRole('link', { name: 'Back to map' }))
+    expect(router.state.location.pathname).toBe('/')
+    expect(await screen.findByRole('heading', { name: 'Explore' })).toBeInTheDocument()
+  })
+
+  it('links the brand panel logo to the map', async () => {
+    mockApi({})
+    renderApp('/signup')
+    const homeLinks = screen.getAllByRole('link', { name: 'Sarathi home' })
+    expect(homeLinks.length).toBeGreaterThanOrEqual(2)  // the phone top bar and the desktop brand panel
+    homeLinks.forEach((link) => expect(link).toHaveAttribute('href', '/'))
   })
 
   it('skips the form for someone already signed in', () => {

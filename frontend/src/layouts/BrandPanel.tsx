@@ -1,3 +1,5 @@
+import { Link } from 'react-router'
+
 import { Icon } from '../components/Icon'
 import { FEATURES } from './brand'
 
@@ -33,9 +35,9 @@ export function BrandPanel() {
   return (
     <aside className="relative hidden flex-col justify-between overflow-hidden bg-primary p-14 text-white lg:flex">
       <MapLines />
-      <div className="relative">
+      <Link to="/" aria-label="Sarathi home" className="relative self-start">
         <BrandMark />
-      </div>
+      </Link>
       <div className="relative max-w-md">
         <h2 className="text-display-lg">Find open roads in Kathmandu</h2>
         <p className="mt-4 text-body-lg text-white/85">
