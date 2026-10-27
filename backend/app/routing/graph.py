@@ -6,6 +6,8 @@ from sqlalchemy import Engine, text
 
 # Same sphere OSMnx uses for edge lengths, so straight-line distances never exceed road lengths (A* stays exact).
 EARTH_RADIUS_M = 6_371_009
+# Both directions of a two-way road have the same length; a parallel road between the same junctions does not.
+REVERSE_LENGTH_TOLERANCE_M = 0.01
 
 
 def haversine_m(lon1: float, lat1: float, lon2: float, lat2: float) -> float:
@@ -28,6 +30,11 @@ class RoadGraph:
     length_m: list[float]
     travel_time_s: list[float]
     max_speed_mps: float
+    sources: list[int]          # start node of each edge position
+    position: dict[int, int]    # database edge id -> edge position
+    # Number of active closures on each edge. A count, not a flag: when two verified hazards block the same
+    # road, clearing one must leave it closed.
+    closures: list[int]
 
     @property
     def node_count(self) -> int:
@@ -49,6 +56,54 @@ class RoadGraph:
     def straight_line_m(self, a: int, b: int) -> float:
         """Great-circle distance in metres between two nodes given by internal index."""
         return haversine_m(self.lon[a], self.lat[a], self.lon[b], self.lat[b])
+
+    def edge_position(self, edge_id: int) -> int:
+        """Return the position of a database edge id."""
+        try:
+            return self.position[edge_id]
+        except KeyError:
+            raise KeyError(f"edge {edge_id} is not in the road graph") from None
+
+    def reverse_positions(self, pos: int) -> list[int]:
+        """Return the opposite direction of the same road: edges back from target to source with the same length."""
+        source, target, length = self.sources[pos], self.targets[pos], self.length_m[pos]
+        return [p for p in range(self.offsets[target], self.offsets[target + 1])
+                if self.targets[p] == source and abs(self.length_m[p] - length) <= REVERSE_LENGTH_TOLERANCE_M]
+
+    def _road_positions(self, edge_ids: Iterable[int], both_directions: bool) -> set[int]:
+        """Positions of the given edges, plus their reverse direction if requested."""
+        positions = {self.edge_position(e) for e in edge_ids}
+        if both_directions:
+            positions |= {r for p in list(positions) for r in self.reverse_positions(p)}
+        return positions
+
+    def close_edges(self, edge_ids: Iterable[int], both_directions: bool = True) -> list[int]:
+        """Add a closure to the edges; return the ids of edges that were open and are now closed."""
+        newly_closed = []
+        for p in sorted(self._road_positions(edge_ids, both_directions)):
+            if self.closures[p] == 0:
+                newly_closed.append(self.edge_ids[p])
+            self.closures[p] += 1
+        return newly_closed
+
+    def open_edges(self, edge_ids: Iterable[int], both_directions: bool = True) -> list[int]:
+        """Remove a closure from the edges; return the ids of edges that are open again."""
+        reopened = []
+        for p in sorted(self._road_positions(edge_ids, both_directions)):
+            if self.closures[p] == 0:
+                continue  # already open; nothing to remove
+            self.closures[p] -= 1
+            if self.closures[p] == 0:
+                reopened.append(self.edge_ids[p])
+        return reopened
+
+    def is_closed(self, edge_id: int) -> bool:
+        """Return True if the edge has at least one active closure."""
+        return self.closures[self.edge_position(edge_id)] > 0
+
+    def closed_edge_ids(self) -> list[int]:
+        """Ids of all currently closed edges."""
+        return [self.edge_ids[p] for p, count in enumerate(self.closures) if count]
 
 
 def build_graph(nodes: Iterable[tuple[int, float, float]],
@@ -75,15 +130,20 @@ def build_graph(nodes: Iterable[tuple[int, float, float]],
             max_speed = max(max_speed, length / seconds)
         outgoing[index[source]].append((index[target], int(edge_id), length, seconds))
 
-    offsets, targets, edge_ids, length_m, travel_time_s = [0], [], [], [], []
-    for out in outgoing:
+    offsets, sources, targets, edge_ids, length_m, travel_time_s = [0], [], [], [], [], []
+    for source, out in enumerate(outgoing):
         for target, edge_id, length, seconds in out:
+            sources.append(source)
             targets.append(target)
             edge_ids.append(edge_id)
             length_m.append(length)
             travel_time_s.append(seconds)
         offsets.append(len(targets))
-    return RoadGraph(node_ids, index, lon, lat, offsets, targets, edge_ids, length_m, travel_time_s, max_speed)
+    position = {edge_id: pos for pos, edge_id in enumerate(edge_ids)}
+    if len(position) != len(edge_ids):
+        raise ValueError("duplicate edge ids")
+    return RoadGraph(node_ids, index, lon, lat, offsets, targets, edge_ids, length_m, travel_time_s, max_speed,
+                     sources, position, [0] * len(edge_ids))
 
 
 def load_graph(engine: Engine) -> RoadGraph:

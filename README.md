@@ -72,6 +72,8 @@ Steps:
 
 - `nearest.py` finds the closest facilities of a kind by road: one Dijkstra search outward from the start, collecting facilities as their road nodes are reached. The short stretch between a facility and its nearest road node (`snap_distance_m`) is added to the cost, so the search continues until no unreached facility could still be closer.
 
+- Closures: `graph.close_edges(ids)` / `graph.open_edges(ids)` block and reopen edges in memory (both directions by default), and every search skips closed edges. Each edge keeps a count of active closures, so when two hazards block the same road, clearing one leaves it closed. `closures.edges_near(conn, lon, lat, radius_m)` finds every segment around a hazard with the spatial index, so a flooded bridge closes both carriageways and any parallel bridge, not just one segment.
+
 Benchmark Dijkstra against A* on random routes in the imported network (run from `backend/`):
 
 ```

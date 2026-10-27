@@ -58,6 +58,7 @@ class Search:
     def run(self) -> Iterator[tuple[int, float]]:
         """Yield (node index, cost) for each node as it is settled, cheapest first."""
         offsets, targets, costs, h = self.graph.offsets, self.graph.targets, self.costs, self.heuristic
+        closures = self.graph.closures
         dist, settled = self.dist, self.settled
         dist[self.source] = 0.0
         heap = [(h(self.source), 0.0, self.source)]
@@ -70,7 +71,7 @@ class Search:
             yield u, g
             for pos in range(offsets[u], offsets[u + 1]):
                 v = targets[pos]
-                if settled[v]:
+                if settled[v] or closures[pos]:
                     continue
                 candidate = g + costs[pos]
                 if candidate < dist[v]:
