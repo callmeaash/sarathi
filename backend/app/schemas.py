@@ -1,6 +1,7 @@
+from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class LineString(BaseModel):
@@ -71,3 +72,54 @@ class FacilityDetail(FacilitySummary):
 class FeatureCollection(BaseModel):
     type: Literal["FeatureCollection"] = "FeatureCollection"
     features: list[dict]
+
+
+class RegisterIn(BaseModel):
+    full_name: str = Field(min_length=1, max_length=100)
+    email: EmailStr
+    password: str = Field(min_length=1, max_length=200)
+
+
+class EmailCodeIn(BaseModel):
+    email: EmailStr
+    code: str = Field(pattern=r"^\s*\d{6}\s*$")
+
+
+class EmailIn(BaseModel):
+    email: EmailStr
+
+
+class LoginIn(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=1, max_length=200)
+
+
+class RefreshIn(BaseModel):
+    refresh_token: str = Field(min_length=1, max_length=200)
+
+
+class ResetPasswordIn(EmailCodeIn):
+    new_password: str = Field(min_length=1, max_length=200)
+
+
+class UserOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    email: str
+    full_name: str
+    role: str
+    email_verified: bool
+    created_at: datetime
+
+
+class TokenOut(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: Literal["bearer"] = "bearer"
+    expires_in: int
+    user: UserOut
+
+
+class MessageOut(BaseModel):
+    message: str

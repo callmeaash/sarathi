@@ -7,7 +7,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import Engine
 
-from app.api import facilities, routing
+from app.api import auth, facilities, routing
+from app.auth.email import EmailSender, email_sender
+from app.auth.service import AuthError
+from app.config import AuthSettings, load_auth_settings
 from app.db import get_engine
 from app.routing.geo import SnapError
 from app.routing.search import NoRouteError
@@ -19,12 +22,15 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 DEFAULT_CORS_ORIGINS = "http://localhost:5173,http://127.0.0.1:5173"
 
 
-def create_app(engine: Engine | None = None, routing_state: RoutingState | None = None) -> FastAPI:
-    """Build the API; the database engine and in-memory graph can be passed in for tests."""
+def create_app(engine: Engine | None = None, routing_state: RoutingState | None = None,
+               auth_settings: AuthSettings | None = None, sender: EmailSender | None = None) -> FastAPI:
+    """Build the API; the database, graph, auth settings and email sender can be passed in for tests."""
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        """Connect to the database and load the road graph once, before serving requests."""
+        """Load settings, connect to the database and load the road graph once, before serving requests."""
+        app.state.auth = auth_settings or load_auth_settings()
+        app.state.email = sender or email_sender(app.state.auth)
         app.state.engine = engine or get_engine()
         app.state.routing = routing_state or load_routing_state(app.state.engine)
         yield
@@ -40,6 +46,13 @@ def create_app(engine: Engine | None = None, routing_state: RoutingState | None 
     )
     app.include_router(routing.router, prefix="/api")
     app.include_router(facilities.router, prefix="/api")
+    app.include_router(auth.router, prefix="/api")
+
+    @app.exception_handler(AuthError)
+    async def auth_error(request: Request, exc: AuthError) -> JSONResponse:
+        """Turn auth rule violations into the matching HTTP status, with Retry-After for rate limits."""
+        headers = {"Retry-After": str(exc.retry_after)} if exc.retry_after else None
+        return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail}, headers=headers)
 
     @app.exception_handler(SnapError)
     async def snap_error(request: Request, exc: SnapError) -> JSONResponse:

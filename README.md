@@ -81,6 +81,29 @@ The road graph and facilities load into memory at startup (about 1 s). Interacti
 | `GET /api/facilities?bbox=minLon,minLat,maxLon,maxLat&kind=hospital` | Facilities in the visible map area as GeoJSON points (repeat `kind` for several) |
 | `GET /api/facilities/{id}?from_lat&from_lon` | Full facility details, plus the road distance from a point if given |
 
+### Accounts
+
+| Endpoint | What it does |
+|---|---|
+| `POST /api/auth/register` | Create an account (`full_name`, `email`, `password`) and email a 6-digit code |
+| `POST /api/auth/verify-email` | Confirm the email with the code (needed before reporting hazards) |
+| `POST /api/auth/resend-code` | Send a new verification code |
+| `POST /api/auth/login` | Returns an access token (30 min) and a refresh token (30 days) |
+| `POST /api/auth/refresh` | Swap the refresh token for a new pair (the old one stops working) |
+| `POST /api/auth/logout` | End this session |
+| `POST /api/auth/forgot-password`, `POST /api/auth/reset-password` | Reset the password with an emailed code; ends all sessions |
+| `GET /api/me` | The signed-in user (send `Authorization: Bearer <access token>`) |
+
+Rules: passwords are hashed with Argon2; codes expire after 15 minutes, allow 5 wrong tries, can be resent once a minute and at most 5 times an hour; 10 wrong passwords lock the account for 15 minutes; a refresh token that was already swapped coming back signs the user out everywhere. Resend and forgot-password give the same answer whether or not the account exists.
+
+With `EMAIL_BACKEND=console` (the default) codes are printed in the API's log instead of being emailed. Set `EMAIL_BACKEND=smtp` and the `SMTP_*` settings in `backend/.env` to send real email.
+
+Make the first moderator (from `backend/`, after they have signed up):
+
+```
+..\.venv\Scripts\python -m app.cli set-role someone@example.com moderator
+```
+
 Clicked points snap to the nearest road junction (up to 1 km away); points further from any road get a 422 error. `CORS_ORIGINS` (comma separated) sets which front ends may call the API; it defaults to the Vite dev server.
 
 ## Routing engine

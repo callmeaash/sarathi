@@ -10,6 +10,10 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.db import Base
 
 FACILITY_KINDS = ("hospital", "police", "pharmacy", "fire_station")
+USER_ROLES = ("user", "moderator")
+USER_STATUSES = ("active", "suspended")
+CODE_PURPOSES = ("verify", "reset")
+REVOKE_REASONS = ("rotated", "logout", "reset", "reuse", "suspended")
 
 
 def point():
@@ -107,3 +111,65 @@ class ImportRun(Base):
     message: Mapped[str | None] = mapped_column(Text)
 
     __table_args__ = (CheckConstraint("status IN ('succeeded', 'failed')", name="ck_import_runs_status"),)
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    email: Mapped[str] = mapped_column(String(254), nullable=False)  # stored lower-case
+    full_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    password_hash: Mapped[str] = mapped_column(Text, nullable=False)
+    role: Mapped[str] = mapped_column(String(20), nullable=False, server_default="user")
+    email_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
+    status: Mapped[str] = mapped_column(String(10), nullable=False, server_default="active")
+    failed_logins: Mapped[int] = mapped_column(SmallInteger, nullable=False, server_default="0")
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    __table_args__ = (
+        UniqueConstraint("email", name="uq_users_email"),
+        CheckConstraint("email = lower(email)", name="ck_users_email_lower"),
+        CheckConstraint(f"role IN {USER_ROLES}", name="ck_users_role"),
+        CheckConstraint(f"status IN {USER_STATUSES}", name="ck_users_status"),
+    )
+
+
+# One-time 6-digit codes for email verification and password reset; only a keyed hash is stored.
+class EmailCode(Base):
+    __tablename__ = "email_codes"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    purpose: Mapped[str] = mapped_column(String(10), nullable=False)
+    code_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    attempts: Mapped[int] = mapped_column(SmallInteger, nullable=False, server_default="0")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    __table_args__ = (
+        CheckConstraint(f"purpose IN {CODE_PURPOSES}", name="ck_email_codes_purpose"),
+        Index("ix_email_codes_user_purpose", "user_id", "purpose"),
+    )
+
+
+# Long-lived login tokens, rotated on every use; only a hash is stored so a database leak cannot be replayed.
+class RefreshToken(Base):
+    __tablename__ = "refresh_tokens"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    token_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Only a 'rotated' token coming back is suspicious (it was copied); one used after logout is not.
+    revoke_reason: Mapped[str | None] = mapped_column(String(10))
+
+    __table_args__ = (
+        UniqueConstraint("token_hash", name="uq_refresh_tokens_hash"),
+        CheckConstraint(f"revoke_reason IN {REVOKE_REASONS}", name="ck_refresh_tokens_reason"),
+        Index("ix_refresh_tokens_user", "user_id"),
+    )

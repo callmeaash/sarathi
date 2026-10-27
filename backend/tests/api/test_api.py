@@ -4,7 +4,8 @@ from sqlalchemy import text
 
 from app.main import create_app
 from app.routing.graph import haversine_m
-from tests.conftest import needs_db
+from app.auth.email import MemoryEmail
+from tests.conftest import TEST_AUTH, needs_db
 
 pytestmark = needs_db
 
@@ -54,7 +55,7 @@ def client(db_engine):
         insert_facility(conn, 2, "hospital", "West Hospital", *NODES[4], 4, 0)
         insert_facility(conn, 3, "police", "North Police", *NODES[2], 2, 0)
         insert_facility(conn, 4, "pharmacy", "Not on the network", 85.31, 27.71, None, None)
-    with TestClient(create_app(engine=db_engine)) as c:
+    with TestClient(create_app(engine=db_engine, auth_settings=TEST_AUTH, sender=MemoryEmail())) as c:
         yield c
 
 
