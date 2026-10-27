@@ -3,7 +3,8 @@ import { Link } from 'react-router'
 
 import { Icon } from '../../components/Icon'
 import { buttonClass } from '../../components/form/buttonStyles'
-import { BrandMark, BrandPanel, MapLines } from '../../layouts/BrandPanel'
+import { Logo } from '../../components/Logo'
+import { BrandPanel, MapLines } from '../../layouts/BrandPanel'
 import { FEATURES } from '../../layouts/brand'
 import { markWelcomed } from './welcomed'
 
@@ -28,14 +29,14 @@ export function WelcomePage() {
   return (
     <div className="min-h-dvh bg-surface-container-lowest lg:grid lg:grid-cols-[46%_1fr]">
       <title>Welcome · Sarathi</title>
-      <BrandPanel />
+      <BrandPanel logo="nepali" />
 
       {/* Phones: blue introduction on top, choices below */}
       <div className="lg:hidden">
         <section className="relative overflow-hidden bg-primary px-6 pt-10 pb-8 text-white">
           <MapLines />
           <div className="relative">
-            <BrandMark />
+            <Logo variant="nepali" onBlue className="h-16" />
             <h1 className="mt-8 text-display-lg-mobile">Find open roads in Kathmandu</h1>
             <p className="mt-3 text-body-lg text-white/85">
               Verified road closures, routes around them, and the nearest hospital by road.

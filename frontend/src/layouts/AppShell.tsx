@@ -39,7 +39,7 @@ function DesktopHeader() {
   return (
     <header className="hidden h-16 shrink-0 items-center gap-6 bg-primary px-6 text-white lg:flex">
       <Link to="/" aria-label="Sarathi home">
-        <Logo onBlue />
+        <Logo onBlue className="h-9" />
       </Link>
       <Link
         to="/directions"
@@ -66,7 +66,7 @@ function MobileHeader() {
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b border-border-muted bg-surface-container-lowest px-4 lg:hidden">
       <Link to="/" aria-label="Sarathi home">
-        <Logo />
+        <Logo className="h-8" />
       </Link>
       <AccountButton onBlue={false} />
     </header>

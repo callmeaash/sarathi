@@ -3,7 +3,6 @@
 /* Design tokens from ui/bato_civic_navigation/DESIGN.md, named as in the screen designs so their classes carry over. */
 @theme {
   --font-sans: "Roboto Flex", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-devanagari: "Noto Sans Devanagari", "Nirmala UI", sans-serif;
 
   --color-surface: #faf9fb;
   --color-surface-dim: #dbd9dc;

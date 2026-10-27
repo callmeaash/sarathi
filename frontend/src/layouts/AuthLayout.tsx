@@ -2,6 +2,7 @@ import { Link, Outlet, useNavigate } from 'react-router'
 
 import { Icon } from '../components/Icon'
 import { LiveStatusChip } from '../components/LiveStatusChip'
+import { Logo } from '../components/Logo'
 import { BrandPanel } from './BrandPanel'
 
 /** Phones: back button and live status above the form. */
@@ -23,18 +24,12 @@ function TopBar() {
 /** Phones: app icon, name and what the app is for, where the desktop has the blue brand panel. */
 function MobileBrand() {
   return (
-    <Link to="/" aria-label="Sarathi home" className="mb-8 flex items-center gap-3 self-start lg:hidden">
-      <img src="/brand/svg/sarathi-icon.svg" alt="" className="size-14" />
-      <span>
-        <span className="flex items-center gap-2">
-          <span className="text-title-md text-on-surface">Sarathi</span>
-          <span lang="ne" className="rounded-full bg-surface-tint-medium px-2 py-0.5 font-devanagari text-label-md text-primary">
-            सारथी
-          </span>
-        </span>
-        <span className="block text-body-md text-text-secondary">Kathmandu road closures and safe routes</span>
-      </span>
-    </Link>
+    <div className="mb-8 lg:hidden">
+      <Link to="/" aria-label="Sarathi home" className="inline-block">
+        <Logo className="h-12" />
+      </Link>
+      <p className="mt-2 text-body-md text-text-secondary">Kathmandu road closures and safe routes</p>
+    </div>
   )
 }
 

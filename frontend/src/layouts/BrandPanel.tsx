@@ -1,6 +1,7 @@
 import { Link } from 'react-router'
 
 import { Icon } from '../components/Icon'
+import { Logo } from '../components/Logo'
 import { FEATURES } from './brand'
 
 // Fixed when the page loads; good enough for a copyright line.
@@ -17,26 +18,13 @@ export function MapLines({ className = '' }: { className?: string }) {
   )
 }
 
-/** The Nepali and English name beside the app icon, for blue backgrounds. */
-export function BrandMark() {
-  return (
-    <div className="flex items-center gap-4">
-      <img src="/brand/svg/sarathi-icon-inverted.svg" alt="" className="size-16" />
-      <div>
-        <p lang="ne" className="font-devanagari text-[34px] leading-none font-bold">सारथी</p>
-        <p className="mt-1 text-title-md">Sarathi</p>
-      </div>
-    </div>
-  )
-}
-
-/** Left half of the desktop sign-in screens: what Sarathi does. */
-export function BrandPanel() {
+/** Left half of the desktop sign-in screens: what Sarathi does. The welcome screen uses the Nepali-first logo. */
+export function BrandPanel({ logo = 'horizontal' }: { logo?: 'horizontal' | 'nepali' }) {
   return (
     <aside className="relative hidden flex-col justify-between overflow-hidden bg-primary p-14 text-white lg:flex">
       <MapLines />
       <Link to="/" aria-label="Sarathi home" className="relative self-start">
-        <BrandMark />
+        <Logo variant={logo} onBlue className="h-16" />
       </Link>
       <div className="relative max-w-md">
         <h2 className="text-display-lg">Find open roads in Kathmandu</h2>
