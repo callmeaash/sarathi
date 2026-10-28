@@ -1,3 +1,4 @@
+import smtplib
 from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 
@@ -6,11 +7,12 @@ import pytest
 from fastapi import HTTPException
 
 from app.api.deps import moderator, verified_user
-from app.auth.email import code_email
+from app.auth.email import SmtpEmail, code_email
 from app.auth.passwords import hash_password, password_problem, verify_password
 from app.auth.tokens import (
     InvalidToken, create_access_token, decode_access_token, hash_code, hash_token, new_code, new_refresh_token,
 )
+from app.config import AuthSettings
 from app.models import User
 from tests.conftest import TEST_AUTH
 
@@ -109,3 +111,44 @@ def test_role_and_verification_checks():
         moderator(citizen)
     mod = User(id=2, email="m@b.c", full_name="M", password_hash="x", role="moderator", email_verified=True)
     assert moderator(mod) is mod and verified_user(mod) is mod
+
+
+class FakeSmtp:
+    """Records how the SMTP sender used the connection."""
+    calls: list = []
+
+    def __init__(self, host, port, timeout):
+        FakeSmtp.calls.append(("connect", type(self).__name__, host, port))
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def starttls(self):
+        FakeSmtp.calls.append(("starttls",))
+
+    def login(self, user, password):
+        FakeSmtp.calls.append(("login", user))
+
+    def send_message(self, message):
+        FakeSmtp.calls.append(("send", message["To"], message["Subject"]))
+
+
+class FakeSmtpSsl(FakeSmtp):
+    pass
+
+
+@pytest.mark.parametrize("port, expected", [
+    (587, [("connect", "FakeSmtp", "smtp.example.com", 587), ("starttls",), ("login", "me@example.com")]),
+    (465, [("connect", "FakeSmtpSsl", "smtp.example.com", 465), ("login", "me@example.com")]),
+])
+def test_smtp_uses_starttls_or_ssl_by_port(monkeypatch, port, expected):
+    monkeypatch.setattr(smtplib, "SMTP", FakeSmtp)
+    monkeypatch.setattr(smtplib, "SMTP_SSL", FakeSmtpSsl)
+    FakeSmtp.calls = []
+    settings = AuthSettings(jwt_secret="x" * 40, email_backend="smtp", smtp_host="smtp.example.com", smtp_port=port,
+                            smtp_user="me@example.com", smtp_password="secret")
+    SmtpEmail(settings).send("ramesh.k@example.com", "Your code", "123456")
+    assert FakeSmtp.calls == expected + [("send", "ramesh.k@example.com", "Your code")]

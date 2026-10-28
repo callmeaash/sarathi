@@ -29,6 +29,9 @@ class MemoryEmail:
         self.outbox.append((to, subject, body))
 
 
+SSL_PORT = 465  # implicit TLS; other ports (usually 587) upgrade a plain connection with STARTTLS
+
+
 @dataclass
 class SmtpEmail:
     settings: AuthSettings
@@ -38,8 +41,11 @@ class SmtpEmail:
         message = EmailMessage()
         message["From"], message["To"], message["Subject"] = self.settings.smtp_from, to, subject
         message.set_content(body)
-        with smtplib.SMTP(self.settings.smtp_host, self.settings.smtp_port, timeout=15) as smtp:
-            smtp.starttls()
+        ssl = self.settings.smtp_port == SSL_PORT
+        connect = smtplib.SMTP_SSL if ssl else smtplib.SMTP
+        with connect(self.settings.smtp_host, self.settings.smtp_port, timeout=15) as smtp:
+            if not ssl:
+                smtp.starttls()
             if self.settings.smtp_user:
                 smtp.login(self.settings.smtp_user, self.settings.smtp_password)
             smtp.send_message(message)
