@@ -5,6 +5,7 @@ import { inDistrict } from '../map/config'
 export type Point = { lat: number; lon: number; name: string }
 export type Weight = 'time' | 'length'
 export type Side = 'from' | 'to'
+export type UnverifiedChoice = 'ask' | 'around' | 'through'
 
 // Address format: /directions?from=27.69,85.29&fromName=Kuleshwor&to=27.66,85.31&name=Patan%20Hospital&weight=time
 // A missing "from" means "your location". The "to" name is called "name" so other pages can link with ?to=…&name=…
@@ -34,7 +35,9 @@ export function useDirectionsParams() {
   const from = parsePoint(params.get('from'), params.get(NAME_KEY.from), 'Chosen start')
   const to = parsePoint(params.get('to'), params.get(NAME_KEY.to), 'Chosen destination')
   const weight: Weight = params.get('weight') === 'length' ? 'length' : 'time'
-  const avoidUnverified = params.get('avoid') === 'unverified'
+  const avoid = params.get('avoid')
+  // Unverified reports on the route: 'ask' until the user answers, then 'around' or 'through'.
+  const unverifiedChoice: UnverifiedChoice = avoid === 'unverified' ? 'around' : avoid === 'none' ? 'through' : 'ask'
 
   const update = (change: (next: URLSearchParams) => void) => {
     const next = new URLSearchParams(params)
@@ -72,10 +75,11 @@ export function useDirectionsParams() {
     else next.set('weight', value)
   })
 
-  const setAvoidUnverified = (on: boolean) => update((next) => {
-    if (on) next.set('avoid', 'unverified')
+  const setUnverifiedChoice = (choice: UnverifiedChoice) => update((next) => {
+    if (choice === 'around') next.set('avoid', 'unverified')
+    else if (choice === 'through') next.set('avoid', 'none')
     else next.delete('avoid')
   })
 
-  return { from, to, weight, avoidUnverified, setPoint, swap, setWeight, setAvoidUnverified }
+  return { from, to, weight, unverifiedChoice, setPoint, swap, setWeight, setUnverifiedChoice }
 }

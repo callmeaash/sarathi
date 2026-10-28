@@ -33,7 +33,7 @@ function routeError(error: unknown): string {
 
 /** Screens 7, 8 and 17: plan a route around closed roads. */
 export function DirectionsPage() {
-  const { from: fromParam, to, weight, avoidUnverified, setPoint, swap, setWeight, setAvoidUnverified } = useDirectionsParams()
+  const { from: fromParam, to, weight, unverifiedChoice, setPoint, swap, setWeight, setUnverifiedChoice } = useDirectionsParams()
   const { location, locate, locateStatus, showNotice } = useAppMap()
   const [picking, setPicking] = useState<Side | null>(null)
 
@@ -42,8 +42,11 @@ export function DirectionsPage() {
   const outside = [from, to].some((point) => point && !isServed(point))
   const ready = from && to && !outside
   const through = useRoute(ready ? from : null, ready ? to : null, weight)
-  const avoiding = useRoute(ready ? from : null, ready ? to : null, weight, true, avoidUnverified)
-  const noAvoidingRoute = avoidUnverified && avoiding.error instanceof ApiError && avoiding.error.status === 404
+  // Fetch the way around unverified reports as soon as the route passes any, so the question can say what it costs.
+  const passesUnverified = (through.data?.unverified?.length ?? 0) > 0
+  const avoidUnverified = unverifiedChoice === 'around'
+  const avoiding = useRoute(ready ? from : null, ready ? to : null, weight, true, avoidUnverified || passesUnverified)
+  const noAvoidingRoute = avoiding.error instanceof ApiError && avoiding.error.status === 404
   // The route on show: the one keeping clear of unverified reports when asked for and one exists.
   const best = avoidUnverified && !noAvoidingRoute && (avoiding.data || avoiding.isPending) ? avoiding : through
 
@@ -124,8 +127,8 @@ export function DirectionsPage() {
           <>
             <RouteSummary route={best.data} />
             {through.data && (
-              <UnverifiedReports through={through.data} avoiding={avoiding.data} avoidOn={avoidUnverified}
-                noAvoidingRoute={noAvoidingRoute} onToggle={setAvoidUnverified} />
+              <UnverifiedReports through={through.data} around={avoiding.data} noRouteAround={noAvoidingRoute}
+                choice={unverifiedChoice} onChoose={setUnverifiedChoice} />
             )}
             <Button variant="secondary" icon="share" onClick={share} className="mt-4">Share route</Button>
             <RouteRoads route={best.data} />
