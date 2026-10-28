@@ -21,7 +21,7 @@ import { DirectionsPage } from '../pages/DirectionsPage'
 import { NearbyPage } from '../pages/NearbyPage'
 import { ReportPage } from '../pages/ReportPage'
 import { ReportSubmittedPage } from '../pages/ReportSubmittedPage'
-import { MyReportsPage } from '../pages/sections'
+import { MyReportsPage } from '../pages/MyReportsPage'
 
 const MAP_PAGE = { map: true }
 
