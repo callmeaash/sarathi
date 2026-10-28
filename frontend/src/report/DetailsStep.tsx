@@ -1,4 +1,4 @@
-import { type FormEvent, type ReactNode, useState } from 'react'
+import { type FormEvent, type ReactNode, useEffect, useState } from 'react'
 import { Link } from 'react-router'
 
 import { ApiError, describeError } from '../api/client'
@@ -6,6 +6,7 @@ import { Alert } from '../components/Alert'
 import { Icon } from '../components/Icon'
 import { Button } from '../components/form/Button'
 import { hazardInfo } from '../hazards/kinds'
+import { requestSheet } from '../layouts/useBottomSheet'
 import { waitWording } from '../pages/auth/fieldErrors'
 import type { LatLon } from './CenterPin'
 import { type HazardKind, type Passable, useReportHazard } from './api'
@@ -49,6 +50,7 @@ export function DetailsStep({ point, roadName, onBack, onSubmitted }: DetailsSte
   const [note, setNote] = useState('')
   const [tried, setTried] = useState(false)
   const report = useReportHazard()
+  useEffect(() => requestSheet('full'), [])  // a form: give it the whole screen on phones
 
   const submit = (event: FormEvent) => {
     event.preventDefault()

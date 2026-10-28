@@ -9,7 +9,20 @@ export function coveredBottom(map: L.Map): number {
   const mapBox = map.getContainer().getBoundingClientRect()
   const sheetBox = sheet.getBoundingClientRect()
   const sameColumn = sheetBox.left < mapBox.right && sheetBox.right > mapBox.left  // desktop: panel is beside the map
-  return sameColumn && sheetBox.top > mapBox.top && sheetBox.top < mapBox.bottom ? mapBox.bottom - sheetBox.top : 0
+  if (!sameColumn) return 0
+  // The height the sheet is settling at, not its height part-way through an animation (a page that has just
+  // opened centres its place while the sheet is still sliding up).
+  const area = sheet.closest<HTMLElement>('[data-sheet]')
+  const target = area ? parseFloat(getComputedStyle(area).getPropertyValue('--sheet-height')) : NaN
+  if (Number.isFinite(target) && target > 0) return Math.min(target, mapBox.height)
+  return sheetBox.top > mapBox.top && sheetBox.top < mapBox.bottom ? mapBox.bottom - sheetBox.top : 0
+}
+
+/** Whether a point sits comfortably inside the visible part of the map (not under the sheet or at an edge). */
+export function inView(map: L.Map, point: L.LatLngExpression): boolean {
+  const size = map.getSize()
+  const { x, y } = map.latLngToContainerPoint(point)
+  return x > EDGE_PX && x < size.x - EDGE_PX && y > EDGE_PX && y < size.y - coveredBottom(map) - EDGE_PX
 }
 
 /** Centre a point in the part of the map the user can actually see. */

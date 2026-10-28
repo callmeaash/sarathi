@@ -10,6 +10,15 @@ const MIN_PX = 64           // never drag smaller than the handle and a line of 
 
 type DragStart = { y: number; height: number; time: number }
 
+export type SheetLevel = 'low' | 'half' | 'full'
+const LEVELS: Record<SheetLevel, number> = { low: 0, half: 1, full: 2 }
+const EVENT = 'sarathi:sheet'
+
+/** Ask the phone's bottom sheet to move to a height (it does nothing on desktop). */
+export function requestSheet(level: SheetLevel): void {
+  window.dispatchEvent(new CustomEvent<SheetLevel>(EVENT, { detail: level }))
+}
+
 /** Phone bottom sheet that follows the finger and snaps to three heights; resets when `resetKey` changes. */
 export function useBottomSheet(resetKey: string) {
   const [element, setElement] = useState<HTMLDivElement | null>(null)  // the area the sheet sits in
@@ -28,6 +37,12 @@ export function useBottomSheet(resetKey: string) {
   const attachArea = useCallback((node: HTMLDivElement | null) => {
     setElement(node)
     if (node) setArea(node.clientHeight)
+  }, [])
+
+  useEffect(() => {  // a page asked for a different height
+    const onRequest = (event: Event) => setSnap(LEVELS[(event as CustomEvent<SheetLevel>).detail] ?? START_SNAP)
+    window.addEventListener(EVENT, onRequest)
+    return () => window.removeEventListener(EVENT, onRequest)
   }, [])
 
   useEffect(() => {  // snap heights follow the space available (rotation, browser bars appearing)

@@ -54,8 +54,8 @@ export function LocationStep({ point, start, onMove, onNext }: LocationStepProps
         <Icon name={status.icon} className="text-[18px]" /> {status.text}
       </p>
 
-      <div className="mt-4 grid grid-cols-[auto_1fr] gap-2">
-        <Button variant="tonal" icon="my_location" onClick={() => locate()} loading={locateStatus === 'locating'} className="h-11 px-4">
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        <Button variant="tonal" icon="my_location" onClick={() => locate()} loading={locateStatus === 'locating'} className="h-11 min-w-0 px-3">
           My location
         </Button>
         <PlaceSearch

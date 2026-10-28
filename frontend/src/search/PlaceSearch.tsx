@@ -22,6 +22,7 @@ type PlaceSearchProps = {
   trailing?: ReactNode
   boxClassName: string              // the look of the input box (header, phone header, route field)
   autoFocus?: boolean
+  onFocusInput?: () => void        // e.g. make room for the suggestions
 }
 
 /** The matched part of a name in bold. */
@@ -63,7 +64,7 @@ function HitRow({ hit, query }: { hit: SearchHit; query: string }) {
  * keys and Enter, or click. Fixed options such as "Your location" can sit above the results.
  */
 export function PlaceSearch({ label, placeholder, onSelect, extras = [], text: initial = '', clearOnSelect = false,
-  inputRef, leading, trailing, boxClassName, autoFocus }: PlaceSearchProps) {
+  inputRef, leading, trailing, boxClassName, autoFocus, onFocusInput }: PlaceSearchProps) {
   const [text, setText] = useState(initial)
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(-1)
@@ -118,7 +119,7 @@ export function PlaceSearch({ label, placeholder, onSelect, extras = [], text: i
           ref={inputRef}
           value={text}
           onChange={(event) => { setText(event.target.value); setOpen(true); setActive(-1) }}
-          onFocus={() => setOpen(true)}
+          onFocus={() => { setOpen(true); onFocusInput?.() }}
           onBlur={() => setOpen(false)}
           onKeyDown={onKeyDown}
           placeholder={placeholder}

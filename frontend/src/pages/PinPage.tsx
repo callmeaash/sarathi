@@ -7,12 +7,13 @@ import { buttonClass } from '../components/form/buttonStyles'
 import { BaseLayers } from '../map/BaseLayers'
 import { inDistrict } from '../map/config'
 import { useAppMap } from '../map/context'
-import { focusOn } from '../map/focus'
+import { focusOn, inView } from '../map/focus'
 import { MapLayers } from '../map/MapLayers'
 import { PinMarker } from '../map/PinMarker'
 import { useNearestRoad } from '../map/roads'
 
 const MAX_REPORT_DISTANCE_M = 150  // the API only accepts hazards this close to a road
+const PIN_ZOOM = 16
 
 /** Read and check the pin position from the address. */
 function usePin() {
@@ -56,7 +57,10 @@ export function PinPage() {
   useEffect(() => {  // a pin opened from a link may be off-screen; bring it into view once
     if (!map || !pin || shownOnce.current) return
     shownOnce.current = true
-    if (!map.getBounds().contains([pin.lat, pin.lon])) focusOn(map, [pin.lat, pin.lon], Math.max(map.getZoom(), 15))
+    // Zoom in to street level, and bring the pin out from under the sheet if it's hidden.
+    if (map.getZoom() < PIN_ZOOM || !inView(map, [pin.lat, pin.lon])) {
+      focusOn(map, [pin.lat, pin.lon], Math.max(map.getZoom(), PIN_ZOOM))
+    }
   }, [map, pin])
 
   if (!pin) {

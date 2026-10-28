@@ -10,6 +10,7 @@ import { dateTime } from '../lib/time'
 import { BaseLayers } from '../map/BaseLayers'
 import { useAppMap } from '../map/context'
 import { focusOn } from '../map/focus'
+import { requestSheet } from '../layouts/useBottomSheet'
 
 const STAGES = [
   { title: 'Submitted', text: 'Your report is saved.' },
@@ -24,6 +25,7 @@ export function ReportSubmittedPage() {
   const { data } = useIncident(id)
   const { map } = useAppMap()
   const centred = useRef(false)
+  useEffect(() => requestSheet('full'), [])  // the confirmation and what happens next, on the whole screen
 
   useEffect(() => {  // show the new report on the map, once
     if (!map || !data || centred.current) return

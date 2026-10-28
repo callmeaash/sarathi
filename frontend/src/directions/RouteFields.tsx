@@ -1,4 +1,5 @@
 import { Icon } from '../components/Icon'
+import { requestSheet } from '../layouts/useBottomSheet'
 import { type ExtraOption, PlaceSearch } from '../search/PlaceSearch'
 import { type Point, type Side, pointValue } from './params'
 
@@ -34,6 +35,7 @@ export function RouteFields({ from, to, here, onChange, onSwap, onPickOnMap }: R
       extras={extras(side)}
       onSelect={(hit) => onChange(side, { lat: hit.lat, lon: hit.lon, name: hit.name })}
       leading={<span aria-hidden />}
+      onFocusInput={() => requestSheet('full')}  // on phones, room for the suggestions
       boxClassName={BOX}
     />
   )
