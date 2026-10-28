@@ -130,7 +130,7 @@ function BottomNav() {
   return (
     <nav
       aria-label="Main"
-      className="grid shrink-0 grid-cols-4 border-t border-border-muted bg-surface-tint-light pb-safe lg:hidden"
+      className="grid shrink-0 grid-cols-5 border-t border-border-muted bg-surface-tint-light pb-safe lg:hidden"
     >
       {MOBILE_NAV.map((item) => (
         <NavLink
