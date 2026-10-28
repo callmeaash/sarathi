@@ -45,7 +45,7 @@ function shareLocation(lat = 27.69, lon = 85.29) {
 }
 
 describe('directions', () => {
-  it('shows the route, what it follows, the algorithm comparison and the roads', async () => {
+  it('shows the route, what it follows and the roads', async () => {
     const fetch = mockApi(API)
     const { container } = renderApp(TRIP)
     const summary = await screen.findByRole('region', { name: 'Route summary' })
@@ -54,18 +54,18 @@ describe('directions', () => {
     expect(panel().getByRole('combobox', { name: 'Start' })).toHaveValue('Kuleshwor')
     expect(panel().getByRole('combobox', { name: 'Destination' })).toHaveValue('Patan Hospital')
 
-    const table = await panel().findByRole('table')
-    await waitFor(() => expect(within(table).getByRole('row', { name: /Dijkstra/ })).toHaveTextContent('7,727'))
-    expect(within(table).getByRole('row', { name: /A\*/ })).toHaveTextContent('1,710')
-    expect(panel().getByText(/A\* searched 78% fewer junctions/)).toBeInTheDocument()
+    // End users see routes, not how they were computed.
+    expect(panel().queryByText(/Dijkstra|A\*|algorithm/i)).not.toBeInTheDocument()
+    expect(panel().queryByRole('table')).not.toBeInTheDocument()
     const roads = panel().getByRole('heading', { name: /Roads on this route/ }).closest('section')!
     expect(within(roads).getAllByRole('listitem').map((item) => item.textContent)).toEqual([
       '1Unnamed road180 m', '2University Path1.3 km', '3Kathmandu Ringroad2.5 km', '4Dhasikhel Marga520 m',
     ])
 
     const calls = await sent(fetch, 'GET', '/api/route')
-    expect(calls.map((call) => new URL(call.request.url).searchParams.get('algorithm')).sort()).toEqual(['astar', 'dijkstra'])
-    expect(new URL(calls[0].request.url).searchParams.get('from_lat')).toBe('27.6935')
+    expect(calls).toHaveLength(1)  // one route request; the server picks the search method
+    expect(new URL(calls[0].request.url).search)
+      .toBe('?from_lat=27.6935&from_lon=85.2975&to_lat=27.6683&to_lon=85.3185&weight=time')
     await waitFor(() => expect(container.querySelectorAll('.leaflet-overlay-pane path').length).toBeGreaterThanOrEqual(2))
   })
 

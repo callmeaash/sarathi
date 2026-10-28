@@ -7,7 +7,7 @@ import { Button } from '../components/form/Button'
 import { useRoute } from '../directions/api'
 import { type Point, type Side, type Weight, isServed, useDirectionsParams } from '../directions/params'
 import { RouteFields } from '../directions/RouteFields'
-import { AlgorithmComparison, RouteRoads, RouteSummary } from '../directions/RouteDetails'
+import { RouteRoads, RouteSummary } from '../directions/RouteDetails'
 import { MapPick, RouteLayer } from '../directions/RouteLayer'
 import { BaseLayers } from '../map/BaseLayers'
 import { useAppMap } from '../map/context'
@@ -41,8 +41,7 @@ export function DirectionsPage() {
   const from = fromParam ?? here
   const outside = [from, to].some((point) => point && !isServed(point))
   const ready = from && to && !outside
-  const best = useRoute(ready ? from : null, ready ? to : null, weight, 'astar')
-  const compare = useRoute(ready ? from : null, ready ? to : null, weight, 'dijkstra')
+  const best = useRoute(ready ? from : null, ready ? to : null, weight)
 
   const change = (side: Side, point: Point | null) => {
     if (side === 'from' && !point && !location) locate({ moveMap: false })  // "your location" not known yet
@@ -122,7 +121,6 @@ export function DirectionsPage() {
           <>
             <RouteSummary route={best.data} />
             <Button variant="secondary" icon="share" onClick={share} className="mt-4">Share route</Button>
-            <AlgorithmComparison astar={best.data} dijkstra={compare.data} />
             <RouteRoads route={best.data} />
           </>
         )}

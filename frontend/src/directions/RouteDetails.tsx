@@ -56,47 +56,6 @@ export function RouteSummary({ route }: { route: Route }) {
   )
 }
 
-/** Dijkstra and A* side by side for this route: same answer, how much work each did. */
-export function AlgorithmComparison({ astar, dijkstra }: { astar: Route; dijkstra: Route | undefined }) {
-  const cost = (route: Route) => (route.weight === 'length' ? formatDistance(route.distance_m) : formatDuration(route.duration_s))
-  const rows: [string, Route | undefined][] = [['Dijkstra', dijkstra], ['A*', astar]]
-  const saved = dijkstra && dijkstra.visited_nodes > 0
-    ? Math.round((1 - astar.visited_nodes / dijkstra.visited_nodes) * 100) : null
-  return (
-    <section className="mt-6">
-      <SectionHeading title="Algorithm comparison" />
-      <table className="w-full overflow-hidden rounded-xl text-left text-body-sm">
-        <thead className="bg-surface-container-low text-label-md text-text-secondary">
-          <tr>
-            <th scope="col" className="px-3 py-2 font-medium">Algorithm</th>
-            <th scope="col" className="px-3 py-2 font-medium">Cost</th>
-            <th scope="col" className="px-3 py-2 text-right font-medium">Junctions searched</th>
-            <th scope="col" className="px-3 py-2 text-right font-medium">Time</th>
-          </tr>
-        </thead>
-        <tbody className="tabular-nums">
-          {rows.map(([name, route]) => (
-            <tr key={name} className={`border-t border-border-muted ${name === 'A*' ? 'bg-surface-tint-light' : ''}`}>
-              <th scope="row" className="px-3 py-2 font-medium">
-                {name} {name === 'A*' && <span className="ml-1 rounded bg-primary px-1.5 py-0.5 text-label-sm text-white">Used</span>}
-              </th>
-              <td className="px-3 py-2">{route ? cost(route) : '…'}</td>
-              <td className="px-3 py-2 text-right">{route ? route.visited_nodes.toLocaleString('en') : '…'}</td>
-              <td className="px-3 py-2 text-right">{route ? `${Math.max(1, Math.round(route.runtime_ms))} ms` : '…'}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {saved !== null && (
-        <p className="mt-2 text-body-sm text-text-secondary">
-          Both find a route of the same cost. A* searched {saved > 0 ? `${saved}% fewer` : 'as many'} junctions by
-          heading towards the destination.
-        </p>
-      )}
-    </section>
-  )
-}
-
 const ROADS_SHOWN = 6
 
 /** The roads the route follows, in order, with how far along each. */
