@@ -56,6 +56,8 @@ class AvoidedClosure(BaseModel):
     incident_id: int
     kind: str
     road_name: str | None
+    lon: float
+    lat: float
 
 
 class UnverifiedOnRoute(BaseModel):
@@ -63,12 +65,15 @@ class UnverifiedOnRoute(BaseModel):
     kind: str
     road_name: str | None
     created_at: datetime
+    lon: float
+    lat: float
 
 
 class DetourOut(BaseModel):
     usual_distance_m: float  # the best route if nothing were closed
     usual_duration_s: float
     closures: list[AvoidedClosure]  # the verified hazards that route would run into
+    usual_geometry: LineString  # that route, to draw as the way that's closed
 
 
 class RouteOut(BaseModel):

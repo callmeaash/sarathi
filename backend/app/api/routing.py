@@ -43,10 +43,11 @@ def get_route(from_lat: Lat, from_lon: Lon, to_lat: Lat, to_lon: Lon,
     except NoRouteError:
         if blocked:
             raise HTTPException(404, "no route avoids the unverified reports between these points") from None
-        if active and usual_route(graph, start, end, weight, algorithm) is not None:
+        if active and usual_route(None, graph, start, end, weight, algorithm) is not None:
             raise HTTPException(404, "closed roads cut off every route between these points") from None
         raise
-    usual = usual_route(graph, start, end, weight, algorithm) if active else None
+    # Compare with the same search minus the verified closures (still keeping clear of anything else asked for).
+    usual = usual_route(conn, graph, start, end, weight, algorithm, blocked) if active else None
     detour = closures_avoided(route, usual, active)
     return RouteOut(
         distance_m=route.length_m,
@@ -70,26 +71,32 @@ def unverified_out(conn: Connection, incident_ids: list[int]) -> list[Unverified
     """Unverified reports on a route, newest first."""
     if not incident_ids:
         return []
-    return [UnverifiedOnRoute(incident_id=r.id, kind=r.kind, road_name=r.road_name, created_at=r.created_at)
+    return [UnverifiedOnRoute(incident_id=r.id, kind=r.kind, road_name=r.road_name, created_at=r.created_at,
+                              lon=r.lon, lat=r.lat)
             for r in conn.execute(PENDING_DETAILS, {"ids": incident_ids})]
 
 
-def usual_route(graph, start, end, weight, algorithm) -> PlannedRoute | None:
-    """The same route with every road open, or None when even that has no route."""
+def usual_route(conn: Connection | None, graph, start, end, weight, algorithm,
+                blocked: frozenset[int] = frozenset()) -> PlannedRoute | None:
+    """The same route with every road open (with its line when given a connection), or None if there is none."""
     try:
-        return plan_route(None, graph, start, end, weight, algorithm, ignore_closures=True)
+        return plan_route(conn, graph, start, end, weight, algorithm, ignore_closures=True, blocked=blocked)
     except NoRouteError:
         return None
 
 
-AVOIDED = text("SELECT id, kind, road_name FROM incidents WHERE id = ANY(:ids) ORDER BY id")
+AVOIDED = text("""
+    SELECT id, kind, road_name, ST_X(geom) AS lon, ST_Y(geom) AS lat FROM incidents WHERE id = ANY(:ids) ORDER BY id
+""")
 
 
 def detour_out(conn: Connection, detour) -> DetourOut:
     """The detour with each avoided hazard's kind and road, for the response."""
     rows = conn.execute(AVOIDED, {"ids": detour.incident_ids}).all() if detour.incident_ids else []
     return DetourOut(usual_distance_m=detour.usual_distance_m, usual_duration_s=detour.usual_duration_s,
-                     closures=[AvoidedClosure(incident_id=r.id, kind=r.kind, road_name=r.road_name) for r in rows])
+                     closures=[AvoidedClosure(incident_id=r.id, kind=r.kind, road_name=r.road_name, lon=r.lon,
+                                              lat=r.lat) for r in rows],
+                     usual_geometry=LineString(coordinates=detour.usual_coords))
 
 
 @router.get("/nearest", response_model=NearestOut)

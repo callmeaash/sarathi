@@ -71,9 +71,14 @@ describe('directions', () => {
 
   it('explains the closures a route goes around', async () => {
     mockApi({ ...API, '/api/route': routeReply({ distance_m: 6064, detour: { usual_distance_m: 5821,
-      usual_duration_s: 650, closures: [{ incident_id: 8, kind: 'flood', road_name: 'Kathmandu Ringroad' }] } }) })
-    renderApp(TRIP)
+      usual_duration_s: 650, closures: [{ incident_id: 8, kind: 'flood', road_name: 'Kathmandu Ringroad', lon: 85.2988, lat: 27.6847 }],
+      usual_geometry: { type: 'LineString', coordinates: [[85.2975, 27.6935], [85.2988, 27.6847], [85.3185, 27.6683]] } } }) })
+    const { container } = renderApp(TRIP)
     expect(await panel().findByText('Avoids 1 closed road')).toBeInTheDocument()
+    // On the map: the route's time, a CLOSED label on the hazard, and the usual route dashed in red.
+    await waitFor(() => expect(container.querySelector('.map-pill--closed')).toHaveTextContent('Closed'))
+    expect(container.querySelector('.map-pill--time')).toHaveTextContent('11 min')
+    expect(container.querySelector('.leaflet-route-line-pane path[stroke="#c62828"]')).not.toBeNull()
     expect(panel().getByRole('link', { name: 'Flooding on Kathmandu Ringroad' })).toHaveAttribute('href', '/hazards/8')
     expect(panel().getByText('The usual route is 5.8 km, 11 min.')).toBeInTheDocument()
   })
@@ -161,7 +166,8 @@ describe('directions', () => {
   })
 
   it('asks whether to go around unverified reports, saying what it costs', async () => {
-    const pending = { incident_id: 21, kind: 'road_works', road_name: 'Teku Road', created_at: new Date(Date.now() - 20 * 60_000).toISOString() }
+    const pending = { incident_id: 21, kind: 'road_works', road_name: 'Teku Road', lon: 85.30, lat: 27.68,
+      created_at: new Date(Date.now() - 20 * 60_000).toISOString() }
     mockApi({ ...API, '/api/route': (request: Request) => {
       const avoid = new URL(request.url).searchParams.get('avoid_unverified') === 'true'
       return { body: route(avoid
@@ -170,8 +176,9 @@ describe('directions', () => {
         : { unverified: [pending], avoids_unverified: false }) }
     } })
     const user = userEvent.setup()
-    const { router } = renderApp(TRIP)
+    const { router, container } = renderApp(TRIP)
     const question = await panel().findByRole('region', { name: 'Unverified reports on this route' })
+    expect(container.querySelector('.map-pill--unverified')).toBeNull()  // nothing is avoided until the user says so
     expect(question).toHaveTextContent('Unverified report on your route')
     expect(within(question).getByRole('link', { name: 'Road works on Teku Road' })).toHaveAttribute('href', '/hazards/21')
     expect(question).toHaveTextContent('reported 20 min ago')
@@ -184,6 +191,8 @@ describe('directions', () => {
     expect(await panel().findByText('Going around 1 unverified report')).toBeInTheDocument()
     expect(panel().getByText('This route is +3 min, +780 m compared with the route through it.')).toBeInTheDocument()
     expect(panel().getByRole('region', { name: 'Route summary' })).toHaveTextContent('14 min (6.6 km)')
+    await waitFor(() => expect(container.querySelector('.map-pill--unverified')).toHaveTextContent('Unverified'))
+    expect(container.querySelector('.map-pill--time')).toHaveTextContent('14 min')
 
     await user.click(panel().getByRole('button', { name: 'Take the route through it instead' }))
     expect(router.state.location.search).toContain('avoid=none')

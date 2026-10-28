@@ -13,7 +13,8 @@ NEAR_PENDING = text("""
 """)
 
 PENDING_DETAILS = text("""
-    SELECT id, kind, road_name, created_at FROM incidents WHERE id = ANY(:ids) ORDER BY created_at DESC
+    SELECT id, kind, road_name, created_at, ST_X(geom) AS lon, ST_Y(geom) AS lat
+    FROM incidents WHERE id = ANY(:ids) ORDER BY created_at DESC
 """)
 
 

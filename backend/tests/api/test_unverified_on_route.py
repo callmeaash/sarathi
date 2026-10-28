@@ -4,6 +4,7 @@ from sqlalchemy import text
 
 from app.auth.email import MemoryEmail
 from app.main import create_app
+from app.state import apply_closure, lift_closure
 from tests.conftest import TEST_AUTH, needs_db
 from tests.seed import seed_graph
 
@@ -65,6 +66,7 @@ def test_lists_unverified_reports_on_the_route_without_changing_it(client, repor
     (listed,) = body["unverified"]
     assert listed["incident_id"] == incident_id and listed["kind"] == "road_works"
     assert listed["road_name"] == "Kalimati Marg" and listed["created_at"]
+    assert (listed["lon"], listed["lat"]) == pytest.approx((85.3010, 27.7000))
     assert body["avoids_unverified"] is False
 
 
@@ -94,3 +96,15 @@ def test_says_when_no_route_avoids_them(client, report):
     assert response.status_code == 404
     assert response.json()["detail"] == "no route avoids the unverified reports between these points"
     assert len(route(client).json()["unverified"]) == 1  # the normal route still works and lists what it passes
+
+
+def test_going_around_unverified_reports_is_not_called_a_closure_detour(client, report):
+    report(85.3010, 27.7000)  # unverified, on A-B
+    state = client.app.state.routing
+    closed = report(85.3020, 27.7030, status="verified", road="Elsewhere")
+    apply_closure(state, closed, [])  # an active closure that touches neither route
+    try:
+        body = route(client, avoid_unverified=True).json()
+        assert roads(body) == ["Dhalko Marg", "Bagmati Path"] and body["detour"] is None
+    finally:
+        lift_closure(state, closed)

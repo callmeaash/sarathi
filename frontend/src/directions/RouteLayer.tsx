@@ -2,9 +2,11 @@ import L from 'leaflet'
 import { useEffect, useRef } from 'react'
 import { CircleMarker, Marker, Polyline, useMap, useMapEvents } from 'react-leaflet'
 
+import { formatDuration } from '../lib/format'
 import { showAll } from '../map/focus'
 import { ROUTE_LINE_PANE, ROUTE_MARKER_PANE, ensureRoutePanes } from '../map/RoutePanes'
 import type { Route } from './api'
+import { type Avoided, midpoint } from './avoided'
 import type { Point } from './params'
 
 const END_PIN = L.divIcon({
@@ -16,11 +18,18 @@ const END_PIN = L.divIcon({
 
 const CASING = { color: '#ffffff', weight: 10, opacity: 0.9, lineCap: 'round' as const, lineJoin: 'round' as const }
 const LINE = { color: '#1f55e0', weight: 6, opacity: 0.95, lineCap: 'round' as const, lineJoin: 'round' as const }
+// The way the route goes around: red dashes, drawn under the route line.
+const AVOIDED = { color: '#c62828', weight: 4, opacity: 0.8, dashArray: '2 9', lineCap: 'round' as const }
 
-type RouteLayerProps = { route: Route | undefined; from: Point | null; to: Point | null }
+/** A small pill on the map: the route's time, or a hazard's label. */
+function pill(html: string, className: string): L.DivIcon {
+  return L.divIcon({ className: '', iconSize: [0, 0], html: `<span class="map-pill ${className}">${html}</span>` })
+}
+
+type RouteLayerProps = { route: Route | undefined; from: Point | null; to: Point | null; avoided?: Avoided }
 
 /** The route line (blue with a white edge), the start dot and the destination pin; fits the route in view once. */
-export function RouteLayer({ route, from, to }: RouteLayerProps) {
+export function RouteLayer({ route, from, to, avoided = null }: RouteLayerProps) {
   const map = useMap()
   ensureRoutePanes(map)  // before the layers below mount into them
   const fitted = useRef<string | null>(null)
@@ -33,8 +42,14 @@ export function RouteLayer({ route, from, to }: RouteLayerProps) {
     showAll(map, positions, 17)
   }, [key, map, positions])
 
+  const middle = midpoint(positions)
+  const avoidedLine = (avoided?.line ?? []).map(([lon, lat]) => [lat, lon] as [number, number])
+
   return (
     <>
+      {avoidedLine.length > 1 && (
+        <Polyline positions={avoidedLine} pathOptions={AVOIDED} interactive={false} pane={ROUTE_LINE_PANE} />
+      )}
       {positions.length > 1 && (
         <Polyline positions={positions} pathOptions={CASING} interactive={false} pane={ROUTE_LINE_PANE} />
       )}
@@ -46,6 +61,14 @@ export function RouteLayer({ route, from, to }: RouteLayerProps) {
           pathOptions={{ color: '#ffffff', weight: 3, fillColor: '#1f55e0', fillOpacity: 1 }} />
       )}
       {to && <Marker position={[to.lat, to.lon]} icon={END_PIN} interactive={false} pane={ROUTE_MARKER_PANE} />}
+      {route && middle && positions.length > 1 && (
+        <Marker position={middle} interactive={false} pane={ROUTE_MARKER_PANE}
+          icon={pill(`<span class="map-pill__dot"></span>${formatDuration(route.duration_s)}`, 'map-pill--time')} />
+      )}
+      {avoided?.flags.map((flag) => (
+        <Marker key={`${flag.tone}:${flag.id}`} position={[flag.lat, flag.lon]} interactive={false} pane={ROUTE_MARKER_PANE}
+          icon={pill(flag.text, `map-pill--${flag.tone}`)} />
+      ))}
     </>
   )
 }

@@ -283,6 +283,53 @@
   transform: translateX(-50%);
 }
 
+/* Pills on the route map: the time halfway along the route, and labels on the hazards it goes around. */
+.map-pill {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  border-radius: 9999px;
+  padding: 3px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  box-shadow: 0 1px 4px rgb(27 28 30 / 0.25);
+}
+
+.map-pill--time {
+  transform: translate(-50%, -150%);
+  background: #fff;
+  color: var(--color-on-surface);
+}
+
+.map-pill__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--color-primary);
+}
+
+/* Hazard labels sit to the right of the hazard's badge. */
+.map-pill--closed,
+.map-pill--unverified {
+  transform: translate(22px, -50%);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.map-pill--closed {
+  background: var(--color-hazard-closure-red);
+  color: #fff;
+}
+
+.map-pill--unverified {
+  background: var(--color-pending-amber);
+  color: var(--color-on-surface);
+}
+
 @utility icon {
   font-family: "Material Symbols Outlined";
   font-weight: normal;

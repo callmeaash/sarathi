@@ -8,6 +8,7 @@ import { useRoute } from '../directions/api'
 import { type Point, type Side, type Weight, isServed, useDirectionsParams } from '../directions/params'
 import { RouteFields } from '../directions/RouteFields'
 import { RouteRoads, RouteSummary, UnverifiedReports } from '../directions/RouteDetails'
+import { avoidedFor } from '../directions/avoided'
 import { MapPick, RouteLayer } from '../directions/RouteLayer'
 import { BaseLayers } from '../map/BaseLayers'
 import { useAppMap } from '../map/context'
@@ -79,7 +80,8 @@ export function DirectionsPage() {
       <title>Directions · Sarathi</title>
       <BaseLayers />
       <MapLayers>
-        <RouteLayer route={best.data} from={from} to={to} />
+        <RouteLayer route={best.data} from={from} to={to}
+          avoided={avoidedFor(best.data, through.data, best === avoiding)} />
         {picking && <MapPick onPick={pick} />}
       </MapLayers>
 

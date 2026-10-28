@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from sqlalchemy import Connection, text
 
-from app.routing.points import PlannedRoute
+from app.routing.points import Coords, PlannedRoute
 
 EDGE_NAMES = text("SELECT id, coalesce(name_en, name) AS name FROM road_edges WHERE id = ANY(:ids)")
 
@@ -22,6 +22,7 @@ class Detour:
     usual_distance_m: float   # the best route if nothing were closed
     usual_duration_s: float
     incident_ids: list[int]   # verified hazards whose closed roads that usual route would use
+    usual_coords: Coords      # the usual route's line
 
 
 def route_steps(conn: Connection, legs: list[tuple[int, float, float]]) -> list[RouteStep]:
@@ -46,4 +47,6 @@ def closures_avoided(route: PlannedRoute, usual: PlannedRoute | None,
         return None
     used = set(usual.edge_ids)
     blocking = sorted(incident_id for incident_id, edge_ids in active.items() if used.intersection(edge_ids))
-    return Detour(usual.length_m, usual.time_s, blocking)
+    if not blocking:
+        return None  # longer for some other reason, not because of a closure
+    return Detour(usual.length_m, usual.time_s, blocking, usual.coords)

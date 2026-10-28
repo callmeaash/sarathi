@@ -570,6 +570,10 @@ export interface components {
             kind: string;
             /** Road Name */
             road_name: string | null;
+            /** Lon */
+            lon: number;
+            /** Lat */
+            lat: number;
         };
         /** ClosureOut */
         ClosureOut: {
@@ -605,6 +609,7 @@ export interface components {
             usual_duration_s: number;
             /** Closures */
             closures: components["schemas"]["AvoidedClosure"][];
+            usual_geometry: components["schemas"]["LineString"];
         };
         /** EmailCodeIn */
         EmailCodeIn: {
@@ -1026,6 +1031,10 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /** Lon */
+            lon: number;
+            /** Lat */
+            lat: number;
         };
         /** UserOut */
         UserOut: {

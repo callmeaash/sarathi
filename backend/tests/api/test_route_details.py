@@ -78,11 +78,12 @@ def test_a_detour_names_the_closures_it_goes_around(client, close):
     incident_id = close(("A", "B"), kind="flood", name="Kalimati Marg")
     body = route(client, "A", "C").json()
     assert body["distance_m"] > usual["distance_m"]
-    assert body["detour"] == {
-        "usual_distance_m": pytest.approx(usual["distance_m"]),
-        "usual_duration_s": pytest.approx(usual["duration_s"]),
-        "closures": [{"incident_id": incident_id, "kind": "flood", "road_name": "Kalimati Marg"}],
-    }
+    detour = body["detour"]
+    assert detour["usual_distance_m"] == pytest.approx(usual["distance_m"])
+    assert detour["usual_duration_s"] == pytest.approx(usual["duration_s"])
+    assert detour["closures"] == [{"incident_id": incident_id, "kind": "flood", "road_name": "Kalimati Marg",
+                                   "lon": pytest.approx(NODES["A"][0]), "lat": pytest.approx(NODES["A"][1])}]
+    assert detour["usual_geometry"]["coordinates"] == usual["geometry"]["coordinates"]  # the way that is closed
 
 
 def test_closures_off_the_route_are_not_a_detour(client, close):
