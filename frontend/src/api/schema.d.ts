@@ -13,7 +13,8 @@ export interface paths {
         };
         /**
          * Get Route
-         * @description Route between two map points avoiding closed roads, with its steps and any closures it goes around.
+         * @description Route between two map points avoiding closed roads, with its steps, the closures it goes around and any
+         *     unverified reports along it; avoid_unverified also keeps clear of those reports, for this route only.
          */
         get: operations["get_route_api_route_get"];
         put?: never;
@@ -949,6 +950,16 @@ export interface components {
             /** Steps */
             steps: components["schemas"]["RouteStepOut"][];
             detour: components["schemas"]["DetourOut"] | null;
+            /**
+             * Unverified
+             * @default []
+             */
+            unverified: components["schemas"]["UnverifiedOnRoute"][];
+            /**
+             * Avoids Unverified
+             * @default false
+             */
+            avoids_unverified: boolean;
         };
         /** RouteStepOut */
         RouteStepOut: {
@@ -1001,6 +1012,20 @@ export interface components {
             node_id?: number | null;
             /** Distance M */
             distance_m: number;
+        };
+        /** UnverifiedOnRoute */
+        UnverifiedOnRoute: {
+            /** Incident Id */
+            incident_id: number;
+            /** Kind */
+            kind: string;
+            /** Road Name */
+            road_name: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
         };
         /** UserOut */
         UserOut: {
@@ -1064,6 +1089,7 @@ export interface operations {
                 to_lon: number;
                 weight?: components["schemas"]["Weight"];
                 algorithm?: components["schemas"]["Algorithm"];
+                avoid_unverified?: boolean;
             };
             header?: never;
             path?: never;

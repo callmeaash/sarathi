@@ -159,4 +159,50 @@ describe('directions', () => {
     renderApp(TRIP)
     expect(await screen.findByText(/Starts on the nearest road, 120 m from your start/)).toBeInTheDocument()
   })
+
+  it('warns about unverified reports on the route and switches to a route that keeps clear of them', async () => {
+    const pending = { incident_id: 21, kind: 'road_works', road_name: 'Teku Road', created_at: new Date(Date.now() - 20 * 60_000).toISOString() }
+    const fetch = mockApi({ ...API, '/api/route': (request: Request) => {
+      const avoid = new URL(request.url).searchParams.get('avoid_unverified') === 'true'
+      return { body: route(avoid
+        ? { distance_m: 6600, duration_s: 830, unverified: [], avoids_unverified: true,
+            steps: [{ road_name: 'Bagmati Path', distance_m: 6600, duration_s: 830 }] }
+        : { unverified: [pending], avoids_unverified: false }) }
+    } })
+    const user = userEvent.setup()
+    const { router } = renderApp(TRIP)
+    expect(await panel().findByText('Passes 1 unverified report')).toBeInTheDocument()
+    expect(panel().getByRole('link', { name: 'Road works on Teku Road' })).toHaveAttribute('href', '/hazards/21')
+    expect(panel().getByText(/reported 20 min ago/)).toBeInTheDocument()
+
+    await user.click(panel().getByRole('button', { name: /Avoid unverified reports/ }))
+    expect(router.state.location.search).toContain('avoid=unverified')
+    expect(await panel().findByText('Avoiding 1 unverified report')).toBeInTheDocument()
+    expect(panel().getByText('+3 min, +780 m compared with the route through them.')).toBeInTheDocument()
+    expect(panel().getByRole('region', { name: 'Route summary' })).toHaveTextContent('14 min (6.6 km)')
+    expect((await sent(fetch, 'GET', '/api/route')).some((call) =>
+      new URL(call.request.url).searchParams.get('avoid_unverified') === 'true')).toBe(true)
+
+    await user.click(panel().getByRole('button', { name: 'Show the route through them' }))
+    expect(router.state.location.search).not.toContain('avoid=')
+    expect(await panel().findByText('Passes 1 unverified report')).toBeInTheDocument()
+  })
+
+  it('says when no route keeps clear of unverified reports', async () => {
+    const pending = { incident_id: 21, kind: 'flood', road_name: 'Teku Road', created_at: new Date().toISOString() }
+    mockApi({ ...API, '/api/route': (request: Request) => (new URL(request.url).searchParams.has('avoid_unverified')
+      ? { status: 404, body: { detail: 'no route avoids the unverified reports between these points' } }
+      : { body: route({ unverified: [pending] }) }) })
+    renderApp(`${TRIP}&avoid=unverified`)
+    expect(await panel().findByText('No route keeps clear of them, so this route goes through them.')).toBeInTheDocument()
+    expect(panel().getByRole('region', { name: 'Route summary' })).toHaveTextContent('11 min (5.8 km)')
+    expect(panel().queryByRole('button', { name: /Avoid unverified reports/ })).not.toBeInTheDocument()
+  })
+
+  it('shows nothing extra when the route passes no unverified reports', async () => {
+    mockApi(API)
+    renderApp(TRIP)
+    await screen.findByRole('region', { name: 'Route summary' })
+    expect(panel().queryByText(/unverified report/)).not.toBeInTheDocument()
+  })
 })

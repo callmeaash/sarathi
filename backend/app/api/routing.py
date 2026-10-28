@@ -7,13 +7,14 @@ from app.api.deps import get_conn, get_routing
 from app.routing.details import closures_avoided, route_steps
 from app.routing.geo import route_coordinates, snap_to_node
 from app.routing.points import PlannedRoute, locate_on_road, plan_route
+from app.routing.unverified import PENDING_DETAILS, blocked_positions, pending_edges, reports_on
 from app.routing.graph import haversine_m
 from app.routing.nearest import nearest_facilities
 from app.routing.roads import nearest_road
 from app.routing.search import Algorithm, NoRouteError, Weight
 from app.schemas import (
     AvoidedClosure, DetourOut, FacilitySummary, LineString, NearbyOut, NearestOut, RoadAtOut, RouteOut, RouteStepOut,
-    SnapOut,
+    SnapOut, UnverifiedOnRoute,
 )
 from app.state import RoutingState, active_closures
 
@@ -26,17 +27,22 @@ Kind = Literal["hospital", "police", "pharmacy", "fire_station"]
 
 @router.get("/route", response_model=RouteOut)
 def get_route(from_lat: Lat, from_lon: Lon, to_lat: Lat, to_lon: Lon,
-              weight: Weight = Weight.TIME, algorithm: Algorithm = Algorithm.ASTAR,
+              weight: Weight = Weight.TIME, algorithm: Algorithm = Algorithm.ASTAR, avoid_unverified: bool = False,
               routing: RoutingState = Depends(get_routing), conn: Connection = Depends(get_conn)) -> RouteOut:
-    """Route between two map points avoiding closed roads, with its steps and any closures it goes around."""
+    """Route between two map points avoiding closed roads, with its steps, the closures it goes around and any
+    unverified reports along it; avoid_unverified also keeps clear of those reports, for this route only."""
     graph = routing.graph
     # Routes start and end at the closest spot on the road itself, not at the nearest junction.
     start = locate_on_road(conn, graph, from_lon, from_lat)
     end = locate_on_road(conn, graph, to_lon, to_lat)
     active = active_closures(routing)
+    near = pending_edges(conn)
+    blocked = blocked_positions(graph, near) if avoid_unverified else frozenset()
     try:
-        route = plan_route(conn, graph, start, end, weight, algorithm)
+        route = plan_route(conn, graph, start, end, weight, algorithm, blocked=blocked)
     except NoRouteError:
+        if blocked:
+            raise HTTPException(404, "no route avoids the unverified reports between these points") from None
         if active and usual_route(graph, start, end, weight, algorithm) is not None:
             raise HTTPException(404, "closed roads cut off every route between these points") from None
         raise
@@ -55,7 +61,17 @@ def get_route(from_lat: Lat, from_lon: Lon, to_lat: Lat, to_lon: Lon,
         geometry=LineString(coordinates=route.coords),
         steps=[RouteStepOut.model_validate(step) for step in route_steps(conn, route.legs)],
         detour=detour_out(conn, detour) if detour else None,
+        unverified=unverified_out(conn, reports_on(route.edge_ids, near)),
+        avoids_unverified=avoid_unverified,
     )
+
+
+def unverified_out(conn: Connection, incident_ids: list[int]) -> list[UnverifiedOnRoute]:
+    """Unverified reports on a route, newest first."""
+    if not incident_ids:
+        return []
+    return [UnverifiedOnRoute(incident_id=r.id, kind=r.kind, road_name=r.road_name, created_at=r.created_at)
+            for r in conn.execute(PENDING_DETAILS, {"ids": incident_ids})]
 
 
 def usual_route(graph, start, end, weight, algorithm) -> PlannedRoute | None:

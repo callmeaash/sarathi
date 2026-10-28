@@ -58,6 +58,13 @@ class AvoidedClosure(BaseModel):
     road_name: str | None
 
 
+class UnverifiedOnRoute(BaseModel):
+    incident_id: int
+    kind: str
+    road_name: str | None
+    created_at: datetime
+
+
 class DetourOut(BaseModel):
     usual_distance_m: float  # the best route if nothing were closed
     usual_duration_s: float
@@ -77,6 +84,8 @@ class RouteOut(BaseModel):
     geometry: LineString
     steps: list[RouteStepOut]
     detour: DetourOut | None  # set when closures make this route longer than usual
+    unverified: list[UnverifiedOnRoute] = []  # reports waiting for review along this route
+    avoids_unverified: bool = False  # this route was asked to keep clear of unverified reports
 
 
 class FacilitySummary(BaseModel):

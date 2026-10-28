@@ -34,6 +34,7 @@ export function useDirectionsParams() {
   const from = parsePoint(params.get('from'), params.get(NAME_KEY.from), 'Chosen start')
   const to = parsePoint(params.get('to'), params.get(NAME_KEY.to), 'Chosen destination')
   const weight: Weight = params.get('weight') === 'length' ? 'length' : 'time'
+  const avoidUnverified = params.get('avoid') === 'unverified'
 
   const update = (change: (next: URLSearchParams) => void) => {
     const next = new URLSearchParams(params)
@@ -71,5 +72,10 @@ export function useDirectionsParams() {
     else next.set('weight', value)
   })
 
-  return { from, to, weight, setPoint, swap, setWeight }
+  const setAvoidUnverified = (on: boolean) => update((next) => {
+    if (on) next.set('avoid', 'unverified')
+    else next.delete('avoid')
+  })
+
+  return { from, to, weight, avoidUnverified, setPoint, swap, setWeight, setAvoidUnverified }
 }

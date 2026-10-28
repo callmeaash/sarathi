@@ -7,7 +7,7 @@ import { Button } from '../components/form/Button'
 import { useRoute } from '../directions/api'
 import { type Point, type Side, type Weight, isServed, useDirectionsParams } from '../directions/params'
 import { RouteFields } from '../directions/RouteFields'
-import { RouteRoads, RouteSummary } from '../directions/RouteDetails'
+import { RouteRoads, RouteSummary, UnverifiedReports } from '../directions/RouteDetails'
 import { MapPick, RouteLayer } from '../directions/RouteLayer'
 import { BaseLayers } from '../map/BaseLayers'
 import { useAppMap } from '../map/context'
@@ -33,7 +33,7 @@ function routeError(error: unknown): string {
 
 /** Screens 7, 8 and 17: plan a route around closed roads. */
 export function DirectionsPage() {
-  const { from: fromParam, to, weight, setPoint, swap, setWeight } = useDirectionsParams()
+  const { from: fromParam, to, weight, avoidUnverified, setPoint, swap, setWeight, setAvoidUnverified } = useDirectionsParams()
   const { location, locate, locateStatus, showNotice } = useAppMap()
   const [picking, setPicking] = useState<Side | null>(null)
 
@@ -41,7 +41,11 @@ export function DirectionsPage() {
   const from = fromParam ?? here
   const outside = [from, to].some((point) => point && !isServed(point))
   const ready = from && to && !outside
-  const best = useRoute(ready ? from : null, ready ? to : null, weight)
+  const through = useRoute(ready ? from : null, ready ? to : null, weight)
+  const avoiding = useRoute(ready ? from : null, ready ? to : null, weight, true, avoidUnverified)
+  const noAvoidingRoute = avoidUnverified && avoiding.error instanceof ApiError && avoiding.error.status === 404
+  // The route on show: the one keeping clear of unverified reports when asked for and one exists.
+  const best = avoidUnverified && !noAvoidingRoute && (avoiding.data || avoiding.isPending) ? avoiding : through
 
   const change = (side: Side, point: Point | null) => {
     if (side === 'from' && !point && !location) locate({ moveMap: false })  // "your location" not known yet
@@ -119,6 +123,10 @@ export function DirectionsPage() {
         {ready && best.data && (
           <>
             <RouteSummary route={best.data} />
+            {through.data && (
+              <UnverifiedReports through={through.data} avoiding={avoiding.data} avoidOn={avoidUnverified}
+                noAvoidingRoute={noAvoidingRoute} onToggle={setAvoidUnverified} />
+            )}
             <Button variant="secondary" icon="share" onClick={share} className="mt-4">Share route</Button>
             <RouteRoads route={best.data} />
           </>

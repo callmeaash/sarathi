@@ -5,6 +5,7 @@ import { Icon } from '../components/Icon'
 import { SectionHeading } from '../components/SectionHeading'
 import { hazardInfo, roadLabel } from '../hazards/kinds'
 import { formatDistance, formatDuration } from '../lib/format'
+import { timeAgo } from '../lib/time'
 import type { Route } from './api'
 import { viaRoads } from './via'
 
@@ -83,5 +84,70 @@ export function RouteRoads({ route }: { route: Route }) {
         </button>
       )}
     </section>
+  )
+}
+
+type UnverifiedProps = {
+  through: Route                 // the normal route, which may pass unverified reports
+  avoiding: Route | undefined    // the route keeping clear of them, when asked for
+  avoidOn: boolean
+  noAvoidingRoute: boolean       // asked to avoid them, but no route does
+  onToggle: (on: boolean) => void
+}
+
+/** "+3 min, +800 m" between two routes, or a note that the second is no longer. */
+function difference(longer: Route, shorter: Route): string {
+  const seconds = longer.duration_s - shorter.duration_s
+  const metres = longer.distance_m - shorter.distance_m
+  if (seconds < 30 && metres < 50) return 'About the same time and distance as the route through them.'
+  return `+${formatDuration(Math.max(seconds, 0))}, +${formatDistance(Math.max(metres, 0))} compared with the route through them.`
+}
+
+/** Warns about reports waiting for review along the route, and offers a route that keeps clear of them. */
+export function UnverifiedReports({ through, avoiding, avoidOn, noAvoidingRoute, onToggle }: UnverifiedProps) {
+  const reports = through.unverified ?? []
+  if (!reports.length && !avoidOn) return null
+  if (avoidOn && avoiding && !noAvoidingRoute) {
+    return (
+      <div className="mt-4 rounded-xl border border-pending-amber/50 bg-[#fff8e6] p-4 text-on-surface">
+        <p className="flex items-center gap-2 text-label-lg">
+          <Icon name="alt_route" className="text-[20px] text-[#7a5200]" />
+          Avoiding {reports.length || 'any'} unverified {reports.length === 1 ? 'report' : 'reports'}
+        </p>
+        <p className="mt-1 text-body-sm text-text-secondary">{difference(avoiding, through)}</p>
+        <button type="button" onClick={() => onToggle(false)} className="mt-2 text-label-lg text-primary">
+          Show the route through them
+        </button>
+      </div>
+    )
+  }
+  return (
+    <div className="mt-4 rounded-xl border border-pending-amber/50 bg-[#fff8e6] p-4 text-on-surface">
+      <p className="flex items-center gap-2 text-label-lg">
+        <Icon name="warning" className="text-[20px] text-[#7a5200]" />
+        Passes {reports.length} unverified {reports.length === 1 ? 'report' : 'reports'}
+      </p>
+      <ul className="mt-1.5 space-y-0.5 text-body-md">
+        {reports.map((report) => (
+          <li key={report.incident_id}>
+            <Link to={`/hazards/${report.incident_id}`} className="underline underline-offset-2">
+              {hazardInfo(report.kind).label} on {roadLabel(report.road_name)}
+            </Link>
+            <span className="text-text-secondary"> · reported {timeAgo(report.created_at)}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-1.5 text-body-sm text-text-secondary">
+        {noAvoidingRoute
+          ? 'No route keeps clear of them, so this route goes through them.'
+          : "Not checked by a moderator yet, so routes don't avoid them on their own."}
+      </p>
+      {!noAvoidingRoute && (
+        <button type="button" onClick={() => onToggle(true)}
+          className="mt-3 inline-flex h-10 items-center gap-1.5 rounded-full bg-on-surface px-4 text-label-lg text-white hover:bg-inverse-surface">
+          <Icon name="alt_route" className="text-[18px]" /> Avoid unverified reports
+        </button>
+      )}
+    </div>
   )
 }

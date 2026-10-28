@@ -85,7 +85,7 @@ The road graph and facilities load into memory at startup (about 1 s). Interacti
 | Endpoint | What it returns |
 |---|---|
 | `GET /api/health` | Status and how much map data is loaded |
-| `GET /api/route?from_lat&from_lon&to_lat&to_lon&weight=time&algorithm=astar` | Route between two map points that avoids closed roads: distance, time, search stats, the line to draw, the roads it follows (`steps`), and, when closures make it longer, the usual distance and the closures it goes around (`detour`) |
+| `GET /api/route?from_lat&from_lon&to_lat&to_lon&weight=time&algorithm=astar` | Route between two map points that avoids closed roads: distance, time, search stats, the line to draw, the roads it follows (`steps`), and, when closures make it longer, the usual distance and the closures it goes around (`detour`), and reports still waiting for review along it (`unverified`). Routes start and end at the closest spot on the road, respecting one-way streets. `avoid_unverified=true` keeps clear of unverified reports for that route only |
 | `GET /api/nearest?lat&lon&kind=hospital&limit=4` | Closest facilities of a kind by road, each with its route line and straight-line distance |
 | `GET /api/facilities?bbox=minLon,minLat,maxLon,maxLat&kind=hospital` | Facilities in the visible map area as GeoJSON points (repeat `kind` for several) |
 | `GET /api/facilities/{id}?from_lat&from_lon` | Full facility details, plus the road distance from a point if given |

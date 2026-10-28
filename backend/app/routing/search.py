@@ -43,12 +43,13 @@ class Search:
 
     def __init__(self, graph: RoadGraph, source: int, weight: Weight,
                  heuristic: Callable[[int], float] | None = None, ignore_closures: bool = False,
-                 starts: list[tuple[int, float]] | None = None):
+                 starts: list[tuple[int, float]] | None = None, blocked: frozenset[int] = frozenset()):
         """Prepare a search from a node index, or several (node, starting cost) pairs; optionally ignore closures."""
         self.graph = graph
         self.ignore_closures = ignore_closures
         self.source = source
         self.starts = starts or [(source, 0.0)]
+        self.blocked = blocked  # edge positions to avoid in this search only (e.g. near unverified reports)
         self.costs = graph.length_m if weight is Weight.LENGTH else graph.travel_time_s
         self.heuristic = heuristic or (lambda i: 0.0)
         n = graph.node_count
@@ -62,6 +63,7 @@ class Search:
         """Yield (node index, cost) for each node as it is settled, cheapest first."""
         offsets, targets, costs, h = self.graph.offsets, self.graph.targets, self.costs, self.heuristic
         closures = bytes(len(self.graph.closures)) if self.ignore_closures else self.graph.closures
+        blocked = self.blocked
         dist, settled = self.dist, self.settled
         heap = []
         for node, cost in self.starts:
@@ -77,7 +79,7 @@ class Search:
             yield u, g
             for pos in range(offsets[u], offsets[u + 1]):
                 v = targets[pos]
-                if settled[v] or closures[pos]:
+                if settled[v] or closures[pos] or (blocked and pos in blocked):
                     continue
                 candidate = g + costs[pos]
                 if candidate < dist[v]:
