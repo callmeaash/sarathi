@@ -28,7 +28,7 @@ describe('dropping a pin', () => {
   it('tells people how to drop a pin', async () => {
     mockApi(BASE)
     renderApp('/')
-    expect(await screen.findByText(/Press and hold any road on the map/)).toBeInTheDocument()
+    expect(await screen.findByText(/Press and hold the map/)).toBeInTheDocument()
   })
 })
 

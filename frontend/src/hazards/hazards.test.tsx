@@ -51,7 +51,7 @@ describe('hazards on the home panel', () => {
   it('says when nothing is closed or waiting', async () => {
     mockApi({ ...API, '/api/incidents': { body: [] }, '/api/closures': { body: [] } })
     renderApp('/')
-    expect(await screen.findByText('No verified road closures right now.')).toBeInTheDocument()
+    expect(await screen.findByText('No verified closures right now.')).toBeInTheDocument()
     expect(screen.getByText('All roads open')).toBeInTheDocument()
     expect(screen.getByText('No reports waiting for review')).toBeInTheDocument()
   })
@@ -62,7 +62,7 @@ describe('hazards on the home panel', () => {
       ({ body: new URL(request.url).searchParams.getAll('status').includes('verified') ? many : [] }) })
     renderApp('/')
     const closures = (await screen.findByRole('heading', { name: /Road closures/ })).closest('section')!
-    expect(within(closures).getAllByRole('listitem')).toHaveLength(3)
+    expect(within(closures).getAllByRole('listitem')).toHaveLength(2)
     expect(within(closures).getByRole('link', { name: 'View all' })).toHaveAttribute('href', '/hazards')
   })
 })

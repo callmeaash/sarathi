@@ -10,15 +10,14 @@ import { MapOverlay } from '../map/MapOverlay'
 /** How to drop a pin, which has no button of its own. */
 function PinTip() {
   return (
-    <div className="mt-7 flex items-start gap-3 rounded-xl border border-primary/15 bg-surface-tint-light p-4">
-      <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary text-white">
-        <Icon name="touch_app" className="text-[20px]" />
+    <div className="mt-5 flex items-center gap-3 rounded-xl border border-primary/15 bg-surface-tint-light px-3 py-2.5">
+      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary text-white">
+        <Icon name="touch_app" className="text-[18px]" />
       </span>
       <div>
         <p className="text-label-lg text-on-surface">Drop a pin</p>
-        <p className="mt-0.5 text-body-sm text-text-secondary">
-          Press and hold any road on the map (right-click on a computer) to get directions from there, find the
-          nearest hospital, or report a hazard.
+        <p className="text-body-sm text-text-secondary">
+          Press and hold the map (right-click on a computer) for directions or to report there.
         </p>
       </div>
     </div>
@@ -38,21 +37,21 @@ export function ExplorePage() {
 
       <header className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-headline-lg text-on-surface">Explore</h1>
-          <p className="mt-1 flex items-center gap-1 text-body-md text-text-secondary">
+          <h1 className="text-headline-md text-on-surface">Explore</h1>
+          <p className="mt-0.5 flex items-center gap-1 text-body-md text-text-secondary">
             <Icon name="location_on" className="text-[18px]" />
             Kathmandu District <span lang="ne" className="font-devanagari">(काठमाडौं जिल्ला)</span>
           </p>
         </div>
-        <div className="pt-1.5"><LiveStatusChip /></div>
+        <div className="pt-0.5"><LiveStatusChip /></div>
       </header>
       <ServerStatus />
 
-      <section className="mt-7 hidden lg:block">
+      <section className="mt-5 hidden lg:block">
         <SectionHeading title="Emergency & services" />
         <FacilityCards />
       </section>
-      <HazardSections limit={3} />
+      <HazardSections limit={2} />
       <PinTip />
     </>
   )

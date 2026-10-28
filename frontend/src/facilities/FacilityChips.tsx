@@ -47,10 +47,10 @@ export function FacilityCards() {
         const { plural, icon, chip, badge } = KINDS[kind]
         return (
           <button key={kind} type="button" aria-pressed={on} onClick={() => toggle(kind)}
-            className={`flex items-center gap-3 rounded-xl border bg-surface-container-lowest p-2.5 text-left transition-colors hover:bg-surface-container-low ${
+            className={`flex h-11 items-center gap-2.5 rounded-lg border bg-surface-container-lowest px-2 text-left transition-colors hover:bg-surface-container-low ${
               on ? `${chip.split(' ')[0]} text-on-surface` : 'border-border-muted text-text-secondary'}`}>
-            <span className={`grid size-9 shrink-0 place-items-center rounded-lg text-white ${on ? badge : 'bg-outline-variant'}`}>
-              <Icon name={icon} filled className="text-[20px]" />
+            <span className={`grid size-7 shrink-0 place-items-center rounded-md text-white ${on ? badge : 'bg-outline-variant'}`}>
+              <Icon name={icon} filled className="text-[16px]" />
             </span>
             <span className="min-w-0 flex-1 truncate text-label-lg">{plural}</span>
           </button>
