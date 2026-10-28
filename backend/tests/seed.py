@@ -55,3 +55,26 @@ def seed_network(engine, road_names=None):
 def route(client, a, b, **params):
     return client.get("/api/route", params={"from_lon": NODES[a][0], "from_lat": NODES[a][1],
                                             "to_lon": NODES[b][0], "to_lat": NODES[b][1], **params})
+
+
+def seed_graph(engine, nodes: dict, roads: list[tuple], speed_mps: float = SPEED_MPS):
+    """Replace the road network with a custom one: roads are (a, b) or (a, b, name), two-way, edge ids from 100."""
+    with engine.begin() as conn:
+        conn.execute(text("TRUNCATE incidents, audit_log, import_runs, facilities, road_edges, road_nodes "
+                          "RESTART IDENTITY CASCADE"))
+        for node, (x, y) in nodes.items():
+            conn.execute(text("INSERT INTO road_nodes (id, geom) VALUES (:id, ST_SetSRID(ST_MakePoint(:x, :y), 4326))"),
+                         {"id": node, "x": x, "y": y})
+        for i, (a, b, *rest) in enumerate(roads):
+            name = rest[0] if rest else None
+            length = haversine_m(*nodes[a], *nodes[b])
+            for edge_id, source, target in ((100 + 2 * i, a, b), (101 + 2 * i, b, a)):
+                conn.execute(text("""
+                    INSERT INTO road_edges (id, source, target, key, name, highway, oneway, bridge, tunnel, length_m,
+                                            speed_kph, travel_time_s, geom)
+                    VALUES (:id, :s, :t, 0, :name, 'residential', false, false, false, :len, 36, :sec,
+                            ST_MakeLine(ST_SetSRID(ST_MakePoint(:ax, :ay), 4326),
+                                        ST_SetSRID(ST_MakePoint(:bx, :by), 4326)))
+                """), {"id": edge_id, "s": source, "t": target, "name": name, "len": length,
+                       "sec": length / speed_mps, "ax": nodes[source][0], "ay": nodes[source][1],
+                       "bx": nodes[target][0], "by": nodes[target][1]})

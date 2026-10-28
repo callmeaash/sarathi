@@ -44,6 +44,26 @@ class SnapOut(BaseModel):
     distance_m: float  # from the clicked point to the road junction the route starts or ends at
 
 
+class RouteStepOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    road_name: str | None  # None for unnamed roads
+    distance_m: float
+    duration_s: float
+
+
+class AvoidedClosure(BaseModel):
+    incident_id: int
+    kind: str
+    road_name: str | None
+
+
+class DetourOut(BaseModel):
+    usual_distance_m: float  # the best route if nothing were closed
+    usual_duration_s: float
+    closures: list[AvoidedClosure]  # the verified hazards that route would run into
+
+
 class RouteOut(BaseModel):
     distance_m: float
     duration_s: float
@@ -55,6 +75,8 @@ class RouteOut(BaseModel):
     end: SnapOut
     edge_ids: list[int]
     geometry: LineString
+    steps: list[RouteStepOut]
+    detour: DetourOut | None  # set when closures make this route longer than usual
 
 
 class FacilitySummary(BaseModel):

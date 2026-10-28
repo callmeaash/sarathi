@@ -42,9 +42,10 @@ class Search:
     """Best-first search from one node that settles nodes in order of cost (Dijkstra, or A* with a heuristic)."""
 
     def __init__(self, graph: RoadGraph, source: int, weight: Weight,
-                 heuristic: Callable[[int], float] | None = None):
-        """Prepare a search from an internal node index."""
+                 heuristic: Callable[[int], float] | None = None, ignore_closures: bool = False):
+        """Prepare a search from an internal node index (optionally as if no road were closed)."""
         self.graph = graph
+        self.ignore_closures = ignore_closures
         self.source = source
         self.costs = graph.length_m if weight is Weight.LENGTH else graph.travel_time_s
         self.heuristic = heuristic or (lambda i: 0.0)
@@ -58,7 +59,7 @@ class Search:
     def run(self) -> Iterator[tuple[int, float]]:
         """Yield (node index, cost) for each node as it is settled, cheapest first."""
         offsets, targets, costs, h = self.graph.offsets, self.graph.targets, self.costs, self.heuristic
-        closures = self.graph.closures
+        closures = bytes(len(self.graph.closures)) if self.ignore_closures else self.graph.closures
         dist, settled = self.dist, self.settled
         dist[self.source] = 0.0
         heap = [(h(self.source), 0.0, self.source)]
@@ -130,13 +131,14 @@ def straight_line_heuristic(graph: RoadGraph, target: int, weight: Weight) -> Ca
 
 
 def find_route(graph: RoadGraph, source_id: int, target_id: int,
-               weight: Weight | str = Weight.TIME, algorithm: Algorithm | str = Algorithm.DIJKSTRA) -> Route:
-    """Find the cheapest route between two OSM nodes with Dijkstra or A*."""
+               weight: Weight | str = Weight.TIME, algorithm: Algorithm | str = Algorithm.DIJKSTRA,
+               ignore_closures: bool = False) -> Route:
+    """Find the cheapest route between two OSM nodes with Dijkstra or A* (optionally ignoring closures)."""
     weight, algorithm = Weight(weight), Algorithm(algorithm)
     source, target = graph.node_index(source_id), graph.node_index(target_id)
     started = time.perf_counter()
     heuristic = straight_line_heuristic(graph, target, weight) if algorithm is Algorithm.ASTAR else None
-    search = Search(graph, source, weight, heuristic)
+    search = Search(graph, source, weight, heuristic, ignore_closures)
     for node, _ in search.run():
         if node == target:
             return search.route_to(target, algorithm, started)

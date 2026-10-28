@@ -1,15 +1,19 @@
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import Connection
+from sqlalchemy import Connection, text
 
 from app.api.deps import get_conn, get_routing
+from app.routing.details import closures_avoided, cut_off_by_closures, route_steps
 from app.routing.geo import route_coordinates, snap_to_node
 from app.routing.graph import haversine_m
 from app.routing.nearest import nearest_facilities
 from app.routing.roads import nearest_road
-from app.routing.search import Algorithm, Weight, find_route
-from app.schemas import FacilitySummary, LineString, NearbyOut, NearestOut, RoadAtOut, RouteOut, SnapOut
+from app.routing.search import Algorithm, NoRouteError, Weight, find_route
+from app.schemas import (
+    AvoidedClosure, DetourOut, FacilitySummary, LineString, NearbyOut, NearestOut, RoadAtOut, RouteOut, RouteStepOut,
+    SnapOut,
+)
 from app.state import RoutingState
 
 router = APIRouter(tags=["routing"])
@@ -23,11 +27,17 @@ Kind = Literal["hospital", "police", "pharmacy", "fire_station"]
 def get_route(from_lat: Lat, from_lon: Lon, to_lat: Lat, to_lon: Lon,
               weight: Weight = Weight.TIME, algorithm: Algorithm = Algorithm.ASTAR,
               routing: RoutingState = Depends(get_routing), conn: Connection = Depends(get_conn)) -> RouteOut:
-    """Route between two map points, avoiding closed roads."""
+    """Route between two map points avoiding closed roads, with its steps and any closures it goes around."""
     graph = routing.graph
     start = snap_to_node(conn, graph, from_lon, from_lat)
     end = snap_to_node(conn, graph, to_lon, to_lat)
-    route = find_route(graph, start.node_id, end.node_id, weight, algorithm)
+    try:
+        route = find_route(graph, start.node_id, end.node_id, weight, algorithm)
+    except NoRouteError:
+        if cut_off_by_closures(routing, start.node_id, end.node_id, weight, algorithm):
+            raise HTTPException(404, "closed roads cut off every route between these points") from None
+        raise
+    detour = closures_avoided(routing, start.node_id, end.node_id, route)
     return RouteOut(
         distance_m=route.length_m,
         duration_s=route.travel_time_s,
@@ -39,7 +49,19 @@ def get_route(from_lat: Lat, from_lon: Lon, to_lat: Lat, to_lon: Lon,
         end=SnapOut(node_id=end.node_id, distance_m=end.distance_m),
         edge_ids=route.edge_ids,
         geometry=LineString(coordinates=route_coordinates(conn, graph, route)),
+        steps=[RouteStepOut.model_validate(step) for step in route_steps(conn, graph, route)],
+        detour=detour_out(conn, detour) if detour else None,
     )
+
+
+AVOIDED = text("SELECT id, kind, road_name FROM incidents WHERE id = ANY(:ids) ORDER BY id")
+
+
+def detour_out(conn: Connection, detour) -> DetourOut:
+    """The detour with each avoided hazard's kind and road, for the response."""
+    rows = conn.execute(AVOIDED, {"ids": detour.incident_ids}).all() if detour.incident_ids else []
+    return DetourOut(usual_distance_m=detour.usual_distance_m, usual_duration_s=detour.usual_duration_s,
+                     closures=[AvoidedClosure(incident_id=r.id, kind=r.kind, road_name=r.road_name) for r in rows])
 
 
 @router.get("/nearest", response_model=NearestOut)
