@@ -18,7 +18,8 @@ import { FirstVisit } from '../pages/auth/firstVisit'
 import { HazardPage } from '../pages/HazardPage'
 import { HazardsPage } from '../pages/HazardsPage'
 import { DirectionsPage } from '../pages/DirectionsPage'
-import { MyReportsPage, NearbyPage, ReportPage } from '../pages/sections'
+import { NearbyPage } from '../pages/NearbyPage'
+import { MyReportsPage, ReportPage } from '../pages/sections'
 
 const MAP_PAGE = { map: true }
 

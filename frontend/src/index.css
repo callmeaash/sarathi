@@ -166,6 +166,12 @@
   font-size: 22px;
 }
 
+/* Numbered result badges on the Nearby page. */
+.rank-pin {
+  font-size: 14px;
+  font-weight: 700;
+}
+
 .facility-pin--hospital { --pin: var(--color-facility-hospital-pink); }
 .facility-pin--police { --pin: var(--color-facility-police-blue); }
 .facility-pin--pharmacy { --pin: var(--color-facility-pharmacy-green); }
