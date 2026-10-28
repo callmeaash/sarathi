@@ -139,6 +139,11 @@
   transition: bottom 0.2s;
 }
 
+/* While the sheet is being dragged, things above it follow the finger without easing. */
+[data-dragging] .leaflet-bottom {
+  transition: none;
+}
+
 /* Facility markers: white-edged circles in each kind's colour. */
 .facility-pin {
   display: grid;

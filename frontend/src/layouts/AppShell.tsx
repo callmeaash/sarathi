@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import type { CSSProperties } from 'react'
 import { Link, NavLink, Outlet, useLocation, useMatches } from 'react-router'
 
 import { useAuth } from '../auth/context'
@@ -9,7 +9,9 @@ import { HeaderSearch } from '../search/HeaderSearch'
 import { useAppMap } from '../map/context'
 import { MapView } from '../map/MapView'
 import { DESKTOP_NAV, MOBILE_NAV } from './navigation'
-import { SheetHandle, type SheetState } from './SheetHandle'
+import { SheetHandle } from './SheetHandle'
+import { useBottomSheet } from './useBottomSheet'
+import { useIsDesktop } from './useIsDesktop'
 
 /** The user's initial linking to their account, or a log-in button; shown in both headers. */
 function AccountButton({ onBlue }: { onBlue: boolean }) {
@@ -164,12 +166,6 @@ function useMapPage(): boolean {
   return useMatches().some((match) => (match.handle as { map?: boolean } | undefined)?.map)
 }
 
-// Heights of the phone's bottom sheet; the map buttons and Leaflet's scale and credits sit just above it.
-const SHEET_HEIGHTS: Record<SheetState, string> = {
-  peek: '[--sheet-height:40dvh]',
-  expanded: '[--sheet-height:78dvh]',
-}
-
 /**
  * The frame around every page. Desktop: side navigation, a 400 px page panel and the map. Phones: map pages sit in
  * a bottom sheet over the map, other pages fill the screen. The map stays loaded throughout, so it never reloads.
@@ -177,29 +173,33 @@ const SHEET_HEIGHTS: Record<SheetState, string> = {
 export function AppShell() {
   const mapPage = useMapPage()
   const { pathname } = useLocation()
-  const [sheet, setSheet] = useState<SheetState>('peek')
-  const [sheetPath, setSheetPath] = useState(pathname)
-  if (sheetPath !== pathname) {  // each new page starts with the sheet lowered
-    setSheetPath(pathname)
-    setSheet('peek')
-  }
+  const desktop = useIsDesktop()
+  const { attachArea, height, dragging, expanded, handle } = useBottomSheet(pathname)
+  // --sheet-height tells the map buttons and Leaflet's scale and credits how far up to sit, live while dragging.
+  const sheetStyle = mapPage && !desktop ? { '--sheet-height': `${height}px` } as CSSProperties : undefined
 
   return (
     <div className="flex h-dvh flex-col">
       <DesktopHeader />
       <MobileHeader withSearch={mapPage} />
-      <div data-sheet={mapPage ? sheet : undefined} className={`relative flex min-h-0 flex-1 lg:[--sheet-height:0px] ${
-        mapPage ? SHEET_HEIGHTS[sheet] : '[--sheet-height:0px]'}`}>
+      <div
+        ref={attachArea}
+        style={sheetStyle}
+        data-sheet={mapPage ? (expanded ? 'expanded' : 'resting') : undefined}
+        data-dragging={dragging || undefined}
+        className={`relative flex min-h-0 flex-1 lg:[--sheet-height:0px] ${mapPage ? '' : '[--sheet-height:0px]'}`}
+      >
         <SideNav />
         <main
           data-map-sheet={mapPage || undefined}
           className={`min-w-0 lg:static lg:z-auto lg:flex lg:h-auto lg:w-100 lg:flex-none lg:flex-col lg:rounded-none lg:border-r lg:border-border-muted lg:shadow-none ${
             mapPage
-              ? 'absolute inset-x-0 bottom-0 z-10 flex h-(--sheet-height) flex-col rounded-t-sheet bg-surface-container-lowest shadow-[0_-4px_16px_rgb(27_28_30/0.12)] transition-[height] duration-200'
+              ? `absolute inset-x-0 bottom-0 z-10 flex h-(--sheet-height) flex-col rounded-t-sheet bg-surface-container-lowest shadow-[0_-4px_16px_rgb(27_28_30/0.12)] ${
+                dragging ? '' : 'transition-[height] duration-200'}`
               : 'flex-1 overflow-y-auto'
           }`}
         >
-          {mapPage && <SheetHandle state={sheet} onChange={setSheet} />}
+          {mapPage && <SheetHandle expanded={expanded} handle={handle} />}
           <div className={mapPage ? 'min-h-0 flex-1 overflow-y-auto px-5 pb-5 lg:px-6 lg:py-5' : 'px-5 py-5 lg:px-6'}>
             <Outlet />
           </div>

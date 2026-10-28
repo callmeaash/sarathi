@@ -92,7 +92,7 @@ function MapControls() {
   const locating = locateStatus === 'locating'
   return (
     // Hidden while the phone's sheet is pulled up: the map is mostly covered and they'd run into the header.
-    <div className="absolute right-4 bottom-[calc(var(--sheet-height,0px)+2.25rem)] z-[1000] flex flex-col items-end gap-2 transition-[bottom] in-data-[sheet=expanded]:hidden lg:right-4 lg:bottom-10 lg:in-data-[sheet=expanded]:flex">
+    <div className="absolute right-4 bottom-[calc(var(--sheet-height,0px)+2.25rem)] z-[1000] flex flex-col items-end gap-2 transition-[bottom] in-data-[dragging]:transition-none in-data-[sheet=expanded]:hidden lg:right-4 lg:bottom-10 lg:in-data-[sheet=expanded]:flex">
       <LayersControl buttonClass={controlButton} />
       <button type="button" onClick={() => locate()} disabled={locating} aria-label="Show my location"
         className={`${controlButton} rounded-full border border-border-muted shadow-float`}>
