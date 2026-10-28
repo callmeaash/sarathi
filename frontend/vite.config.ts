@@ -15,5 +15,6 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     css: false,
+    testTimeout: 15_000,  // each test renders the whole app with the map; parallel runs can be slow
   },
 })

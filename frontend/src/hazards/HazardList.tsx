@@ -1,6 +1,8 @@
+import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 
 import { Icon } from '../components/Icon'
+import { EmptyCard, SectionHeading } from '../components/SectionHeading'
 import { timeAgo } from '../lib/time'
 import { type Incident, useIncidents } from './api'
 import { hazardInfo, roadLabel } from './kinds'
@@ -37,20 +39,28 @@ export function HazardCard({ incident }: { incident: Incident }) {
   )
 }
 
-type SectionProps = { title: string; incidents: Incident[]; empty: string; limit?: number; more?: string }
+type SectionProps = {
+  title: string
+  incidents: Incident[]
+  empty: ReactNode
+  limit?: number
+  more?: string
+  aside?: ReactNode
+  footnote?: ReactNode
+}
 
 /** A titled list of hazards, optionally cut short with a "View all" link. */
-function Section({ title, incidents, empty, limit, more }: SectionProps) {
+function Section({ title, incidents, empty, limit, more, aside, footnote }: SectionProps) {
   const shown = limit ? incidents.slice(0, limit) : incidents
+  const viewAll = more && incidents.length > shown.length
+    ? <Link to={more} className="text-label-lg text-primary">View all</Link> : null
   return (
-    <section className="mt-6">
-      <div className="mb-3 flex items-baseline justify-between">
-        <h2 className="text-title-md text-on-surface">{title} <span className="text-text-secondary">({incidents.length})</span></h2>
-        {more && incidents.length > shown.length && <Link to={more} className="text-label-lg text-primary">View all</Link>}
-      </div>
+    <section className="mt-7">
+      <SectionHeading title={title} count={incidents.length} aside={viewAll ?? aside} />
       {shown.length === 0
-        ? <p className="rounded-xl bg-surface-container-low px-4 py-3 text-body-md text-text-secondary">{empty}</p>
+        ? empty
         : <ul className="space-y-2">{shown.map((incident) => <li key={incident.id}><HazardCard incident={incident} /></li>)}</ul>}
+      {shown.length > 0 && footnote && <p className="mt-2 text-body-sm text-text-secondary">{footnote}</p>}
     </section>
   )
 }
@@ -58,20 +68,23 @@ function Section({ title, incidents, empty, limit, more }: SectionProps) {
 /** Verified closures and reports waiting for review; `limit` shortens each list for the home panel. */
 export function HazardSections({ limit }: { limit?: number }) {
   const { data, isPending, isError } = useIncidents(['pending', 'verified'])
-  if (isPending) return <div className="mt-6 h-32 animate-pulse rounded-xl bg-surface-container" aria-hidden />
-  if (isError) return <p className="mt-6 text-body-md text-text-secondary">Couldn't load hazards. Check your connection.</p>
+  if (isPending) return <div className="mt-7 h-32 animate-pulse rounded-xl bg-surface-container" aria-hidden />
+  if (isError) return <p className="mt-7 text-body-md text-text-secondary">Couldn't load hazards. Check your connection.</p>
 
   const closed = data.filter((incident) => incident.status === 'verified')
   const pending = data.filter((incident) => incident.status === 'pending')
   return (
     <>
       <Section title="Road closures" incidents={closed} limit={limit} more="/hazards"
-        empty="No verified road closures right now." />
+        aside={<span className="text-body-sm text-text-secondary">Updates every minute</span>}
+        empty={<EmptyCard icon="check_circle" tone="ok" title="All roads open">No verified road closures right now.</EmptyCard>} />
       <Section title="Unverified reports" incidents={pending} limit={limit} more="/hazards"
-        empty="No reports waiting for review." />
-      <p className="mt-3 text-body-sm text-text-secondary">
-        Unverified reports don't change routes until a moderator checks them.
-      </p>
+        footnote="Unverified reports don't change routes until a moderator checks them."
+        empty={(
+          <EmptyCard icon="info" tone="info" title="No reports waiting for review">
+            Reports from the public change routes only after a moderator verifies them.
+          </EmptyCard>
+        )} />
     </>
   )
 }
@@ -80,5 +93,5 @@ export function HazardSections({ limit }: { limit?: number }) {
 export function ClearedSection() {
   const { data } = useIncidents(['cleared'])
   if (!data?.length) return null
-  return <Section title="Recently cleared" incidents={data.slice(0, 10)} empty="" />
+  return <Section title="Recently cleared" incidents={data.slice(0, 10)} empty={null} />
 }

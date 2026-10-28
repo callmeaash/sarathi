@@ -39,7 +39,7 @@ describe('hazards on the home panel', () => {
     mockApi(API)
     renderApp('/')
     const closures = (await screen.findByRole('heading', { name: /Road closures/ })).closest('section')!
-    expect(closures).toHaveTextContent('Road closures (2)')
+    expect(within(closures).getByRole('heading')).toHaveTextContent(/^Road closures\s*2$/)
     expect(within(closures).getByRole('link', { name: /Ring Road/ })).toHaveTextContent('Flooding · verified 25 min ago')
     expect(within(closures).getByRole('link', { name: /Ring Road/ })).toHaveAttribute('href', '/hazards/1')
     const reports = screen.getByRole('heading', { name: /Unverified reports/ }).closest('section')!
@@ -52,7 +52,8 @@ describe('hazards on the home panel', () => {
     mockApi({ ...API, '/api/incidents': { body: [] }, '/api/closures': { body: [] } })
     renderApp('/')
     expect(await screen.findByText('No verified road closures right now.')).toBeInTheDocument()
-    expect(screen.getByText('No reports waiting for review.')).toBeInTheDocument()
+    expect(screen.getByText('All roads open')).toBeInTheDocument()
+    expect(screen.getByText('No reports waiting for review')).toBeInTheDocument()
   })
 
   it('shortens long lists and links to the full page', async () => {

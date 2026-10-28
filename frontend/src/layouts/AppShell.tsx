@@ -4,6 +4,7 @@ import { Link, NavLink, Outlet, useLocation, useMatches } from 'react-router'
 import { useAuth } from '../auth/context'
 import { Icon } from '../components/Icon'
 import { Logo } from '../components/Logo'
+import { useHazardAlert } from '../hazards/useHazardAlert'
 import { MapView } from '../map/MapView'
 import { DESKTOP_NAV, MOBILE_NAV } from './navigation'
 import { SheetHandle, type SheetState } from './SheetHandle'
@@ -78,23 +79,35 @@ function MobileHeader() {
 
 /** Desktop side navigation. */
 function SideNav() {
+  const alert = useHazardAlert()
   return (
-    <nav aria-label="Main" className="hidden w-62 shrink-0 flex-col gap-1 border-r border-border-muted p-3 lg:flex">
+    <nav aria-label="Main" className="hidden w-20 shrink-0 flex-col gap-1 border-r border-border-muted bg-surface-container-lowest py-3 lg:flex">
       {DESKTOP_NAV.map((item) => (
         <NavLink
           key={item.to}
           to={item.to}
           end={item.to === '/'}
           className={({ isActive }) =>
-            `flex h-11 items-center gap-3 rounded-lg px-4 text-label-lg ${
-              isActive ? 'bg-primary-fixed text-on-primary-fixed' : 'text-on-surface-variant hover:bg-surface-container'
+            `group relative flex flex-col items-center gap-1 px-1 py-2 text-center text-label-sm ${
+              isActive ? 'text-primary' : 'text-on-surface-variant hover:text-on-surface'
             }`
           }
         >
           {({ isActive }) => (
             <>
-              <Icon name={item.icon} filled={isActive} className="text-[22px]" />
+              {isActive && <span className="absolute top-2 left-0 h-10 w-1 rounded-r-full bg-primary" aria-hidden />}
+              <span className={`relative grid size-10 place-items-center rounded-xl transition-colors ${
+                isActive ? 'bg-primary-fixed' : 'group-hover:bg-surface-container'}`}>
+                <Icon name={item.icon} filled={isActive} className="text-[22px]" />
+                {item.to === '/hazards' && alert && (
+                  <span className={`absolute top-1 right-1 size-2 rounded-full ring-2 ring-surface-container-lowest ${
+                    alert === 'closed' ? 'bg-hazard-closure-red' : 'bg-pending-amber'}`} aria-hidden />
+                )}
+              </span>
               {item.label}
+              {item.to === '/hazards' && alert && (
+                <span className="sr-only">{alert === 'closed' ? '(roads closed)' : '(reports waiting)'}</span>
+              )}
             </>
           )}
         </NavLink>

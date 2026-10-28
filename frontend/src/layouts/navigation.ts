@@ -9,7 +9,7 @@ export const DESKTOP_NAV: NavItem[] = [
   { to: '/', label: 'Map', icon: 'map' },
   { to: '/directions', label: 'Directions', icon: 'directions' },
   { to: '/hazards', label: 'Hazards', icon: 'warning' },
-  { to: '/nearby', label: 'Nearby', icon: 'add_box' },
+  { to: '/nearby', label: 'Nearby', icon: 'location_on' },
   { to: '/reports', label: 'My reports', icon: 'campaign' },
 ]
 
