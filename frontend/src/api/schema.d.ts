@@ -44,6 +44,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/roads/nearest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Nearest Road
+         * @description The road closest to a map point, e.g. to describe a dropped pin as "near Kalimati Road".
+         */
+        get: operations["get_nearest_road_api_roads_nearest_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/facilities": {
         parameters: {
             query?: never;
@@ -849,6 +869,17 @@ export interface components {
             /** New Password */
             new_password: string;
         };
+        /** RoadAtOut */
+        RoadAtOut: {
+            /** Road Name */
+            road_name: string | null;
+            /** Distance M */
+            distance_m: number;
+            /** Lon */
+            lon: number;
+            /** Lat */
+            lat: number;
+        };
         /** RoadDistance */
         RoadDistance: {
             /** Distance M */
@@ -1010,6 +1041,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["NearestOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_nearest_road_api_roads_nearest_get: {
+        parameters: {
+            query: {
+                lat: number;
+                lon: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoadAtOut"];
                 };
             };
             /** @description Validation Error */

@@ -14,6 +14,13 @@ class HealthOut(BaseModel):
     loaded_at: datetime
 
 
+class RoadAtOut(BaseModel):
+    road_name: str | None
+    distance_m: float  # from the given point to the road
+    lon: float         # closest point on the road
+    lat: float
+
+
 class LineString(BaseModel):
     type: Literal["LineString"] = "LineString"
     coordinates: list[list[float]]

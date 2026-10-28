@@ -1,3 +1,4 @@
+import { Icon } from '../components/Icon'
 import { PageHeader } from '../components/PageHeader'
 import { ServerStatus } from '../components/ServerStatus'
 import { FacilityChips } from '../facilities/FacilityChips'
@@ -18,6 +19,11 @@ export function ExplorePage() {
       <ServerStatus />
       <div className="mt-5 hidden lg:block"><FacilityChips /></div>
       <HazardSections limit={3} />
+      <p className="mt-6 flex items-start gap-2 rounded-xl bg-surface-tint-light px-4 py-3 text-body-sm text-text-secondary">
+        <Icon name="touch_app" className="text-[18px] text-primary" />
+        Press and hold the map (right-click on a computer) to drop a pin: get directions, find the nearest hospital,
+        or report a hazard at that spot.
+      </p>
     </>
   )
 }

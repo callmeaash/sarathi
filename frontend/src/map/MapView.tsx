@@ -5,6 +5,8 @@ import {
   AttributionControl, Circle, CircleMarker, MapContainer, Pane, ScaleControl, TileLayer, Tooltip, useMap, useMapEvents,
 } from 'react-leaflet'
 
+import { useLocation, useNavigate } from 'react-router'
+
 import { Icon } from '../components/Icon'
 import { MAX_ZOOM, MIN_ZOOM, PANNING_BOUNDS, TILES } from './config'
 import { useAppMap } from './context'
@@ -32,6 +34,19 @@ function RememberView() {
     moveend(event) {
       const center = event.target.getCenter()
       saveView(center.lat, center.lng, event.target.getZoom())
+    },
+  })
+  return null
+}
+
+/** Press and hold (right-click on a computer) to drop a pin; Leaflet turns a long press into "contextmenu". */
+function DropPin() {
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
+  useMapEvents({
+    contextmenu(event) {
+      const { lat, lng } = event.latlng
+      navigate(`/pin?lat=${lat.toFixed(6)}&lon=${lng.toFixed(6)}`, { replace: pathname === '/pin' })
     },
   })
   return null
@@ -138,6 +153,7 @@ export function MapView() {
         <ShareMap />
         <RememberView />
         <FitContainer />
+        <DropPin />
         <YouAreHere />
       </MapContainer>
       <OverlaySlot />

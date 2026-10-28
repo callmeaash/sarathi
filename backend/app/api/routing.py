@@ -1,14 +1,15 @@
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import Connection
 
 from app.api.deps import get_conn, get_routing
 from app.routing.geo import route_coordinates, snap_to_node
 from app.routing.graph import haversine_m
 from app.routing.nearest import nearest_facilities
+from app.routing.roads import nearest_road
 from app.routing.search import Algorithm, Weight, find_route
-from app.schemas import FacilitySummary, LineString, NearbyOut, NearestOut, RouteOut, SnapOut
+from app.schemas import FacilitySummary, LineString, NearbyOut, NearestOut, RoadAtOut, RouteOut, SnapOut
 from app.state import RoutingState
 
 router = APIRouter(tags=["routing"])
@@ -63,3 +64,16 @@ def get_nearest(lat: Lat, lon: Lon, kind: Kind = "hospital", limit: Annotated[in
         ))
     return NearestOut(kind=kind, weight=Weight(weight).value,
                       start=SnapOut(node_id=start.node_id, distance_m=start.distance_m), results=results)
+
+
+# Further than this from any road, a point is not "on" or "near" a road worth naming.
+MAX_NEAREST_ROAD_M = 500
+
+
+@router.get("/roads/nearest", response_model=RoadAtOut)
+def get_nearest_road(lat: Lat, lon: Lon, conn: Connection = Depends(get_conn)) -> RoadAtOut:
+    """The road closest to a map point, e.g. to describe a dropped pin as "near Kalimati Road"."""
+    road = nearest_road(conn, lon, lat)
+    if road is None or road.distance_m > MAX_NEAREST_ROAD_M:
+        raise HTTPException(404, f"no road within {MAX_NEAREST_ROAD_M} m of this point")
+    return RoadAtOut(road_name=road.road_name, distance_m=road.distance_m, lon=road.lon, lat=road.lat)

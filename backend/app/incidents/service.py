@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.errors import Conflict, InvalidInput, NotFound, TooManyRequests
 from app.models import AuditLog, Incident, User
 from app.routing.closures import edges_near
+from app.routing.roads import nearest_road
 from app.state import RoutingState, active_closures, apply_closure, lift_closure
 
 MAX_REPORT_SNAP_M = 150         # a pin further than this from any road is not a road hazard we can route around
@@ -19,15 +20,6 @@ MIN_CLOSURE_RADIUS_M, MAX_CLOSURE_RADIUS_M = 5, 200
 MAX_NOTE_LENGTH = 200
 MIN_REASON_LENGTH, MAX_REASON_LENGTH = 3, 300
 PUBLIC_STATUSES = ("pending", "verified", "cleared")  # rejected and merged reports are only shown to their reporter
-
-SNAP_TO_ROAD = text("""
-    SELECT coalesce(e.name_en, e.name) AS road, ST_Distance(e.geom::geography, p.geom::geography) AS dist,
-           ST_X(ST_ClosestPoint(e.geom, p.geom)) AS lon, ST_Y(ST_ClosestPoint(e.geom, p.geom)) AS lat
-    FROM (SELECT ST_SetSRID(ST_MakePoint(:lon, :lat), 4326) AS geom) p
-    CROSS JOIN LATERAL (SELECT name, name_en, geom FROM road_edges ORDER BY geom <-> p.geom LIMIT 10) e
-    ORDER BY dist
-    LIMIT 1
-""")
 
 DUPLICATE = text("""
     SELECT id FROM incidents
@@ -124,16 +116,16 @@ def create_incident(session: Session, user: User, kind: str, passable: str, note
         raise InvalidInput(f"note must be at most {MAX_NOTE_LENGTH} characters")
     check_rate(session, user, now)
 
-    road = session.execute(SNAP_TO_ROAD, {"lon": lon, "lat": lat}).first()
-    if road is None or road.dist > MAX_REPORT_SNAP_M:
+    road = nearest_road(session.connection(), lon, lat)
+    if road is None or road.distance_m > MAX_REPORT_SNAP_M:
         raise InvalidInput(f"no road within {MAX_REPORT_SNAP_M} m of this point; place the pin on the road")
     if session.execute(DUPLICATE, {"user": user.id, "kind": kind, "since": now - timedelta(hours=1),
                                    "lon": road.lon, "lat": road.lat, "radius": DUPLICATE_RADIUS_M}).first():
         raise Conflict("you have already reported this hazard; it is waiting for review")
 
     incident = Incident(reporter_id=user.id, kind=kind, passable=passable, note=note or None, created_at=now,
-                        geom=point(road.lon, road.lat), reported_geom=point(lon, lat), road_name=road.road,
-                        snap_distance_m=float(road.dist))
+                        geom=point(road.lon, road.lat), reported_geom=point(lon, lat), road_name=road.road_name,
+                        snap_distance_m=road.distance_m)
     session.add(incident)
     session.commit()
     return incident.id

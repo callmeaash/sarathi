@@ -10,7 +10,7 @@ const VARIANTS: Record<ButtonVariant, string> = {
 
 /** Classes for a pill button, shared by <Button> and links that look like buttons. */
 export function buttonClass(variant: ButtonVariant = 'primary', full = false): string {
-  return `inline-flex h-12 items-center justify-center gap-2 rounded-full px-6 text-label-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+  return `inline-flex h-12 items-center justify-center gap-2 whitespace-nowrap rounded-full px-6 text-label-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
     full ? 'w-full' : ''
   } ${VARIANTS[variant]}`
 }

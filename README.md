@@ -89,6 +89,7 @@ The road graph and facilities load into memory at startup (about 1 s). Interacti
 | `GET /api/nearest?lat&lon&kind=hospital&limit=4` | Closest facilities of a kind by road, each with its route line and straight-line distance |
 | `GET /api/facilities?bbox=minLon,minLat,maxLon,maxLat&kind=hospital` | Facilities in the visible map area as GeoJSON points (repeat `kind` for several) |
 | `GET /api/facilities/{id}?from_lat&from_lon` | Full facility details, plus the road distance from a point if given |
+| `GET /api/roads/nearest?lat&lon` | The nearest road's name and the closest spot on it (404 if none within 500 m), e.g. for a dropped pin |
 
 ### Accounts
 

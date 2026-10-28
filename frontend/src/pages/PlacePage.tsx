@@ -98,7 +98,7 @@ function Details({ facility, loadingDistance, onLocate }: { facility: Facility; 
         </p>
       )}
 
-      <div className="mt-5 flex gap-2 overflow-x-auto [scrollbar-width:none]">
+      <div className="mt-5 flex gap-2 overflow-x-auto [scrollbar-width:none] *:shrink-0">
         <Link to={`/directions?to=${facility.lat},${facility.lon}&name=${encodeURIComponent(name)}`}
           className={buttonClass('primary')}>
           <Icon name="directions" className="text-[20px]" /> Directions
