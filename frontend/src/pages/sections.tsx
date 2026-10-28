@@ -2,11 +2,6 @@ import { PageHeader } from '../components/PageHeader'
 
 // Sections that get their screens in later phases; each will move to its own file when built.
 
-/** Route between two places around closed roads. */
-export function DirectionsPage() {
-  return <PageHeader title="Directions" subtitle="Routes that avoid verified road closures." />
-}
-
 /** Nearest facilities by road. */
 export function NearbyPage() {
   return <PageHeader title="Nearby" subtitle="The closest hospitals, police and pharmacies by road." />

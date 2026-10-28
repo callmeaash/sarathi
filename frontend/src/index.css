@@ -234,6 +234,11 @@
   font-size: 44px;
 }
 
+.drop-pin--route {
+  color: var(--color-hazard-closure-red);
+  cursor: default;
+}
+
 @utility icon {
   font-family: "Material Symbols Outlined";
   font-weight: normal;

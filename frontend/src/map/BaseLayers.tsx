@@ -2,13 +2,13 @@ import { FacilitiesLayer } from '../facilities/FacilitiesLayer'
 import { HazardsLayer } from '../hazards/HazardsLayer'
 import { MapLayers } from './MapLayers'
 
-type BaseLayersProps = { facilityId?: number; hazardId?: number }
+type BaseLayersProps = { facilityId?: number; hazardId?: number; facilities?: boolean }
 
-/** What every map page shows: facilities, closed roads and hazards, with an optional highlighted one. */
-export function BaseLayers({ facilityId, hazardId }: BaseLayersProps) {
+/** What map pages show: facilities, closed roads and hazards, with an optional highlighted one. */
+export function BaseLayers({ facilityId, hazardId, facilities = true }: BaseLayersProps) {
   return (
     <MapLayers>
-      <FacilitiesLayer selectedId={facilityId} />
+      {facilities && <FacilitiesLayer selectedId={facilityId} />}
       <HazardsLayer selectedId={hazardId} />
     </MapLayers>
   )
