@@ -136,7 +136,7 @@ function MapNotice() {
   }, [notice, showNotice])
   if (!notice) return null
   return (
-    <div role="status" className="absolute inset-x-3 top-3 z-[1001] mx-auto flex max-w-md items-start gap-3 rounded-xl bg-inverse-surface px-4 py-3 text-body-md text-inverse-on-surface shadow-float">
+    <div role="status" className="absolute inset-x-3 top-[calc(var(--map-top,0px)+0.75rem)] z-[1001] mx-auto flex max-w-md items-start gap-3 rounded-xl bg-inverse-surface px-4 py-3 text-body-md text-inverse-on-surface shadow-float">
       <Icon name="info" className="text-[20px]" />
       <p className="flex-1">{notice}</p>
       <button type="button" onClick={() => showNotice(null)} aria-label="Dismiss" className="-my-1 -mr-1 grid size-8 place-items-center rounded-full hover:bg-white/10">

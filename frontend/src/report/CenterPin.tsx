@@ -2,7 +2,7 @@ import { useCallback, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useMap, useMapEvents } from 'react-leaflet'
 
-import { coveredBottom } from '../map/focus'
+import { coveredBottom, coveredTop } from '../map/focus'
 
 export type LatLon = { lat: number; lon: number }
 
@@ -16,7 +16,8 @@ export function CenterPin({ onMove }: { onMove: (point: LatLon) => void }) {
   const report = useCallback(() => {
     const size = map.getSize()
     if (!size.x || !size.y) return  // not laid out yet
-    const spot = map.containerPointToLatLng([size.x / 2, (size.y - coveredBottom(map)) / 2])
+    const top = coveredTop(map)
+    const spot = map.containerPointToLatLng([size.x / 2, top + (size.y - top - coveredBottom(map)) / 2])
     onMove({ lat: spot.lat, lon: spot.lng })
   }, [map, onMove])
 

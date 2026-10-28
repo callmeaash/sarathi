@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import { type CSSProperties, useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useMatches } from 'react-router'
 
 import { useAuth } from '../auth/context'
@@ -10,13 +10,21 @@ import { useAppMap } from '../map/context'
 import { MapView } from '../map/MapView'
 import { DESKTOP_NAV, MOBILE_NAV } from './navigation'
 import { SheetHandle } from './SheetHandle'
-import { useBottomSheet } from './useBottomSheet'
+import { type SheetLevel, useBottomSheet } from './useBottomSheet'
 import { useIsDesktop } from './useIsDesktop'
 
 /** The user's initial linking to their account, or a log-in button; shown in both headers. */
-function AccountButton({ onBlue }: { onBlue: boolean }) {
+function AccountButton({ onBlue, compact = false }: { onBlue: boolean; compact?: boolean }) {
   const { status, user } = useAuth()
   if (status === 'loading') return <span className="size-10" aria-hidden />
+  if (!user && compact) {
+    return (
+      <Link to="/login" aria-label="Log in"
+        className="grid size-9 shrink-0 place-items-center rounded-full bg-surface-container text-on-surface-variant hover:bg-surface-container-high">
+        <Icon name="person" className="text-[20px]" />
+      </Link>
+    )
+  }
   if (!user) {
     return (
       <Link
@@ -36,7 +44,7 @@ function AccountButton({ onBlue }: { onBlue: boolean }) {
     <Link
       to="/account"
       aria-label={`Account: ${user.full_name}`}
-      className={`grid size-10 place-items-center rounded-full text-label-lg ${
+      className={`grid shrink-0 place-items-center rounded-full text-label-lg ${compact ? 'size-9' : 'size-10'} ${
         onBlue ? 'bg-white text-primary' : 'bg-primary text-white'
       }`}
     >
@@ -70,20 +78,32 @@ function DesktopHeader() {
 }
 
 /** Phone header: logo and account. */
-function MobileHeader({ withSearch }: { withSearch: boolean }) {
-  const { setHeaderSlot } = useAppMap()
-  // On map pages the header carries the search bar and casts a soft shadow over the map; elsewhere a plain border.
+function MobileHeader() {
   return (
-    <header className={`relative z-20 shrink-0 bg-surface-container-lowest px-5 pt-safe lg:hidden ${
-      withSearch ? 'pb-3 shadow-[0_1px_3px_rgb(27_28_30/0.08)]' : 'border-b border-border-muted'}`}>
+    <header className="relative z-20 shrink-0 border-b border-border-muted bg-surface-container-lowest px-5 pt-safe lg:hidden">
       <div className="flex h-14 items-center justify-between">
         <Link to="/" aria-label="Sarathi home">
           <Logo className="h-8" />
         </Link>
         <AccountButton onBlue={false} />
       </div>
-      {withSearch && <HeaderSearch variant="phone" />}
-      {withSearch && <div ref={setHeaderSlot} className="pt-3 empty:hidden" />}
+    </header>
+  )
+}
+
+/** Phone map pages: a search pill (app icon, search, account) and the page's chips, floating over the map. */
+function FloatingHeader({ measure }: { measure: (node: HTMLElement | null) => void }) {
+  const { setHeaderSlot } = useAppMap()
+  return (
+    <header ref={measure} data-map-header className="pointer-events-none absolute inset-x-0 top-0 z-20 px-3 pt-safe lg:hidden">
+      <div className="pointer-events-auto flex h-12 items-center gap-1 rounded-full bg-surface-container-lowest pr-1.5 pl-2 shadow-[0_2px_8px_rgb(27_28_30/0.18)]">
+        <Link to="/" aria-label="Sarathi home" className="shrink-0">
+          <Logo variant="icon" className="size-8" />
+        </Link>
+        <div className="min-w-0 flex-1"><HeaderSearch variant="phone" /></div>
+        <AccountButton onBlue={false} compact />
+      </div>
+      <div ref={setHeaderSlot} className="pointer-events-auto mt-2 empty:hidden" />
     </header>
   )
 }
@@ -139,12 +159,12 @@ function BottomNav() {
           key={item.to}
           to={item.to}
           end={item.to === '/'}
-          className="flex h-20 flex-col items-center justify-center gap-1 text-label-md"
+          className="flex h-16 flex-col items-center justify-center gap-0.5 text-label-md"
         >
           {({ isActive }) => (
             <>
               <span
-                className={`grid h-8 w-16 place-items-center rounded-full ${
+                className={`grid h-7 w-14 place-items-center rounded-full ${
                   isActive ? 'bg-primary-fixed text-on-primary-fixed' : 'text-on-surface-variant'
                 }`}
               >
@@ -161,6 +181,22 @@ function BottomNav() {
   )
 }
 
+/** How far down the map the floating header reaches; updates when it changes size (e.g. a page adds chips). */
+function useHeaderHeight(): [number, (node: HTMLElement | null) => void] {
+  const [height, setHeight] = useState(0)
+  const [node, setNode] = useState<HTMLElement | null>(null)
+  useEffect(() => {
+    if (!node) return undefined
+    const update = () => setHeight(Math.round(node.getBoundingClientRect().height + node.offsetTop))
+    update()
+    if (typeof ResizeObserver === 'undefined') return undefined
+    const observer = new ResizeObserver(update)
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [node])
+  return [node ? height : 0, setNode]
+}
+
 /** Whether the current page is drawn over the map on phones (route handle `{ map: true }`). */
 function useMapPage(): boolean {
   return useMatches().some((match) => (match.handle as { map?: boolean } | undefined)?.map)
@@ -174,14 +210,17 @@ export function AppShell() {
   const mapPage = useMapPage()
   const { pathname } = useLocation()
   const desktop = useIsDesktop()
-  const { attachArea, height, dragging, expanded, handle } = useBottomSheet(pathname)
+  const startLevel = useMatches().map((m) => (m.handle as { sheet?: SheetLevel } | undefined)?.sheet).find(Boolean)
+  const [mapTop, measureHeader] = useHeaderHeight()  // how much of the map's top the floating header covers
+  const { attachArea, height, dragging, expanded, handle } = useBottomSheet(pathname, startLevel ?? 'half', mapTop)
   // --sheet-height tells the map buttons and Leaflet's scale and credits how far up to sit, live while dragging.
-  const sheetStyle = mapPage && !desktop ? { '--sheet-height': `${height}px` } as CSSProperties : undefined
+  const sheetStyle = mapPage && !desktop
+    ? { '--sheet-height': `${height}px`, '--map-top': `${mapTop}px` } as CSSProperties : undefined
 
   return (
     <div className="flex h-dvh flex-col">
       <DesktopHeader />
-      <MobileHeader withSearch={mapPage} />
+      {!mapPage && <MobileHeader />}
       <div
         ref={attachArea}
         style={sheetStyle}
@@ -189,6 +228,7 @@ export function AppShell() {
         data-dragging={dragging || undefined}
         className={`relative flex min-h-0 flex-1 lg:[--sheet-height:0px] ${mapPage ? '' : '[--sheet-height:0px]'}`}
       >
+        {mapPage && <FloatingHeader measure={measureHeader} />}
         <SideNav />
         <main
           data-map-sheet={mapPage || undefined}

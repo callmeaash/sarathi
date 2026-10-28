@@ -78,7 +78,7 @@ export function DirectionsPage() {
   return (
     <>
       <title>Directions · Sarathi</title>
-      <BaseLayers />
+      <BaseLayers compact />
       <MapLayers>
         <RouteLayer route={best.data} from={from} to={to}
           avoided={avoidedFor(best.data, through.data, best === avoiding)} />

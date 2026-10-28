@@ -254,7 +254,7 @@
 .report-center-pin {
   position: absolute;
   left: 50%;
-  top: calc((100% - var(--sheet-height, 0px)) / 2);
+  top: calc(var(--map-top, 0px) + (100% - var(--map-top, 0px) - var(--sheet-height, 0px)) / 2);
   z-index: 700;
   transform: translate(-50%, -100%);
   pointer-events: none;
@@ -328,6 +328,17 @@
 .map-pill--unverified {
   background: var(--color-pending-amber);
   color: var(--color-on-surface);
+}
+
+/* Facilities when zoomed out and on route pages: small coloured dots (tap area is the 24 px icon box). */
+.facility-dot {
+  position: absolute;
+  inset: 7px;
+  border: 1.5px solid #fff;
+  border-radius: 9999px;
+  background: var(--pin, var(--color-outline));
+  box-shadow: 0 0 0 0.5px rgb(27 28 30 / 0.25);
+  cursor: pointer;
 }
 
 @utility icon {

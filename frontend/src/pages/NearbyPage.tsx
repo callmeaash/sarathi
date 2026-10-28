@@ -105,7 +105,7 @@ export function NearbyPage() {
   return (
     <>
       <title>Nearby · Sarathi</title>
-      <BaseLayers />
+      <BaseLayers compact />
       {origin && !outside && (
         <MapLayers><NearbyLayer origin={origin} results={results} selected={selected} onSelect={setSelected} /></MapLayers>
       )}

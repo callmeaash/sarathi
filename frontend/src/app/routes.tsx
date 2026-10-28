@@ -51,7 +51,8 @@ export const routes: RouteObject[] = [
         errorElement: <RouteErrorPage />,
         children: [
           // `map: true`: on phones the page sits in a bottom sheet over the map.
-          { index: true, element: <FirstVisit><ExplorePage /></FirstVisit>, handle: MAP_PAGE },
+          // Explore opens with the sheet low, so the map has most of the screen.
+          { index: true, element: <FirstVisit><ExplorePage /></FirstVisit>, handle: { ...MAP_PAGE, sheet: 'low' } },
           { path: 'directions', element: <DirectionsPage />, handle: MAP_PAGE },
           { path: 'hazards', element: <HazardsPage />, handle: MAP_PAGE },
           { path: 'hazards/:id', element: <HazardPage />, handle: MAP_PAGE },

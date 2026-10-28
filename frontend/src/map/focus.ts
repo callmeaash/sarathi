@@ -22,12 +22,21 @@ export function coveredBottom(map: L.Map): number {
 export function inView(map: L.Map, point: L.LatLngExpression): boolean {
   const size = map.getSize()
   const { x, y } = map.latLngToContainerPoint(point)
-  return x > EDGE_PX && x < size.x - EDGE_PX && y > EDGE_PX && y < size.y - coveredBottom(map) - EDGE_PX
+  return x > EDGE_PX && x < size.x - EDGE_PX && y > coveredTop(map) + EDGE_PX && y < size.y - coveredBottom(map) - EDGE_PX
+}
+
+/** How many pixels at the top of the map are under the phone's floating header (0 on desktop). */
+export function coveredTop(map: L.Map): number {
+  const header = document.querySelector<HTMLElement>('[data-map-header]')
+  if (!header) return 0
+  const box = header.getBoundingClientRect()
+  const mapBox = map.getContainer().getBoundingClientRect()
+  return box.height > 0 && box.bottom > mapBox.top ? Math.min(box.bottom - mapBox.top, mapBox.height) : 0
 }
 
 /** Centre a point in the part of the map the user can actually see. */
 export function focusOn(map: L.Map, point: L.LatLngExpression, zoom: number): void {
-  const shifted = map.project(point, zoom).add([0, coveredBottom(map) / 2])
+  const shifted = map.project(point, zoom).add([0, (coveredBottom(map) - coveredTop(map)) / 2])
   const center = map.unproject(shifted, zoom)
   // Animating needs the map's size; before it has one, just jump.
   if (map.getSize().x > 0) map.flyTo(center, zoom)
@@ -38,7 +47,7 @@ export function focusOn(map: L.Map, point: L.LatLngExpression, zoom: number): vo
 export function showAll(map: L.Map, points: L.LatLngExpression[], maxZoom: number): void {
   if (map.getSize().x === 0) return
   map.flyToBounds(L.latLngBounds(points), {
-    paddingTopLeft: [EDGE_PX, EDGE_PX + 40],  // room for the filters along the top on phones
+    paddingTopLeft: [EDGE_PX, EDGE_PX + coveredTop(map)],
     paddingBottomRight: [EDGE_PX, coveredBottom(map) + EDGE_PX],
     maxZoom,
   })

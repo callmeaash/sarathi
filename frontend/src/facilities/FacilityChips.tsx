@@ -26,7 +26,7 @@ export function FacilityChips() {
         const { plural, icon, chip } = KINDS[kind]
         return (
           <button key={kind} type="button" aria-pressed={on} onClick={() => toggle(kind)}
-            className={`flex h-9 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-label-lg transition-colors ${
+            className={`flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-label-lg shadow-[0_1px_4px_rgb(27_28_30/0.15)] transition-colors ${
               on ? chip : 'border-border-muted bg-surface-container-lowest text-on-surface-variant'}`}>
             <Icon name={on ? icon : 'add'} filled={on} className="text-[18px]" />
             {plural}

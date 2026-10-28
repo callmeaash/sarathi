@@ -35,13 +35,18 @@ describe('phone bottom sheet', () => {
   beforeEach(() => { mockApi({ '/api/health': HEALTHY }) })
 
   it('starts at half height', () => {
-    renderApp('/')
+    renderApp('/hazards')
     expect(sheetHeight()).toBe('288px')
     expect(handle()).toHaveAttribute('aria-expanded', 'false')
   })
 
-  it('follows the finger while dragging', () => {
+  it('opens low on Explore, so the map has most of the screen', () => {
     renderApp('/')
+    expect(sheetHeight()).toBe('132px')
+  })
+
+  it('follows the finger while dragging', () => {
+    renderApp('/hazards')
     fireEvent.pointerDown(handle(), { clientY: 500, pointerId: 1 })
     clock += 100
     fireEvent.pointerMove(handle(), { clientY: 420, pointerId: 1 })
@@ -50,7 +55,7 @@ describe('phone bottom sheet', () => {
   })
 
   it('settles at the nearest height after a slow drag', () => {
-    renderApp('/')
+    renderApp('/hazards')
     drag(500, 450, 400)          // up 100 px over 200 ms: 388 px, nearer half (288) than full (528)
     expect(sheetHeight()).toBe('288px')
     drag(500, 420, 340)          // up 160 px: 448 px, nearer full
@@ -60,7 +65,7 @@ describe('phone bottom sheet', () => {
   })
 
   it('goes to the next height on a quick flick', () => {
-    renderApp('/')
+    renderApp('/hazards')
     fireEvent.pointerDown(handle(), { clientY: 500, pointerId: 1 })
     clock += 40
     fireEvent.pointerMove(handle(), { clientY: 470, pointerId: 1 })
@@ -69,7 +74,7 @@ describe('phone bottom sheet', () => {
   })
 
   it('never shrinks below a strip with the handle', () => {
-    renderApp('/')
+    renderApp('/hazards')
     fireEvent.pointerDown(handle(), { clientY: 300, pointerId: 1 })
     clock += 100
     fireEvent.pointerMove(handle(), { clientY: 900, pointerId: 1 })
@@ -77,7 +82,7 @@ describe('phone bottom sheet', () => {
   })
 
   it('steps up on a tap and with the arrow keys', () => {
-    renderApp('/')
+    renderApp('/hazards')
     drag(500)                    // a tap
     expect(sheetHeight()).toBe('528px')
     drag(500)                    // tapping at the top goes back to half

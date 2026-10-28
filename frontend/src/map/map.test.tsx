@@ -87,7 +87,7 @@ describe('phone bottom sheet', () => {
   it('holds map pages and expands, collapses, and resets on a new page', async () => {
     mockApi({ '/api/health': HEALTHY })
     const user = userEvent.setup()
-    const { router } = renderApp('/')
+    const { router } = renderApp('/hazards')
     const handle = screen.getByRole('button', { name: 'Expand panel' })
     expect(handle).toHaveAttribute('aria-expanded', 'false')
     await user.click(handle)

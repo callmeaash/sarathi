@@ -4,6 +4,7 @@ import { type KeyboardEvent, type PointerEvent, useCallback, useEffect, useRef, 
 // low (just the title), half, and nearly full (a strip of map stays visible to drag back down to).
 export const SNAPS = [0.22, 0.48, 0.88]
 const START_SNAP = 1
+const TOP_GAP_PX = 8  // the sheet stops this far below a floating header
 const TAP_PX = 6            // a press that moves less than this is a tap
 const FLICK_PX_PER_MS = 0.5 // a release faster than this goes to the next height in that direction
 const MIN_PX = 64           // never drag smaller than the handle and a line of the title
@@ -20,17 +21,18 @@ export function requestSheet(level: SheetLevel): void {
 }
 
 /** Phone bottom sheet that follows the finger and snaps to three heights; resets when `resetKey` changes. */
-export function useBottomSheet(resetKey: string) {
+export function useBottomSheet(resetKey: string, startLevel: SheetLevel = 'half', topInset = 0) {
   const [element, setElement] = useState<HTMLDivElement | null>(null)  // the area the sheet sits in
   const [area, setArea] = useState(0)
-  const [snap, setSnap] = useState(START_SNAP)
+  const start = LEVELS[startLevel]
+  const [snap, setSnap] = useState(start)
   const [dragHeight, setDragHeight] = useState<number | null>(null)
   const [key, setKey] = useState(resetKey)
-  const start = useRef<DragStart | null>(null)
+  const drag = useRef<DragStart | null>(null)
 
-  if (key !== resetKey) {  // each new page starts at half height
+  if (key !== resetKey) {  // each new page starts at its own height
     setKey(resetKey)
-    setSnap(START_SNAP)
+    setSnap(start)
   }
 
   /** Remember the area the sheet sits in, and its height right away. */
@@ -52,7 +54,8 @@ export function useBottomSheet(resetKey: string) {
     return () => observer.disconnect()
   }, [element])
 
-  const heights = SNAPS.map((fraction) => Math.round(fraction * area))
+  const tallest = Math.max(area - topInset - TOP_GAP_PX, 0)  // never under the floating header
+  const heights = SNAPS.map((fraction) => Math.min(Math.round(fraction * area), tallest))
   const height = dragHeight ?? heights[snap]
   const last = SNAPS.length - 1
 
@@ -61,20 +64,20 @@ export function useBottomSheet(resetKey: string) {
     heights.reduce((best, h, index) => (Math.abs(h - value) < Math.abs(heights[best] - value) ? index : best), 0)
 
   const onPointerDown = (event: PointerEvent<HTMLElement>) => {
-    start.current = { y: event.clientY, height, time: performance.now() }
+    drag.current = { y: event.clientY, height, time: performance.now() }
     event.currentTarget.setPointerCapture?.(event.pointerId)
   }
 
   const onPointerMove = (event: PointerEvent<HTMLElement>) => {
-    if (!start.current) return
-    const moved = start.current.y - event.clientY
+    if (!drag.current) return
+    const moved = drag.current.y - event.clientY
     if (dragHeight === null && Math.abs(moved) < TAP_PX) return
-    setDragHeight(Math.min(Math.max(start.current.height + moved, MIN_PX), area))
+    setDragHeight(Math.min(Math.max(drag.current.height + moved, MIN_PX), tallest))
   }
 
   const onPointerUp = (event: PointerEvent<HTMLElement>) => {
-    const begun = start.current
-    start.current = null
+    const begun = drag.current
+    drag.current = null
     if (!begun) return
     const moved = begun.y - event.clientY
     if (Math.abs(moved) < TAP_PX) {
