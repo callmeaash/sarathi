@@ -10,6 +10,8 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     proxy: { '/api': { target: API_URL, changeOrigin: true } },
+    // Allow a temporary Cloudflare test tunnel (npm run tunnel) to reach the dev server.
+    allowedHosts: ['.trycloudflare.com'],
   },
   test: {
     environment: 'jsdom',

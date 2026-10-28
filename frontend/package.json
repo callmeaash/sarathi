@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc -b",
-    "api:types": "node scripts/generate-api.mjs"
+    "api:types": "node scripts/generate-api.mjs",
+    "tunnel": "cloudflared tunnel --url http://localhost:5173"
   },
   "dependencies": {
     "@react-leaflet/core": "^3.0.0",

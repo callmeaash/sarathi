@@ -177,6 +177,7 @@ Open http://localhost:5173. The map background uses Stadia Maps' "OSM Bright" ti
 | `npm run lint` | Lint (oxlint) |
 | `npm run build` | Production build into `frontend/dist/` |
 | `npm run api:types` | Regenerate `src/api/schema.d.ts` from the backend after changing an endpoint |
+| `npm run tunnel` | Temporary public HTTPS link to the dev server for testing on a phone anywhere (needs [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/); anyone with the link can use the app while it runs) |
 
 API calls go through `src/api/client.ts`, a client typed from the backend's OpenAPI schema, so a renamed field or a wrong parameter fails the type check instead of failing in the browser.
 
