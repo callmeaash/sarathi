@@ -5,7 +5,7 @@ import {
   AttributionControl, Circle, CircleMarker, MapContainer, Pane, ScaleControl, TileLayer, Tooltip, useMap, useMapEvents,
 } from 'react-leaflet'
 
-import { useLocation, useNavigate } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router'
 
 import { Icon } from '../components/Icon'
 import { MAX_ZOOM, MIN_ZOOM, PANNING_BOUNDS, TILES } from './config'
@@ -92,7 +92,7 @@ function MapControls() {
   const locating = locateStatus === 'locating'
   return (
     // Hidden while the phone's sheet is pulled up: the map is mostly covered and they'd run into the header.
-    <div className="absolute right-3 bottom-[calc(var(--sheet-height,0px)+2.5rem)] z-[1000] flex flex-col gap-2 transition-[bottom] in-data-[sheet=expanded]:hidden lg:right-4 lg:bottom-10 lg:in-data-[sheet=expanded]:flex">
+    <div className="absolute right-4 bottom-[calc(var(--sheet-height,0px)+2.25rem)] z-[1000] flex flex-col items-end gap-2 transition-[bottom] in-data-[sheet=expanded]:hidden lg:right-4 lg:bottom-10 lg:in-data-[sheet=expanded]:flex">
       <LayersControl buttonClass={controlButton} />
       <button type="button" onClick={() => locate()} disabled={locating} aria-label="Show my location"
         className={`${controlButton} rounded-full border border-border-muted shadow-float`}>
@@ -109,6 +109,12 @@ function MapControls() {
           <Icon name="remove" />
         </button>
       </div>
+      {/* Phones: the main action floats just above the sheet; desktop has it in the header. */}
+      <Link to="/report"
+        className="mt-1 flex h-12 items-center gap-1.5 rounded-full bg-hazard-closure-red pr-5 pl-4 text-label-lg text-white shadow-float lg:hidden">
+        <Icon name="add" className="text-[22px]" />
+        Report
+      </Link>
     </div>
   )
 }
@@ -129,7 +135,7 @@ function MapNotice() {
   }, [notice, showNotice])
   if (!notice) return null
   return (
-    <div role="status" className="absolute inset-x-3 top-16 z-[1001] lg:top-3 mx-auto flex max-w-md items-start gap-3 rounded-xl bg-inverse-surface px-4 py-3 text-body-md text-inverse-on-surface shadow-float">
+    <div role="status" className="absolute inset-x-3 top-3 z-[1001] mx-auto flex max-w-md items-start gap-3 rounded-xl bg-inverse-surface px-4 py-3 text-body-md text-inverse-on-surface shadow-float">
       <Icon name="info" className="text-[20px]" />
       <p className="flex-1">{notice}</p>
       <button type="button" onClick={() => showNotice(null)} aria-label="Dismiss" className="-my-1 -mr-1 grid size-8 place-items-center rounded-full hover:bg-white/10">

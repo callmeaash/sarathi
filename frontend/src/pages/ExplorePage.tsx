@@ -5,7 +5,7 @@ import { ServerStatus } from '../components/ServerStatus'
 import { FacilityCards, FacilityChips } from '../facilities/FacilityChips'
 import { HazardSections } from '../hazards/HazardList'
 import { BaseLayers } from '../map/BaseLayers'
-import { MapOverlay } from '../map/MapOverlay'
+import { HeaderExtras } from '../map/MapOverlay'
 
 /** How to drop a pin, which has no button of its own. */
 function PinTip() {
@@ -32,10 +32,8 @@ export function ExplorePage() {
     <div className="flex flex-col gap-5 lg:min-h-full lg:justify-between lg:gap-4">
       <title>Explore · Sarathi</title>
       <BaseLayers />
-      {/* Phones: facility filters float over the top of the map. */}
-      <MapOverlay>
-        <div className="px-3 pt-3 lg:hidden"><FacilityChips /></div>
-      </MapOverlay>
+      {/* Phones: facility filters sit in the header, under the search bar. */}
+      <HeaderExtras><FacilityChips /></HeaderExtras>
 
       <header className="flex items-start justify-between gap-3">
         <div>

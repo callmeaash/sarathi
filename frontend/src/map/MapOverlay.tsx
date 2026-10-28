@@ -8,3 +8,9 @@ export function MapOverlay({ children }: { children: ReactNode }) {
   const { overlay } = useAppMap()
   return overlay ? createPortal(children, overlay) : null
 }
+
+/** Places page controls under the search bar in the phone header (the header hides on desktop). */
+export function HeaderExtras({ children }: { children: ReactNode }) {
+  const { headerSlot } = useAppMap()
+  return headerSlot ? createPortal(children, headerSlot) : null
+}

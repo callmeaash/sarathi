@@ -69,12 +69,12 @@ describe('facilities on the map', () => {
     expect(await screen.findByText('Zoom in to see pharmacies on the map.')).toBeInTheDocument()
   })
 
-  it('puts the filters over the map on phones and in the panel on desktop', async () => {
+  it('puts the filters in the phone header and in the panel on desktop', async () => {
     mockApi({ '/api/health': HEALTHY, '/api/facilities': FACILITIES })
     renderApp('/')
     await waitFor(() => expect(screen.getAllByRole('group', { name: 'Show on map' })).toHaveLength(2))
-    const map = screen.getByRole('region', { name: 'Map' })
-    expect(within(map).getByRole('group', { name: 'Show on map' })).toBeInTheDocument()
+    const phoneHeader = screen.getAllByRole('banner').find((header) => within(header).queryByRole('link', { name: /Search hospitals/ }))!
+    expect(within(phoneHeader).getByRole('group', { name: 'Show on map' })).toBeInTheDocument()
   })
 
   it('thins out crowded markers when zoomed out, keeping named places, and shows all close up', async () => {

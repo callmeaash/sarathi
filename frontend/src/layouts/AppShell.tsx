@@ -5,6 +5,7 @@ import { useAuth } from '../auth/context'
 import { Icon } from '../components/Icon'
 import { Logo } from '../components/Logo'
 import { useHazardAlert } from '../hazards/useHazardAlert'
+import { useAppMap } from '../map/context'
 import { MapView } from '../map/MapView'
 import { DESKTOP_NAV, MOBILE_NAV } from './navigation'
 import { SheetHandle, type SheetState } from './SheetHandle'
@@ -17,11 +18,13 @@ function AccountButton({ onBlue }: { onBlue: boolean }) {
     return (
       <Link
         to="/login"
-        className={`flex h-10 items-center gap-2 rounded-lg px-4 text-label-lg ${
-          onBlue ? 'border border-white/30 bg-white/15 text-white hover:bg-white/25' : 'text-primary hover:bg-surface-tint-light'
+        className={`flex items-center gap-2 text-label-lg ${
+          onBlue
+            ? 'h-10 rounded-lg border border-white/30 bg-white/15 px-4 text-white hover:bg-white/25'
+            : 'h-9 rounded-full border border-border-muted px-3.5 text-on-surface hover:bg-surface-container-low'
         }`}
       >
-        {onBlue && <Icon name="person" className="text-[20px]" />}
+        <Icon name="person" className={onBlue ? 'text-[20px]' : 'text-[18px]'} />
         Log in
       </Link>
     )
@@ -96,13 +99,26 @@ function DesktopHeader() {
 }
 
 /** Phone header: logo and account. */
-function MobileHeader() {
+function MobileHeader({ withSearch }: { withSearch: boolean }) {
+  const { setHeaderSlot } = useAppMap()
+  // On map pages the header carries the search bar and casts a soft shadow over the map; elsewhere a plain border.
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between border-b border-border-muted bg-surface-container-lowest px-4 lg:hidden">
-      <Link to="/" aria-label="Sarathi home">
-        <Logo className="h-8" />
-      </Link>
-      <AccountButton onBlue={false} />
+    <header className={`relative z-20 shrink-0 bg-surface-container-lowest px-5 lg:hidden ${
+      withSearch ? 'pb-3 shadow-[0_1px_3px_rgb(27_28_30/0.08)]' : 'border-b border-border-muted'}`}>
+      <div className="flex h-14 items-center justify-between">
+        <Link to="/" aria-label="Sarathi home">
+          <Logo className="h-8" />
+        </Link>
+        <AccountButton onBlue={false} />
+      </div>
+      {withSearch && (
+        <Link to="/directions"
+          className="flex h-11 items-center gap-3 rounded-full bg-surface-container px-4 text-body-md text-text-secondary">
+          <Icon name="search" className="text-[20px]" />
+          <span className="truncate">Search hospitals, police, routes…</span>
+        </Link>
+      )}
+      {withSearch && <div ref={setHeaderSlot} className="pt-3 empty:hidden" />}
     </header>
   )
 }
@@ -208,7 +224,7 @@ export function AppShell() {
   return (
     <div className="flex h-dvh flex-col">
       <DesktopHeader />
-      <MobileHeader />
+      <MobileHeader withSearch={mapPage} />
       <div data-sheet={mapPage ? sheet : undefined} className={`relative flex min-h-0 flex-1 lg:[--sheet-height:0px] ${
         mapPage ? SHEET_HEIGHTS[sheet] : '[--sheet-height:0px]'}`}>
         <SideNav />
@@ -221,7 +237,7 @@ export function AppShell() {
           }`}
         >
           {mapPage && <SheetHandle state={sheet} onChange={setSheet} />}
-          <div className={mapPage ? 'min-h-0 flex-1 overflow-y-auto px-4 pb-5 lg:px-6 lg:py-5' : 'px-4 py-5 lg:px-6'}>
+          <div className={mapPage ? 'min-h-0 flex-1 overflow-y-auto px-5 pb-5 lg:px-6 lg:py-5' : 'px-5 py-5 lg:px-6'}>
             <Outlet />
           </div>
         </main>

@@ -13,6 +13,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
   const [locateStatus, setLocateStatus] = useState<LocateStatus>('idle')
   const [notice, setNotice] = useState<string | null>(null)
   const [overlay, setOverlay] = useState<HTMLElement | null>(null)
+  const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null)
 
   const locate = useCallback(({ moveMap = true }: { moveMap?: boolean } = {}) => {
     if (!('geolocation' in navigator)) {
@@ -43,8 +44,8 @@ export function MapProvider({ children }: { children: ReactNode }) {
   }, [map])
 
   const value = useMemo<MapState>(() => ({
-    map, setMap, location, locateStatus, locate, notice, showNotice: setNotice, overlay, setOverlay,
-  }), [map, location, locateStatus, locate, notice, overlay])
+    map, setMap, location, locateStatus, locate, notice, showNotice: setNotice, overlay, setOverlay, headerSlot, setHeaderSlot,
+  }), [map, location, locateStatus, locate, notice, overlay, headerSlot])
 
   return <MapContext value={value}>{children}</MapContext>
 }

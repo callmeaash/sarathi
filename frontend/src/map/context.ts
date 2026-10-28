@@ -15,6 +15,8 @@ export type MapState = {
   showNotice: (message: string | null) => void
   overlay: HTMLElement | null  // strip along the top of the map that pages can place controls in
   setOverlay: (element: HTMLElement | null) => void
+  headerSlot: HTMLElement | null  // space under the phone header's search bar (e.g. the facility filters)
+  setHeaderSlot: (element: HTMLElement | null) => void
 }
 
 export const MapContext = createContext<MapState | null>(null)
