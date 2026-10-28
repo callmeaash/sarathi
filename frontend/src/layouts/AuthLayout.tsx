@@ -11,7 +11,7 @@ function TopBar() {
   // Go back within the app if we came from it; otherwise to the map.
   const back = () => ((window.history.state?.idx ?? 0) > 0 ? navigate(-1) : navigate('/'))
   return (
-    <div className="flex h-16 items-center justify-between lg:hidden">
+    <div className="flex h-16 items-center justify-between pt-safe lg:hidden">
       <button type="button" onClick={back} aria-label="Back"
         className="grid size-10 place-items-center rounded-full bg-surface-container hover:bg-surface-container-high">
         <Icon name="arrow_back" className="text-[22px]" />

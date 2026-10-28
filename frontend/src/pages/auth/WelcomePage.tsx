@@ -33,7 +33,7 @@ export function WelcomePage() {
 
       {/* Phones: blue introduction on top, choices below */}
       <div className="lg:hidden">
-        <section className="relative overflow-hidden bg-primary px-6 pt-10 pb-8 text-white">
+        <section className="relative overflow-hidden bg-primary px-6 pt-[max(env(safe-area-inset-top),2.5rem)] pb-8 text-white">
           <MapLines />
           <div className="relative">
             <Logo variant="nepali" onBlue className="h-16" />

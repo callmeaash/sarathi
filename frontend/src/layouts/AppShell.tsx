@@ -74,7 +74,7 @@ function MobileHeader({ withSearch }: { withSearch: boolean }) {
   const { setHeaderSlot } = useAppMap()
   // On map pages the header carries the search bar and casts a soft shadow over the map; elsewhere a plain border.
   return (
-    <header className={`relative z-20 shrink-0 bg-surface-container-lowest px-5 lg:hidden ${
+    <header className={`relative z-20 shrink-0 bg-surface-container-lowest px-5 pt-safe lg:hidden ${
       withSearch ? 'pb-3 shadow-[0_1px_3px_rgb(27_28_30/0.08)]' : 'border-b border-border-muted'}`}>
       <div className="flex h-14 items-center justify-between">
         <Link to="/" aria-label="Sarathi home">

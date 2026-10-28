@@ -273,3 +273,8 @@
 @utility pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
+
+/* Top padding that clears a phone's notch or status bar (the page draws edge to edge), and is never under 8 px. */
+@utility pt-safe {
+  padding-top: max(env(safe-area-inset-top, 0px), 0.5rem);
+}
