@@ -73,7 +73,7 @@ describe('facilities on the map', () => {
     mockApi({ '/api/health': HEALTHY, '/api/facilities': FACILITIES })
     renderApp('/')
     await waitFor(() => expect(screen.getAllByRole('group', { name: 'Show on map' })).toHaveLength(2))
-    const phoneHeader = screen.getAllByRole('banner').find((header) => within(header).queryByRole('link', { name: /Search hospitals/ }))!
+    const phoneHeader = screen.getAllByRole('banner').find((header) => within(header).queryByPlaceholderText(/Search hospitals/))!
     expect(within(phoneHeader).getByRole('group', { name: 'Show on map' })).toBeInTheDocument()
   })
 

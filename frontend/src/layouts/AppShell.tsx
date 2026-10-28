@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
-import { Link, NavLink, Outlet, useLocation, useMatches, useNavigate } from 'react-router'
+import { useState } from 'react'
+import { Link, NavLink, Outlet, useLocation, useMatches } from 'react-router'
 
 import { useAuth } from '../auth/context'
 import { Icon } from '../components/Icon'
 import { Logo } from '../components/Logo'
 import { useHazardAlert } from '../hazards/useHazardAlert'
+import { HeaderSearch } from '../search/HeaderSearch'
 import { useAppMap } from '../map/context'
 import { MapView } from '../map/MapView'
 import { DESKTOP_NAV, MOBILE_NAV } from './navigation'
@@ -42,38 +43,6 @@ function AccountButton({ onBlue }: { onBlue: boolean }) {
   )
 }
 
-/** Ctrl K on Windows and Linux, ⌘K on a Mac. */
-const IS_MAC = typeof navigator !== 'undefined' && /mac/i.test(navigator.platform || navigator.userAgent)
-
-/** Desktop search bar; opens search (for now the Directions page), also with Ctrl K / ⌘K from anywhere. */
-function SearchBox() {
-  const navigate = useNavigate()
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key.toLowerCase() === 'k' && (event.ctrlKey || event.metaKey)) {
-        event.preventDefault()
-        navigate('/directions')
-      }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [navigate])
-
-  return (
-    <Link
-      to="/directions"
-      aria-keyshortcuts={IS_MAC ? 'Meta+K' : 'Control+K'}
-      className="flex h-11 w-full max-w-xl items-center gap-3 rounded-xl bg-surface-container-lowest px-4 text-body-md text-text-secondary shadow-[0_2px_8px_rgb(0_0_0/0.15)] hover:bg-surface-tint-light"
-    >
-      <Icon name="search" className="text-[20px]" />
-      <span className="min-w-0 flex-1 truncate">Search places, roads, hospitals, and police posts in Kathmandu…</span>
-      <kbd className="shrink-0 rounded-md border border-border-muted bg-surface-container-low px-1.5 py-0.5 font-sans text-label-sm text-on-surface-variant">
-        {IS_MAC ? '⌘K' : 'Ctrl K'}
-      </kbd>
-    </Link>
-  )
-}
-
 /** Desktop header: logo, search, report button and account. */
 function DesktopHeader() {
   return (
@@ -82,7 +51,7 @@ function DesktopHeader() {
         <Logo onBlue className="h-9" />
       </Link>
       <div className="flex flex-1 justify-center">
-        <SearchBox />
+        <div className="w-full max-w-xl"><HeaderSearch variant="desktop" /></div>
       </div>
       <div className="flex items-center gap-3">
         <Link
@@ -111,13 +80,7 @@ function MobileHeader({ withSearch }: { withSearch: boolean }) {
         </Link>
         <AccountButton onBlue={false} />
       </div>
-      {withSearch && (
-        <Link to="/directions"
-          className="flex h-11 items-center gap-3 rounded-full bg-surface-container px-4 text-body-md text-text-secondary">
-          <Icon name="search" className="text-[20px]" />
-          <span className="truncate">Search hospitals, police, routes…</span>
-        </Link>
-      )}
+      {withSearch && <HeaderSearch variant="phone" />}
       {withSearch && <div ref={setHeaderSlot} className="pt-3 empty:hidden" />}
     </header>
   )

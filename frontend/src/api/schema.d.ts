@@ -13,7 +13,7 @@ export interface paths {
         };
         /**
          * Get Route
-         * @description Route between two map points, avoiding closed roads.
+         * @description Route between two map points avoiding closed roads, with its steps and any closures it goes around.
          */
         get: operations["get_route_api_route_get"];
         put?: never;
@@ -488,6 +488,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search Places
+         * @description Facilities and roads by name, for the search box; with a point, each result has its distance from it.
+         */
+        get: operations["search_places_api_search_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -541,6 +561,15 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** AvoidedClosure */
+        AvoidedClosure: {
+            /** Incident Id */
+            incident_id: number;
+            /** Kind */
+            kind: string;
+            /** Road Name */
+            road_name: string | null;
+        };
         /** ClosureOut */
         ClosureOut: {
             /** Incident Id */
@@ -566,6 +595,15 @@ export interface components {
             geometry: {
                 [key: string]: unknown;
             } | null;
+        };
+        /** DetourOut */
+        DetourOut: {
+            /** Usual Distance M */
+            usual_distance_m: number;
+            /** Usual Duration S */
+            usual_duration_s: number;
+            /** Closures */
+            closures: components["schemas"]["AvoidedClosure"][];
         };
         /** EmailCodeIn */
         EmailCodeIn: {
@@ -908,6 +946,40 @@ export interface components {
             /** Edge Ids */
             edge_ids: number[];
             geometry: components["schemas"]["LineString"];
+            /** Steps */
+            steps: components["schemas"]["RouteStepOut"][];
+            detour: components["schemas"]["DetourOut"] | null;
+        };
+        /** RouteStepOut */
+        RouteStepOut: {
+            /** Road Name */
+            road_name: string | null;
+            /** Distance M */
+            distance_m: number;
+            /** Duration S */
+            duration_s: number;
+        };
+        /** SearchResult */
+        SearchResult: {
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "facility" | "road";
+            /** Id */
+            id: number | null;
+            /** Name */
+            name: string;
+            /** Kind */
+            kind: string | null;
+            /** Address */
+            address: string | null;
+            /** Lon */
+            lon: number;
+            /** Lat */
+            lat: number;
+            /** Distance M */
+            distance_m: number | null;
         };
         /** SessionOut */
         SessionOut: {
@@ -1763,6 +1835,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuditOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_places_api_search_get: {
+        parameters: {
+            query: {
+                q: string;
+                lat?: number | null;
+                lon?: number | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchResult"][];
                 };
             };
             /** @description Validation Error */
