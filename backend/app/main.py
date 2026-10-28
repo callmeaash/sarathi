@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import Engine
 
-from app.api import auth, facilities, incidents, moderation, routing
+from app.api import auth, facilities, incidents, moderation, routing, search
 from app.auth.email import EmailSender, email_sender
 from app.config import AuthSettings, load_auth_settings
 from app.db import get_engine
@@ -50,6 +50,7 @@ def create_app(engine: Engine | None = None, routing_state: RoutingState | None 
     app.include_router(auth.router, prefix="/api")
     app.include_router(incidents.router, prefix="/api")
     app.include_router(moderation.router, prefix="/api")
+    app.include_router(search.router, prefix="/api")
 
     @app.exception_handler(AppError)
     async def app_error(request: Request, exc: AppError) -> JSONResponse:

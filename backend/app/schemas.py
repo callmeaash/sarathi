@@ -14,6 +14,19 @@ class HealthOut(BaseModel):
     loaded_at: datetime
 
 
+class SearchResult(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    type: Literal["facility", "road"]
+    id: int | None  # facility id; roads have none
+    name: str
+    kind: str | None  # facility kind
+    address: str | None
+    lon: float
+    lat: float
+    distance_m: float | None  # straight line from the given point, when one is given
+
+
 class RoadAtOut(BaseModel):
     road_name: str | None
     distance_m: float  # from the given point to the road

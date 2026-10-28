@@ -17,9 +17,21 @@ if config.config_file_name:
 # Tests point migrations at a separate database through ALEMBIC_DATABASE_URL.
 url = os.getenv("ALEMBIC_DATABASE_URL") or database_url()
 
+# Search indexes are written by hand in SQL (trigram expressions the models can't describe); leave them out
+# of autogenerate so it doesn't offer to drop them.
+HAND_WRITTEN_INDEXES = {"ix_facilities_names_trgm", "ix_road_edges_names_trgm"}
+
+
+def include_object(obj, name, type_, reflected, compare_to):
+    """Skip the hand-written search indexes, then apply GeoAlchemy's own rules."""
+    if type_ == "index" and name in HAND_WRITTEN_INDEXES:
+        return False
+    return alembic_helpers.include_object(obj, name, type_, reflected, compare_to)
+
+
 options = dict(
     target_metadata=Base.metadata,
-    include_object=alembic_helpers.include_object,
+    include_object=include_object,
     process_revision_directives=alembic_helpers.writer,
     render_item=alembic_helpers.render_item,
 )
