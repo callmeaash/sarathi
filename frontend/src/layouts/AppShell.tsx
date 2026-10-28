@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link, NavLink, Outlet, useLocation, useMatches } from 'react-router'
+import { useEffect, useState } from 'react'
+import { Link, NavLink, Outlet, useLocation, useMatches, useNavigate } from 'react-router'
 
 import { useAuth } from '../auth/context'
 import { Icon } from '../components/Icon'
@@ -17,10 +17,11 @@ function AccountButton({ onBlue }: { onBlue: boolean }) {
     return (
       <Link
         to="/login"
-        className={`flex h-10 items-center rounded-full px-4 text-label-lg ${
-          onBlue ? 'border border-white/60 text-white hover:bg-white/15' : 'text-primary hover:bg-surface-tint-light'
+        className={`flex h-10 items-center gap-2 rounded-lg px-4 text-label-lg ${
+          onBlue ? 'border border-white/30 bg-white/15 text-white hover:bg-white/25' : 'text-primary hover:bg-surface-tint-light'
         }`}
       >
+        {onBlue && <Icon name="person" className="text-[20px]" />}
         Log in
       </Link>
     )
@@ -38,6 +39,38 @@ function AccountButton({ onBlue }: { onBlue: boolean }) {
   )
 }
 
+/** Ctrl K on Windows and Linux, ⌘K on a Mac. */
+const IS_MAC = typeof navigator !== 'undefined' && /mac/i.test(navigator.platform || navigator.userAgent)
+
+/** Desktop search bar; opens search (for now the Directions page), also with Ctrl K / ⌘K from anywhere. */
+function SearchBox() {
+  const navigate = useNavigate()
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key.toLowerCase() === 'k' && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault()
+        navigate('/directions')
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [navigate])
+
+  return (
+    <Link
+      to="/directions"
+      aria-keyshortcuts={IS_MAC ? 'Meta+K' : 'Control+K'}
+      className="flex h-11 w-full max-w-xl items-center gap-3 rounded-xl bg-surface-container-lowest px-4 text-body-md text-text-secondary shadow-[0_2px_8px_rgb(0_0_0/0.15)] hover:bg-surface-tint-light"
+    >
+      <Icon name="search" className="text-[20px]" />
+      <span className="min-w-0 flex-1 truncate">Search places, roads, hospitals, and police posts in Kathmandu…</span>
+      <kbd className="shrink-0 rounded-md border border-border-muted bg-surface-container-low px-1.5 py-0.5 font-sans text-label-sm text-on-surface-variant">
+        {IS_MAC ? '⌘K' : 'Ctrl K'}
+      </kbd>
+    </Link>
+  )
+}
+
 /** Desktop header: logo, search, report button and account. */
 function DesktopHeader() {
   return (
@@ -45,22 +78,19 @@ function DesktopHeader() {
       <Link to="/" aria-label="Sarathi home">
         <Logo onBlue className="h-9" />
       </Link>
-      <Link
-        to="/directions"
-        className="flex h-10 w-full max-w-md items-center gap-3 rounded-md bg-white/95 px-3 text-body-md text-text-secondary hover:bg-white"
-      >
-        <Icon name="search" className="text-[20px]" />
-        Search places and facilities
-      </Link>
-      <div className="flex-1" />
-      <Link
-        to="/report"
-        className="flex h-10 items-center gap-2 rounded-full bg-hazard-closure-red px-5 text-label-lg text-white hover:brightness-110"
-      >
-        <Icon name="add_location_alt" className="text-[20px]" />
-        Report hazard
-      </Link>
-      <AccountButton onBlue />
+      <div className="flex flex-1 justify-center">
+        <SearchBox />
+      </div>
+      <div className="flex items-center gap-3">
+        <Link
+          to="/report"
+          className="flex h-10 items-center gap-2 rounded-lg bg-hazard-closure-red px-4 text-label-lg text-white shadow-[0_1px_2px_rgb(0_0_0/0.2)] hover:brightness-110"
+        >
+          <Icon name="warning" className="text-[20px]" />
+          Report hazard
+        </Link>
+        <AccountButton onBlue />
+      </div>
     </header>
   )
 }

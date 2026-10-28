@@ -47,6 +47,14 @@ describe('app shell', () => {
     expect(document.title).toBe('Hazards · Sarathi')
   })
 
+  it('opens search from the header bar or with Ctrl K', async () => {
+    const user = userEvent.setup()
+    const { router } = renderApp('/hazards')
+    expect(screen.getByRole('link', { name: /Search places, roads, hospitals/ })).toHaveAttribute('href', '/directions')
+    await user.keyboard('{Control>}k{/Control}')
+    expect(router.state.location.pathname).toBe('/directions')
+  })
+
   it('offers to log in when signed out', () => {
     renderApp('/')
     expect(screen.getAllByRole('link', { name: 'Log in' })[0]).toHaveAttribute('href', '/login')
