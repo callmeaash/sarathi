@@ -167,7 +167,7 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173. In development Vite forwards `/api` to the API on port 8000 (`SARATHI_API_URL` changes this), so no CORS setup is needed.
+Open http://localhost:5173. The map background uses Stadia Maps' "OSM Bright" tiles (OpenStreetMap data with English labels); they work on localhost without an account. For a real domain, add a free Stadia key as `VITE_STADIA_API_KEY` in `frontend/.env.local` (see `frontend/.env.example`). In development Vite forwards `/api` to the API on port 8000 (`SARATHI_API_URL` changes this), so no CORS setup is needed.
 
 | Command | What it does |
 |---|---|

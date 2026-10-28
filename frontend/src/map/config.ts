@@ -15,11 +15,17 @@ export const MIN_ZOOM = 11
 export const MAX_ZOOM = 19
 export const LOCATE_ZOOM = 16
 
-// OpenStreetMap's own tiles are fine for development and demos; for real traffic set a provider such as MapTiler.
+// The map background: pre-drawn image tiles. Stadia's "OSM Bright" is drawn from OpenStreetMap (the same data as
+// Sarathi's roads) with English/Latin labels; OpenStreetMap's own tiles label Nepal in Devanagari only.
+// It works on localhost without an account; a deployed site needs a free Stadia key (VITE_STADIA_API_KEY) or its
+// domain registered with Stadia. VITE_MAP_TILES_URL replaces the style entirely.
+const STADIA_KEY = import.meta.env.VITE_STADIA_API_KEY
 export const TILES = {
-  url: import.meta.env.VITE_MAP_TILES_URL ?? 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  url: import.meta.env.VITE_MAP_TILES_URL
+    ?? `https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.png${STADIA_KEY ? `?api_key=${STADIA_KEY}` : ''}`,
   attribution: import.meta.env.VITE_MAP_ATTRIBUTION
-    ?? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    ?? '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> '
+    + '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
 }
 
 /** Whether a point is inside the area Sarathi has roads for. */
