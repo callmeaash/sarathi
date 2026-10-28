@@ -42,11 +42,13 @@ class Search:
     """Best-first search from one node that settles nodes in order of cost (Dijkstra, or A* with a heuristic)."""
 
     def __init__(self, graph: RoadGraph, source: int, weight: Weight,
-                 heuristic: Callable[[int], float] | None = None, ignore_closures: bool = False):
-        """Prepare a search from an internal node index (optionally as if no road were closed)."""
+                 heuristic: Callable[[int], float] | None = None, ignore_closures: bool = False,
+                 starts: list[tuple[int, float]] | None = None):
+        """Prepare a search from a node index, or several (node, starting cost) pairs; optionally ignore closures."""
         self.graph = graph
         self.ignore_closures = ignore_closures
         self.source = source
+        self.starts = starts or [(source, 0.0)]
         self.costs = graph.length_m if weight is Weight.LENGTH else graph.travel_time_s
         self.heuristic = heuristic or (lambda i: 0.0)
         n = graph.node_count
@@ -61,8 +63,11 @@ class Search:
         offsets, targets, costs, h = self.graph.offsets, self.graph.targets, self.costs, self.heuristic
         closures = bytes(len(self.graph.closures)) if self.ignore_closures else self.graph.closures
         dist, settled = self.dist, self.settled
-        dist[self.source] = 0.0
-        heap = [(h(self.source), 0.0, self.source)]
+        heap = []
+        for node, cost in self.starts:
+            if cost < dist[node]:
+                dist[node] = cost
+                heapq.heappush(heap, (cost + h(node), cost, node))
         while heap:
             _, g, u = heapq.heappop(heap)
             if settled[u]:
@@ -87,13 +92,13 @@ class Search:
             raise NoRouteError("node has not been reached")
         positions = []
         current = node
-        while current != self.source:
+        while self.prev_edge[current] != -1:  # back to whichever starting node the route left from
             positions.append(self.prev_edge[current])
             current = self.prev_node[current]
         positions.reverse()
         graph = self.graph
         return Route(
-            node_ids=[graph.node_ids[self.source]] + [graph.node_ids[graph.targets[p]] for p in positions],
+            node_ids=[graph.node_ids[current]] + [graph.node_ids[graph.targets[p]] for p in positions],
             edge_ids=[graph.edge_ids[p] for p in positions],
             length_m=sum(graph.length_m[p] for p in positions),
             travel_time_s=sum(graph.travel_time_s[p] for p in positions),

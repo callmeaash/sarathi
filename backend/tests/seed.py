@@ -58,7 +58,7 @@ def route(client, a, b, **params):
 
 
 def seed_graph(engine, nodes: dict, roads: list[tuple], speed_mps: float = SPEED_MPS):
-    """Replace the road network with a custom one: roads are (a, b) or (a, b, name), two-way, edge ids from 100."""
+    """Replace the road network: roads are (a, b), (a, b, name) or (a, b, name, "oneway"); edge ids from 100."""
     with engine.begin() as conn:
         conn.execute(text("TRUNCATE incidents, audit_log, import_runs, facilities, road_edges, road_nodes "
                           "RESTART IDENTITY CASCADE"))
@@ -67,8 +67,10 @@ def seed_graph(engine, nodes: dict, roads: list[tuple], speed_mps: float = SPEED
                          {"id": node, "x": x, "y": y})
         for i, (a, b, *rest) in enumerate(roads):
             name = rest[0] if rest else None
+            oneway = len(rest) > 1 and rest[1] == "oneway"
             length = haversine_m(*nodes[a], *nodes[b])
-            for edge_id, source, target in ((100 + 2 * i, a, b), (101 + 2 * i, b, a)):
+            directions = ((100 + 2 * i, a, b),) if oneway else ((100 + 2 * i, a, b), (101 + 2 * i, b, a))
+            for edge_id, source, target in directions:
                 conn.execute(text("""
                     INSERT INTO road_edges (id, source, target, key, name, highway, oneway, bridge, tunnel, length_m,
                                             speed_kph, travel_time_s, geom)

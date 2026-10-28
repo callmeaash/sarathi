@@ -157,6 +157,6 @@ describe('directions', () => {
   it('says how far the route starts from the chosen point when it is not on a road', async () => {
     mockApi({ ...API, '/api/route': routeReply({ start: { node_id: 1, distance_m: 120 } }) })
     renderApp(TRIP)
-    expect(await screen.findByText(/Starts at the nearest road junction, 120 m from your start/)).toBeInTheDocument()
+    expect(await screen.findByText(/Starts on the nearest road, 120 m from your start/)).toBeInTheDocument()
   })
 })

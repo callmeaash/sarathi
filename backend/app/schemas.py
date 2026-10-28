@@ -40,8 +40,8 @@ class LineString(BaseModel):
 
 
 class SnapOut(BaseModel):
-    node_id: int
-    distance_m: float  # from the clicked point to the road junction the route starts or ends at
+    node_id: int | None = None  # the junction a nearest-facility search starts from (routes start on the road itself)
+    distance_m: float           # from the chosen point to where the route starts or ends on the road
 
 
 class RouteStepOut(BaseModel):

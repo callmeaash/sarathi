@@ -39,7 +39,8 @@ def test_route_follows_the_roads(client):
     expected = haversine_m(*NODES[0], *NODES[2]) + haversine_m(*NODES[2], *NODES[3])
     assert body["distance_m"] == pytest.approx(expected)
     assert body["duration_s"] == pytest.approx(expected / SPEED_MPS)
-    assert body["start"]["node_id"] == 0 and body["end"]["node_id"] == 3
+    assert body["start"]["distance_m"] == pytest.approx(0, abs=0.01)
+    assert body["end"]["distance_m"] == pytest.approx(0, abs=0.01)
 
 
 def test_route_geometry_is_flipped_for_reverse_edges(client):

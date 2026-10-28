@@ -4,17 +4,18 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import Connection, text
 
 from app.api.deps import get_conn, get_routing
-from app.routing.details import closures_avoided, cut_off_by_closures, route_steps
+from app.routing.details import closures_avoided, route_steps
 from app.routing.geo import route_coordinates, snap_to_node
+from app.routing.points import PlannedRoute, locate_on_road, plan_route
 from app.routing.graph import haversine_m
 from app.routing.nearest import nearest_facilities
 from app.routing.roads import nearest_road
-from app.routing.search import Algorithm, NoRouteError, Weight, find_route
+from app.routing.search import Algorithm, NoRouteError, Weight
 from app.schemas import (
     AvoidedClosure, DetourOut, FacilitySummary, LineString, NearbyOut, NearestOut, RoadAtOut, RouteOut, RouteStepOut,
     SnapOut,
 )
-from app.state import RoutingState
+from app.state import RoutingState, active_closures
 
 router = APIRouter(tags=["routing"])
 
@@ -29,29 +30,40 @@ def get_route(from_lat: Lat, from_lon: Lon, to_lat: Lat, to_lon: Lon,
               routing: RoutingState = Depends(get_routing), conn: Connection = Depends(get_conn)) -> RouteOut:
     """Route between two map points avoiding closed roads, with its steps and any closures it goes around."""
     graph = routing.graph
-    start = snap_to_node(conn, graph, from_lon, from_lat)
-    end = snap_to_node(conn, graph, to_lon, to_lat)
+    # Routes start and end at the closest spot on the road itself, not at the nearest junction.
+    start = locate_on_road(conn, graph, from_lon, from_lat)
+    end = locate_on_road(conn, graph, to_lon, to_lat)
+    active = active_closures(routing)
     try:
-        route = find_route(graph, start.node_id, end.node_id, weight, algorithm)
+        route = plan_route(conn, graph, start, end, weight, algorithm)
     except NoRouteError:
-        if cut_off_by_closures(routing, start.node_id, end.node_id, weight, algorithm):
+        if active and usual_route(graph, start, end, weight, algorithm) is not None:
             raise HTTPException(404, "closed roads cut off every route between these points") from None
         raise
-    detour = closures_avoided(routing, start.node_id, end.node_id, route)
+    usual = usual_route(graph, start, end, weight, algorithm) if active else None
+    detour = closures_avoided(route, usual, active)
     return RouteOut(
         distance_m=route.length_m,
-        duration_s=route.travel_time_s,
+        duration_s=route.time_s,
         weight=route.weight.value,
         algorithm=route.algorithm.value,
         visited_nodes=route.visited_nodes,
         runtime_ms=route.runtime_ms,
-        start=SnapOut(node_id=start.node_id, distance_m=start.distance_m),
-        end=SnapOut(node_id=end.node_id, distance_m=end.distance_m),
+        start=SnapOut(distance_m=start.distance_m),
+        end=SnapOut(distance_m=end.distance_m),
         edge_ids=route.edge_ids,
-        geometry=LineString(coordinates=route_coordinates(conn, graph, route)),
-        steps=[RouteStepOut.model_validate(step) for step in route_steps(conn, graph, route)],
+        geometry=LineString(coordinates=route.coords),
+        steps=[RouteStepOut.model_validate(step) for step in route_steps(conn, route.legs)],
         detour=detour_out(conn, detour) if detour else None,
     )
+
+
+def usual_route(graph, start, end, weight, algorithm) -> PlannedRoute | None:
+    """The same route with every road open, or None when even that has no route."""
+    try:
+        return plan_route(None, graph, start, end, weight, algorithm, ignore_closures=True)
+    except NoRouteError:
+        return None
 
 
 AVOIDED = text("SELECT id, kind, road_name FROM incidents WHERE id = ANY(:ids) ORDER BY id")

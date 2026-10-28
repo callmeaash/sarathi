@@ -998,7 +998,7 @@ export interface components {
         /** SnapOut */
         SnapOut: {
             /** Node Id */
-            node_id: number;
+            node_id?: number | null;
             /** Distance M */
             distance_m: number;
         };

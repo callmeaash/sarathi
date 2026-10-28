@@ -48,8 +48,8 @@ export function RouteSummary({ route }: { route: Route }) {
       {(route.start.distance_m > SNAP_NOTE_FROM_M || route.end.distance_m > SNAP_NOTE_FROM_M) && (
         <p className="mt-3 flex items-start gap-1.5 text-body-sm text-text-secondary">
           <Icon name="info" className="text-[16px]" />
-          {route.start.distance_m > SNAP_NOTE_FROM_M && `Starts at the nearest road junction, ${formatDistance(route.start.distance_m)} from your start. `}
-          {route.end.distance_m > SNAP_NOTE_FROM_M && `Ends ${formatDistance(route.end.distance_m)} from the destination, at the nearest road junction.`}
+          {route.start.distance_m > SNAP_NOTE_FROM_M && `Starts on the nearest road, ${formatDistance(route.start.distance_m)} from your start. `}
+          {route.end.distance_m > SNAP_NOTE_FROM_M && `Ends on the nearest road, ${formatDistance(route.end.distance_m)} from the destination.`}
         </p>
       )}
     </section>
