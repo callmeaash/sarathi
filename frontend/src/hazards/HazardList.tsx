@@ -47,15 +47,16 @@ type SectionProps = {
   more?: string
   aside?: ReactNode
   footnote?: ReactNode
+  fill?: boolean  // desktop home panel: sizes follow the window height
 }
 
 /** A titled list of hazards, optionally cut short with a "View all" link. */
-function Section({ title, incidents, empty, limit, more, aside, footnote }: SectionProps) {
+function Section({ title, incidents, empty, limit, more, aside, footnote, fill = false }: SectionProps) {
   const shown = limit ? incidents.slice(0, limit) : incidents
   const viewAll = more && incidents.length > shown.length
     ? <Link to={more} className="text-label-lg text-primary">View all</Link> : null
   return (
-    <section className="mt-5">
+    <section className={fill ? '' : 'mt-5'}>
       <SectionHeading title={title} count={incidents.length} aside={viewAll ?? aside} />
       {shown.length === 0
         ? empty
@@ -66,22 +67,27 @@ function Section({ title, incidents, empty, limit, more, aside, footnote }: Sect
 }
 
 /** Verified closures and reports waiting for review; `limit` shortens each list for the home panel. */
-export function HazardSections({ limit }: { limit?: number }) {
+export function HazardSections({ limit, fill = false }: { limit?: number; fill?: boolean }) {
   const { data, isPending, isError } = useIncidents(['pending', 'verified'])
-  if (isPending) return <div className="mt-5 h-32 animate-pulse rounded-xl bg-surface-container" aria-hidden />
-  if (isError) return <p className="mt-5 text-body-md text-text-secondary">Couldn't load hazards. Check your connection.</p>
+  const gap = fill ? '' : 'mt-5'
+  if (isPending) return <div className={`${gap} h-32 animate-pulse rounded-xl bg-surface-container`} aria-hidden />
+  if (isError) return <p className={`${gap} text-body-md text-text-secondary`}>Couldn't load hazards. Check your connection.</p>
 
   const closed = data.filter((incident) => incident.status === 'verified')
   const pending = data.filter((incident) => incident.status === 'pending')
   return (
     <>
-      <Section title="Road closures" incidents={closed} limit={limit} more="/hazards"
+      <Section title="Road closures" incidents={closed} limit={limit} more="/hazards" fill={fill}
         aside={<span className="text-body-sm text-text-secondary">Updates every minute</span>}
-        empty={<EmptyCard icon="check_circle" tone="ok" title="All roads open">No verified closures right now.</EmptyCard>} />
-      <Section title="Unverified reports" incidents={pending} limit={limit} more="/hazards"
+        empty={(
+          <EmptyCard icon="check_circle" tone="ok" title="All roads open" fill={fill}>
+            No verified closures right now.
+          </EmptyCard>
+        )} />
+      <Section title="Unverified reports" incidents={pending} limit={limit} more="/hazards" fill={fill}
         footnote="Unverified reports don't change routes until a moderator checks them."
         empty={(
-          <EmptyCard icon="info" tone="info" title="No reports waiting for review">
+          <EmptyCard icon="info" tone="info" title="No reports waiting for review" fill={fill}>
             Reports change routes only once a moderator verifies them.
           </EmptyCard>
         )} />

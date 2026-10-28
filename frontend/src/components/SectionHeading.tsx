@@ -20,11 +20,13 @@ export function SectionHeading({ title, count, aside }: SectionHeadingProps) {
 }
 
 /** Card shown in place of an empty list. */
-export function EmptyCard({ icon, tone, title, children }: {
-  icon: string; tone: 'ok' | 'info'; title: string; children: ReactNode
+export function EmptyCard({ icon, tone, title, children, fill = false }: {
+  icon: string; tone: 'ok' | 'info'; title: string; children: ReactNode; fill?: boolean
 }) {
+  // fill: on desktop, grow with the window height (within limits), content centred.
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-border-muted bg-surface-container-low px-3 py-2.5">
+    <div className={`flex items-center gap-3 rounded-xl border border-border-muted bg-surface-container-low px-3 py-2.5 ${
+      fill ? 'lg:h-[clamp(3.5rem,12dvh,9rem)]' : ''}`}>
       <span className={`grid size-8 shrink-0 place-items-center rounded-lg ${
         tone === 'ok' ? 'bg-tertiary-fixed/60 text-tertiary' : 'bg-surface-tint-medium text-primary'}`}>
         <span className="icon text-[18px]" aria-hidden>{icon}</span>

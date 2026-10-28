@@ -10,7 +10,7 @@ import { MapOverlay } from '../map/MapOverlay'
 /** How to drop a pin, which has no button of its own. */
 function PinTip() {
   return (
-    <div className="mt-5 flex items-center gap-3 rounded-xl border border-primary/15 bg-surface-tint-light px-3 py-2.5">
+    <div className="flex items-center gap-3 rounded-xl border border-primary/15 bg-surface-tint-light px-3 py-2.5">
       <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary text-white">
         <Icon name="touch_app" className="text-[18px]" />
       </span>
@@ -26,8 +26,10 @@ function PinTip() {
 
 /** Home: the map with facilities and hazards, and the latest closures and reports. */
 export function ExplorePage() {
+  // Desktop: the panel fills the full height. Buttons and cards grow with the window and the sections are spread
+  // evenly from top to bottom. Phones keep the natural, compact layout in the bottom sheet.
   return (
-    <>
+    <div className="flex flex-col gap-5 lg:min-h-full lg:justify-between lg:gap-4">
       <title>Explore · Sarathi</title>
       <BaseLayers />
       {/* Phones: facility filters float over the top of the map. */}
@@ -47,12 +49,12 @@ export function ExplorePage() {
       </header>
       <ServerStatus />
 
-      <section className="mt-5 hidden lg:block">
+      <section className="hidden lg:block">
         <SectionHeading title="Emergency & services" />
         <FacilityCards />
       </section>
-      <HazardSections limit={2} />
+      <HazardSections limit={2} fill />
       <PinTip />
-    </>
+    </div>
   )
 }
