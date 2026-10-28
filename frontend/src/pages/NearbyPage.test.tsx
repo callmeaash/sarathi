@@ -57,7 +57,7 @@ describe('nearby', () => {
     const [call] = await sent(fetch, 'GET', '/api/nearest')
     expect(new URL(call.request.url).search).toBe('?lat=27.6935&lon=85.2975&kind=hospital&limit=5')
     expect(screen.getByTitle('1. Teku Hospital')).toBeInTheDocument()
-    await waitFor(() => expect(container.querySelectorAll('.leaflet-overlay-pane path').length).toBeGreaterThanOrEqual(2))
+    await waitFor(() => expect(container.querySelectorAll('.leaflet-route-line-pane path').length).toBeGreaterThanOrEqual(2))
   })
 
   it('selects another result and offers directions and details for it', async () => {

@@ -66,7 +66,7 @@ describe('directions', () => {
     expect(calls).toHaveLength(1)  // one route request; the server picks the search method
     expect(new URL(calls[0].request.url).search)
       .toBe('?from_lat=27.6935&from_lon=85.2975&to_lat=27.6683&to_lon=85.3185&weight=time')
-    await waitFor(() => expect(container.querySelectorAll('.leaflet-overlay-pane path').length).toBeGreaterThanOrEqual(2))
+    await waitFor(() => expect(container.querySelectorAll('.leaflet-route-line-pane path').length).toBeGreaterThanOrEqual(2))
   })
 
   it('explains the closures a route goes around', async () => {

@@ -70,8 +70,7 @@ export function DirectionsPage() {
   return (
     <>
       <title>Directions · Sarathi</title>
-      {/* Facility markers would bury the route line; closures and hazards stay, they explain the route. */}
-      <BaseLayers facilities={false} />
+      <BaseLayers />
       <MapLayers>
         <RouteLayer route={best.data} from={from} to={to} />
         {picking && <MapPick onPick={pick} />}

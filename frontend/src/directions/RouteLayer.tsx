@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react'
 import { CircleMarker, Marker, Polyline, useMap, useMapEvents } from 'react-leaflet'
 
 import { showAll } from '../map/focus'
+import { ROUTE_LINE_PANE, ROUTE_MARKER_PANE, ensureRoutePanes } from '../map/RoutePanes'
 import type { Route } from './api'
 import type { Point } from './params'
 
@@ -21,6 +22,7 @@ type RouteLayerProps = { route: Route | undefined; from: Point | null; to: Point
 /** The route line (blue with a white edge), the start dot and the destination pin; fits the route in view once. */
 export function RouteLayer({ route, from, to }: RouteLayerProps) {
   const map = useMap()
+  ensureRoutePanes(map)  // before the layers below mount into them
   const fitted = useRef<string | null>(null)
   const positions = (route?.geometry.coordinates ?? []).map(([lon, lat]) => [lat, lon] as [number, number])
   const key = route ? `${route.edge_ids.length}:${route.distance_m}` : null
@@ -33,13 +35,17 @@ export function RouteLayer({ route, from, to }: RouteLayerProps) {
 
   return (
     <>
-      {positions.length > 1 && <Polyline positions={positions} pathOptions={CASING} interactive={false} />}
-      {positions.length > 1 && <Polyline positions={positions} pathOptions={LINE} interactive={false} />}
+      {positions.length > 1 && (
+        <Polyline positions={positions} pathOptions={CASING} interactive={false} pane={ROUTE_LINE_PANE} />
+      )}
+      {positions.length > 1 && (
+        <Polyline positions={positions} pathOptions={LINE} interactive={false} pane={ROUTE_LINE_PANE} />
+      )}
       {from && (
-        <CircleMarker center={[from.lat, from.lon]} radius={8} interactive={false}
+        <CircleMarker center={[from.lat, from.lon]} radius={8} interactive={false} pane={ROUTE_MARKER_PANE}
           pathOptions={{ color: '#ffffff', weight: 3, fillColor: '#1f55e0', fillOpacity: 1 }} />
       )}
-      {to && <Marker position={[to.lat, to.lon]} icon={END_PIN} interactive={false} zIndexOffset={3000} />}
+      {to && <Marker position={[to.lat, to.lon]} icon={END_PIN} interactive={false} pane={ROUTE_MARKER_PANE} />}
     </>
   )
 }

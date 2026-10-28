@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react'
 import { CircleMarker, Marker, Polyline, useMap } from 'react-leaflet'
 
 import { showAll } from '../map/focus'
+import { ROUTE_LINE_PANE, ROUTE_MARKER_PANE, ensureRoutePanes } from '../map/RoutePanes'
 import type { NearbyResult } from './api'
 
 const icons = new Map<string, L.DivIcon>()
@@ -37,6 +38,7 @@ type NearbyLayerProps = {
 /** The search origin, numbered result badges and the selected result's road route; fits them in view once. */
 export function NearbyLayer({ origin, results, selected, onSelect }: NearbyLayerProps) {
   const map = useMap()
+  ensureRoutePanes(map)  // before the layers below mount into them
   const fitted = useRef<string | null>(null)
   const key = `${origin.lat},${origin.lon}:${results.map((result) => result.facility.id).join(',')}`
 
@@ -49,9 +51,9 @@ export function NearbyLayer({ origin, results, selected, onSelect }: NearbyLayer
   const route = results[selected]?.geometry.coordinates.map(([lon, lat]) => [lat, lon] as [number, number]) ?? []
   return (
     <>
-      {route.length > 1 && <Polyline positions={route} pathOptions={CASING} interactive={false} />}
-      {route.length > 1 && <Polyline positions={route} pathOptions={LINE} interactive={false} />}
-      <CircleMarker center={[origin.lat, origin.lon]} radius={8} interactive={false}
+      {route.length > 1 && <Polyline positions={route} pathOptions={CASING} interactive={false} pane={ROUTE_LINE_PANE} />}
+      {route.length > 1 && <Polyline positions={route} pathOptions={LINE} interactive={false} pane={ROUTE_LINE_PANE} />}
+      <CircleMarker center={[origin.lat, origin.lon]} radius={8} interactive={false} pane={ROUTE_MARKER_PANE}
         pathOptions={{ color: '#ffffff', weight: 3, fillColor: '#1f55e0', fillOpacity: 1 }} />
       {results.map((result, index) => (
         <Marker
@@ -59,6 +61,7 @@ export function NearbyLayer({ origin, results, selected, onSelect }: NearbyLayer
           position={[result.facility.lat, result.facility.lon]}
           icon={rankIcon(index + 1, result.facility.kind, index === selected)}
           title={`${index + 1}. ${result.facility.name ?? 'Unnamed'}`}
+          pane={ROUTE_MARKER_PANE}
           zIndexOffset={index === selected ? 2000 : 1000 - index}
           eventHandlers={{ click: () => onSelect(index) }}
         />
