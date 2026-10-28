@@ -7,7 +7,8 @@ import pytest
 from fastapi import HTTPException
 
 from app.api.deps import moderator, verified_user
-from app.auth.email import SmtpEmail, code_email
+from app.auth.email import SmtpEmail, build_message
+from app.auth.messages import LOGO_CID, Email, code_email
 from app.auth.passwords import hash_password, password_problem, verify_password
 from app.auth.tokens import (
     InvalidToken, create_access_token, decode_access_token, hash_code, hash_token, new_code, new_refresh_token,
@@ -97,9 +98,38 @@ def test_code_hash_is_tied_to_user_and_purpose():
 
 
 def test_code_email_contents():
-    subject, body = code_email("verify", "482913", "Ramesh", 15)
-    assert "482913" in subject and "verify your email" in body and "15 minutes" in body and "Ramesh" in body
-    assert "reset your password" in code_email("reset", "111111", "Sita", 15)[1]
+    email = code_email("verify", "482913", "Ramesh Karki", 15)
+    assert email.subject == "482913 is your Sarathi verification code"
+    assert email.preheader == "Your code is 482913. It expires in 15 minutes."
+    for version in (email.text, email.html):
+        assert "482913" in version and "verify your email address" in version and "15 minutes" in version
+        assert "Hi Ramesh," in version  # first name only
+    assert f"cid:{LOGO_CID}" in email.html and email.preheader in email.html
+    reset = code_email("reset", "111111", "Sita", 15)
+    assert "password reset code" in reset.subject and "your password stays the same" in reset.text
+
+
+def test_code_email_escapes_names():
+    email = code_email("verify", "482913", "<b>Mallory</b> Smith", 15)
+    assert "<b>Mallory</b>" not in email.html and "&lt;b&gt;Mallory&lt;/b&gt;" in email.html
+
+
+def test_message_has_text_html_and_the_inline_logo():
+    email = code_email("verify", "482913", "Ramesh", 15)
+    message = build_message("Sarathi <sarathi.maps@gmail.com>", "ramesh.k@example.com", email)
+    assert message["Message-ID"].endswith("@gmail.com>") and message["Date"]
+    assert message.get_content_type() == "multipart/alternative"
+    text, html = message.get_payload()
+    assert text.get_content_type() == "text/plain" and "482913" in text.get_content()
+    assert html.get_content_type() == "multipart/related"
+    page, logo = html.get_payload()
+    assert page.get_content_type() == "text/html" and "482913" in page.get_content()
+    assert logo.get_content_type() == "image/png" and logo["Content-ID"] == f"<{LOGO_CID}>"
+
+
+def test_plain_text_only_messages():
+    message = build_message("a@example.com", "b@example.com", Email(subject="Hi", text="Hello"))
+    assert message.get_content_type() == "text/plain" and message.get_content().strip() == "Hello"
 
 
 def test_role_and_verification_checks():
@@ -150,5 +180,5 @@ def test_smtp_uses_starttls_or_ssl_by_port(monkeypatch, port, expected):
     FakeSmtp.calls = []
     settings = AuthSettings(jwt_secret="x" * 40, email_backend="smtp", smtp_host="smtp.example.com", smtp_port=port,
                             smtp_user="me@example.com", smtp_password="secret")
-    SmtpEmail(settings).send("ramesh.k@example.com", "Your code", "123456")
+    SmtpEmail(settings).send("ramesh.k@example.com", Email(subject="Your code", text="123456"))
     assert FakeSmtp.calls == expected + [("send", "ramesh.k@example.com", "Your code")]

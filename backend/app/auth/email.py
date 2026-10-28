@@ -2,45 +2,62 @@ import logging
 import smtplib
 from dataclasses import dataclass, field
 from email.message import EmailMessage
+from email.utils import formatdate, make_msgid, parseaddr
 from typing import Protocol
 
+from app.auth.messages import LOGO, LOGO_CID, Email
 from app.config import AuthSettings
 
 log = logging.getLogger(__name__)
 
 
 class EmailSender(Protocol):
-    def send(self, to: str, subject: str, body: str) -> None:
-        """Send one plain-text email."""
+    def send(self, to: str, email: Email) -> None:
+        """Send one email."""
 
 
 class ConsoleEmail:
-    def send(self, to: str, subject: str, body: str) -> None:
-        """Print the email to the server log instead of sending it (development)."""
-        log.info("email to %s | %s\n%s", to, subject, body)
+    def send(self, to: str, email: Email) -> None:
+        """Print the email's plain-text version to the server log instead of sending it (development)."""
+        log.info("email to %s | %s\n%s", to, email.subject, email.text)
 
 
 @dataclass
 class MemoryEmail:
-    outbox: list[tuple[str, str, str]] = field(default_factory=list)
+    outbox: list[tuple[str, str, str]] = field(default_factory=list)  # (to, subject, text), for tests
+    sent: list[Email] = field(default_factory=list)
 
-    def send(self, to: str, subject: str, body: str) -> None:
+    def send(self, to: str, email: Email) -> None:
         """Keep the email in memory (tests)."""
-        self.outbox.append((to, subject, body))
+        self.outbox.append((to, email.subject, email.text))
+        self.sent.append(email)
 
 
 SSL_PORT = 465  # implicit TLS; other ports (usually 587) upgrade a plain connection with STARTTLS
+
+
+def build_message(sender: str, to: str, email: Email) -> EmailMessage:
+    """A MIME message: plain text, plus HTML with the logo attached inline when there is HTML."""
+    message = EmailMessage()
+    message["From"], message["To"], message["Subject"] = sender, to, email.subject
+    message["Date"] = formatdate(localtime=True)
+    domain = parseaddr(sender)[1].rpartition("@")[2] or None
+    message["Message-ID"] = make_msgid(domain=domain)  # mail providers trust messages with proper ids more
+    message.set_content(email.text)
+    if email.html:
+        message.add_alternative(email.html, subtype="html")
+        html_part = message.get_payload()[-1]
+        html_part.add_related(LOGO.read_bytes(), "image", "png", cid=f"<{LOGO_CID}>", filename="sarathi.png")
+    return message
 
 
 @dataclass
 class SmtpEmail:
     settings: AuthSettings
 
-    def send(self, to: str, subject: str, body: str) -> None:
+    def send(self, to: str, email: Email) -> None:
         """Send the email through the configured SMTP server."""
-        message = EmailMessage()
-        message["From"], message["To"], message["Subject"] = self.settings.smtp_from, to, subject
-        message.set_content(body)
+        message = build_message(self.settings.smtp_from, to, email)
         ssl = self.settings.smtp_port == SSL_PORT
         connect = smtplib.SMTP_SSL if ssl else smtplib.SMTP
         with connect(self.settings.smtp_host, self.settings.smtp_port, timeout=15) as smtp:
@@ -54,17 +71,3 @@ class SmtpEmail:
 def email_sender(settings: AuthSettings) -> EmailSender:
     """Choose the email sender from the settings."""
     return SmtpEmail(settings) if settings.email_backend == "smtp" else ConsoleEmail()
-
-
-def code_email(purpose: str, code: str, name: str, minutes: int) -> tuple[str, str]:
-    """Subject and body of a verification or password-reset email."""
-    if purpose == "verify":
-        subject = f"{code} is your Sarathi verification code"
-        action = "verify your email address"
-    else:
-        subject = f"{code} is your Sarathi password reset code"
-        action = "reset your password"
-    body = (f"Hello {name},\n\nUse this code to {action}:\n\n    {code}\n\n"
-            f"It expires in {minutes} minutes. If you did not ask for it, you can ignore this email.\n\n"
-            "Sarathi")
-    return subject, body

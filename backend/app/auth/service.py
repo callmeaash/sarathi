@@ -6,7 +6,8 @@ from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.auth.email import EmailSender, code_email
+from app.auth.email import EmailSender
+from app.auth.messages import code_email
 from app.auth.passwords import DUMMY_HASH, hash_password, needs_rehash, password_problem, verify_password
 from app.auth.tokens import codes_match, create_access_token, hash_code, hash_token, new_code, new_refresh_token
 from app.config import AuthSettings
@@ -92,7 +93,7 @@ def send_code(session: Session, settings: AuthSettings, sender: EmailSender, use
     session.add(EmailCode(user_id=user.id, purpose=purpose, code_hash=hash_code(settings, user.id, purpose, code),
                           created_at=now, expires_at=now + timedelta(minutes=settings.code_minutes)))
     session.commit()
-    sender.send(user.email, *code_email(purpose, code, user.full_name, settings.code_minutes))
+    sender.send(user.email, code_email(purpose, code, user.full_name, settings.code_minutes))
 
 
 def register(session: Session, settings: AuthSettings, sender: EmailSender, full_name: str, email: str,
