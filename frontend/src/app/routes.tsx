@@ -19,7 +19,9 @@ import { HazardPage } from '../pages/HazardPage'
 import { HazardsPage } from '../pages/HazardsPage'
 import { DirectionsPage } from '../pages/DirectionsPage'
 import { NearbyPage } from '../pages/NearbyPage'
-import { MyReportsPage, ReportPage } from '../pages/sections'
+import { ReportPage } from '../pages/ReportPage'
+import { ReportSubmittedPage } from '../pages/ReportSubmittedPage'
+import { MyReportsPage } from '../pages/sections'
 
 const MAP_PAGE = { map: true }
 
@@ -60,7 +62,8 @@ export const routes: RouteObject[] = [
             element: <RequireAuth />,
             children: [
               { path: 'reports', element: <MyReportsPage /> },
-              { path: 'report', element: <ReportPage /> },
+              { path: 'report', element: <ReportPage />, handle: MAP_PAGE },
+              { path: 'report/submitted/:id', element: <ReportSubmittedPage />, handle: MAP_PAGE },
               { path: 'account', element: <AccountPage /> },
             ],
           },

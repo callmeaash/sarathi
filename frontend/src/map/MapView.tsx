@@ -89,6 +89,7 @@ const controlButton = 'grid size-11 place-items-center bg-surface-container-lowe
 /** Locate and zoom buttons; they sit above the phone's bottom sheet. */
 function MapControls() {
   const { map, locate, locateStatus } = useAppMap()
+  const reporting = useLocation().pathname.startsWith('/report')  // no "Report" button while already reporting
   const locating = locateStatus === 'locating'
   return (
     // Hidden while the phone's sheet is pulled up: the map is mostly covered and they'd run into the header.
@@ -110,11 +111,11 @@ function MapControls() {
         </button>
       </div>
       {/* Phones: the main action floats just above the sheet; desktop has it in the header. */}
-      <Link to="/report"
+      {!reporting && <Link to="/report"
         className="mt-1 flex h-12 items-center gap-1.5 rounded-full bg-hazard-closure-red pr-5 pl-4 text-label-lg text-white shadow-float lg:hidden">
         <Icon name="add" className="text-[22px]" />
         Report
-      </Link>
+      </Link>}
     </div>
   )
 }

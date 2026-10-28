@@ -250,6 +250,39 @@
   cursor: default;
 }
 
+/* Report step 1: a pin fixed over the middle of the visible map (above the phone's sheet); its tip marks the spot. */
+.report-center-pin {
+  position: absolute;
+  left: 50%;
+  top: calc((100% - var(--sheet-height, 0px)) / 2);
+  z-index: 700;
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+  color: var(--color-hazard-closure-red);
+  filter: drop-shadow(0 2px 3px rgb(27 28 30 / 0.4));
+  transition: top 0.2s;
+}
+
+[data-dragging] .report-center-pin {
+  transition: none;
+}
+
+.report-center-pin .icon {
+  display: block;
+  font-size: 48px;
+}
+
+.report-center-pin__dot {
+  position: absolute;
+  left: 50%;
+  bottom: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: rgb(27 28 30 / 0.35);
+  transform: translateX(-50%);
+}
+
 @utility icon {
   font-family: "Material Symbols Outlined";
   font-weight: normal;
