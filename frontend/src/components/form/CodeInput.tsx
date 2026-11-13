@@ -82,7 +82,7 @@ export function CodeInput({ value, onChange, onComplete, disabled, invalid, desc
           autoComplete={index === 0 ? 'one-time-code' : 'off'}
           aria-label={`Digit ${index + 1} of ${CODE_LENGTH}`}
           aria-invalid={invalid || undefined}
-          className={`h-14 w-full min-w-0 max-w-14 rounded-md border bg-surface-container-lowest text-center text-headline-md text-on-surface outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary disabled:opacity-60 ${
+          className={`h-13 w-full min-w-0 max-w-13 rounded-md border bg-surface-container-lowest text-center text-headline-md text-on-surface outline-none transition-shadow focus:border-primary focus:ring-[3px] focus:ring-primary/15 disabled:opacity-60 ${
             invalid ? 'border-error' : 'border-border-muted'
           }`}
         />

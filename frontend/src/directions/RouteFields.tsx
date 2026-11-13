@@ -12,13 +12,13 @@ type RouteFieldsProps = {
   onPickOnMap: (side: Side) => void
 }
 
-const BOX = 'flex h-11 items-center gap-2 rounded-lg bg-surface-container-lowest px-3 ring-1 ring-border-muted focus-within:ring-2 focus-within:ring-primary'
+const BOX = 'flex h-11 items-center gap-2 rounded-md border border-border-muted bg-surface-container-lowest px-3 focus-within:border-primary focus-within:ring-[3px] focus-within:ring-primary/15'
 
 /** Start and destination search fields with a swap button, as in the route planner designs. */
 export function RouteFields({ from, to, here, onChange, onSwap, onPickOnMap }: RouteFieldsProps) {
   const extras = (side: Side): ExtraOption[] => [
     ...(here || side === 'from' ? [{
-      key: 'here', icon: 'my_location', label: 'Your location',
+      key: 'here', icon: 'my_location' as const, label: 'Your location',
       sub: here ? undefined : 'Asks the browser for your position',
       onSelect: () => onChange(side, side === 'from' ? null : here),
     }] : []),

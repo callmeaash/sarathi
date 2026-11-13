@@ -6,6 +6,7 @@ import { useClosures } from '../api/closures'
 import { useLayers } from '../map/layers'
 import { useIncidents } from './api'
 import { hazardInfo, roadLabel } from './kinds'
+import { iconHtml } from '../components/icons'
 
 const icons = new Map<string, L.DivIcon>()
 
@@ -20,7 +21,7 @@ function hazardIcon(kind: string, status: string, selected: boolean): L.DivIcon 
       iconSize: [size, size],
       iconAnchor: [size / 2, size / 2],
       html: `<span class="hazard-pin hazard-pin--${status}${selected ? ' is-selected' : ''}">`
-        + `<span class="icon icon-filled">${hazardInfo(kind).icon}</span></span>`,
+        + `${iconHtml(hazardInfo(kind).icon)}</span>`,
     })
     icons.set(key, icon)
   }

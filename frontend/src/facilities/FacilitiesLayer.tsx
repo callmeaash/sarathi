@@ -7,6 +7,7 @@ import { useLayers } from '../map/layers'
 import { useAllFacilities } from './api'
 import { useShownKinds } from './filter'
 import { kindInfo } from './kinds'
+import { iconHtml } from '../components/icons'
 
 const icons = new Map<string, L.DivIcon>()
 
@@ -33,7 +34,7 @@ function facilityIcon(kind: string, selected: boolean): L.DivIcon {
       iconSize: [size, size],
       iconAnchor: [size / 2, size / 2],
       html: `<span class="facility-pin facility-pin--${kind}${selected ? ' is-selected' : ''}">`
-        + `<span class="icon icon-filled">${kindInfo(kind).icon}</span></span>`,
+        + `${iconHtml(kindInfo(kind).icon)}</span>`,
     })
     icons.set(key, icon)
   }

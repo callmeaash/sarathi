@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react'
+import type { IconName } from './icons'
+import { Icon } from './Icon'
 
 type SectionHeadingProps = { title: string; count?: number; aside?: ReactNode }
 
@@ -6,7 +8,7 @@ type SectionHeadingProps = { title: string; count?: number; aside?: ReactNode }
 export function SectionHeading({ title, count, aside }: SectionHeadingProps) {
   return (
     <div className="mb-2 flex items-center justify-between gap-3">
-      <h2 className="flex items-center gap-2 text-label-md tracking-[0.08em] text-on-surface-variant uppercase">
+      <h2 className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.07em] text-text-secondary uppercase">
         {title}
         {count !== undefined && (
           <span className="rounded-md bg-surface-container px-1.5 py-0.5 tracking-normal text-on-surface tabular-nums">
@@ -21,7 +23,7 @@ export function SectionHeading({ title, count, aside }: SectionHeadingProps) {
 
 /** Card shown in place of an empty list. */
 export function EmptyCard({ icon, tone, title, children, fill = false }: {
-  icon: string; tone: 'ok' | 'info'; title: string; children: ReactNode; fill?: boolean
+  icon: IconName; tone: 'ok' | 'info'; title: string; children: ReactNode; fill?: boolean
 }) {
   // fill: on desktop, grow with the window height (within limits), content centred.
   return (
@@ -29,7 +31,7 @@ export function EmptyCard({ icon, tone, title, children, fill = false }: {
       fill ? 'lg:h-[clamp(3.5rem,12dvh,9rem)]' : ''}`}>
       <span className={`grid size-8 shrink-0 place-items-center rounded-lg ${
         tone === 'ok' ? 'bg-tertiary-fixed/60 text-tertiary' : 'bg-surface-tint-medium text-primary'}`}>
-        <span className="icon text-[18px]" aria-hidden>{icon}</span>
+        <Icon name={icon} className="text-[18px]" />
       </span>
       <div className="min-w-0">
         <p className="text-label-lg text-on-surface">{title}</p>

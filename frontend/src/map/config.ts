@@ -15,7 +15,7 @@ export const MIN_ZOOM = 11
 export const MAX_ZOOM = 19
 export const LOCATE_ZOOM = 16
 
-// The map background: pre-drawn image tiles. Stadia's "OSM Bright" is drawn from OpenStreetMap (the same data as
+// The map background: pre-drawn image tiles, shown in soft greys (the tiles-light filter in index.css). Stadia's "OSM Bright" is drawn from OpenStreetMap (the same data as
 // Sarathi's roads) with English/Latin labels; OpenStreetMap's own tiles label Nepal in Devanagari only.
 // It works on localhost without an account; a deployed site needs a free Stadia key (VITE_STADIA_API_KEY) or its
 // domain registered with Stadia. VITE_MAP_TILES_URL replaces the style entirely.

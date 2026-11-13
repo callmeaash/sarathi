@@ -2,9 +2,10 @@ import type { ReactNode } from 'react'
 import { Link, isRouteErrorResponse, useRouteError } from 'react-router'
 
 import { Icon } from '../components/Icon'
+import type { IconName } from '../components/icons'
 
 type MessageProps = {
-  icon: string
+  icon: IconName
   title: string
   text: string
   action: ReactNode
@@ -23,7 +24,7 @@ function Message({ icon, title, text, action }: MessageProps) {
   )
 }
 
-const primaryButton = 'inline-flex h-12 items-center rounded-full bg-primary px-6 text-label-lg text-white hover:bg-primary-hover'
+const primaryButton = 'inline-flex h-11 items-center rounded-md bg-primary px-5 text-label-lg text-white hover:bg-primary-hover'
 
 /** Shown for addresses that match no page. */
 export function NotFoundPage() {

@@ -6,9 +6,10 @@ import { formatDistance } from '../lib/format'
 import { inDistrict } from '../map/config'
 import { useAppMap } from '../map/context'
 import { MIN_QUERY_LENGTH, type SearchHit, useDebounced, useSearch } from './api'
+import type { IconName } from '../components/icons'
 
 /** A fixed choice listed above the search results, e.g. "Your location" or "Choose on map". */
-export type ExtraOption = { key: string; icon: string; label: string; sub?: string; onSelect: () => void }
+export type ExtraOption = { key: string; icon: IconName; label: string; sub?: string; onSelect: () => void }
 
 type PlaceSearchProps = {
   label: string                     // read by screen readers
@@ -145,7 +146,7 @@ export function PlaceSearch({ label, placeholder, onSelect, extras = [], text: i
           role="listbox"
           aria-label={`${label} suggestions`}
           onMouseDown={(event) => event.preventDefault()}  // keep focus in the input while clicking an option
-          className="absolute inset-x-0 top-full z-[1200] mt-2 max-h-[min(24rem,60dvh)] overflow-y-auto rounded-xl border border-border-muted bg-surface-container-lowest py-1.5 text-on-surface shadow-[0_8px_24px_rgb(27_28_30/0.18)]"
+          className="absolute inset-x-0 top-full z-[1200] mt-1.5 max-h-[min(24rem,60dvh)] overflow-y-auto rounded-md border border-border-muted bg-surface-container-lowest p-1.5 text-on-surface shadow-float"
         >
           {options.map((option, index) => (
             <li
@@ -155,7 +156,7 @@ export function PlaceSearch({ label, placeholder, onSelect, extras = [], text: i
               aria-selected={index === active}
               onClick={() => choose(index)}
               onMouseEnter={() => setActive(index)}
-              className={`flex cursor-pointer items-center gap-3 px-3 py-2 ${index === active ? 'bg-surface-tint-light' : ''}`}
+              className={`flex cursor-pointer items-center gap-3 rounded-sm px-2.5 py-2 ${index === active ? 'bg-surface-tint-light' : ''}`}
             >
               {'extra' in option ? (
                 <>

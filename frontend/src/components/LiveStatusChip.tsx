@@ -6,11 +6,11 @@ export function LiveStatusChip() {
   if (isPending) return null
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-label-sm uppercase ${
-        isError ? 'bg-surface-container text-text-secondary' : 'bg-surface-tint-medium text-on-primary-fixed'
+      className={`inline-flex h-6 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-medium ${
+        isError ? 'bg-surface-container text-on-surface-variant' : 'bg-[#f0fdf4] text-open-green'
       }`}
     >
-      <span className={`size-2 rounded-full ${isError ? 'bg-outline' : 'bg-open-green'}`} aria-hidden />
+      <span className={`size-1.5 rounded-full ${isError ? 'bg-outline' : 'bg-open-green'}`} aria-hidden />
       {isError ? 'Offline' : 'Live'}
     </span>
   )

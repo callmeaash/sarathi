@@ -13,7 +13,7 @@ export function ServerStatus() {
         type="button"
         onClick={() => refetch()}
         disabled={isFetching}
-        className="rounded-full px-3 py-1 text-label-lg hover:bg-black/5 disabled:opacity-60"
+        className="rounded-md px-3 py-1 text-label-lg hover:bg-black/5 disabled:opacity-60"
       >
         {isFetching ? 'Retrying…' : 'Try again'}
       </button>

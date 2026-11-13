@@ -9,6 +9,7 @@ import { buttonClass } from '../components/form/buttonStyles'
 import type { Incident } from '../hazards/api'
 import { hazardInfo, passableText, roadLabel } from '../hazards/kinds'
 import { dateTime, timeAgo } from '../lib/time'
+import type { IconName } from '../components/icons'
 
 const MAX_REPORTS = 100
 
@@ -23,8 +24,8 @@ function useMyReports() {
 
 type Status = 'pending' | 'verified' | 'cleared' | 'rejected' | 'merged'
 
-const STATUS: Record<Status, { label: string; filter: string; badge: string; icon: string; dot: string }> = {
-  pending: { label: 'Under review', filter: 'Pending', badge: 'bg-[#fff1d6] text-[#7a5200]', icon: 'hourglass_top', dot: 'bg-pending-amber' },
+const STATUS: Record<Status, { label: string; filter: string; badge: string; icon: IconName; dot: string }> = {
+  pending: { label: 'Under review', filter: 'Pending', badge: 'bg-[#fffbeb] text-[#92400e]', icon: 'hourglass_top', dot: 'bg-pending-amber' },
   verified: { label: 'Road closed', filter: 'Verified', badge: 'bg-error-container text-on-error-container', icon: 'block', dot: 'bg-hazard-closure-red' },
   cleared: { label: 'Cleared', filter: 'Cleared', badge: 'bg-tertiary-fixed/50 text-tertiary', icon: 'check_circle', dot: 'bg-open-green' },
   rejected: { label: 'Rejected', filter: 'Rejected', badge: 'bg-surface-container text-on-surface-variant', icon: 'cancel', dot: 'bg-outline' },
@@ -36,7 +37,7 @@ const PUBLIC: Status[] = ['pending', 'verified', 'cleared']  // the hazard page 
 const statusOf = (report: Incident): Status => (report.status in STATUS ? report.status as Status : 'pending')
 
 /** A tinted strip under a report explaining its state. */
-function Note({ icon, tone = 'muted', children }: { icon: string; tone?: 'muted' | 'red' | 'green'; children: ReactNode }) {
+function Note({ icon, tone = 'muted', children }: { icon: IconName; tone?: 'muted' | 'red' | 'green'; children: ReactNode }) {
   const tones = { muted: 'bg-surface-container-low text-on-surface', red: 'bg-error-container/60 text-on-error-container',
     green: 'bg-tertiary-fixed/30 text-on-surface' }
   return (

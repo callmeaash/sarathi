@@ -11,6 +11,7 @@ import { focusOn, inView } from '../map/focus'
 import { MapLayers } from '../map/MapLayers'
 import { PinMarker } from '../map/PinMarker'
 import { useNearestRoad } from '../map/roads'
+import type { IconName } from '../components/icons'
 
 const MAX_REPORT_DISTANCE_M = 150  // the API only accepts hazards this close to a road
 const PIN_ZOOM = 16
@@ -27,7 +28,7 @@ function usePin() {
 
 /** An action row: icon, title, explanation, and a chevron when it leads somewhere. */
 function ActionRow({ icon, tint, title, sub, to, onClick, disabled }: {
-  icon: string; tint: string; title: ReactNode; sub: ReactNode; to?: string; onClick?: () => void; disabled?: boolean
+  icon: IconName; tint: string; title: ReactNode; sub: ReactNode; to?: string; onClick?: () => void; disabled?: boolean
 }) {
   const body = (
     <>

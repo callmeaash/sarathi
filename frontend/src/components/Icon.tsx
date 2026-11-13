@@ -1,20 +1,27 @@
+import { ICONS, type IconName } from './icons'
+
 type IconProps = {
-  name: string
+  name: IconName
   filled?: boolean
   className?: string
   label?: string
 }
 
-/** A Material Symbols icon; decorative unless a label is given. */
+/** A line icon sized by the text size (24 px by default); decorative unless a label is given. */
 export function Icon({ name, filled = false, className = '', label }: IconProps) {
   return (
-    <span
-      className={`icon ${filled ? 'icon-filled' : ''} ${className}`}
+    <svg
+      className={`icon ${className}`}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={filled ? 2.2 : 1.8}  // "filled" marks the active item: a heavier line, as line icons have no fill
+      strokeLinecap="round"
+      strokeLinejoin="round"
       aria-hidden={label ? undefined : true}
       aria-label={label}
       role={label ? 'img' : undefined}
-    >
-      {name}
-    </span>
+      dangerouslySetInnerHTML={{ __html: ICONS[name] }}
+    />
   )
 }

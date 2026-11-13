@@ -1,4 +1,6 @@
-type HazardInfo = { label: string; icon: string; tint: string }
+import type { IconName } from '../components/icons'
+
+type HazardInfo = { label: string; icon: IconName; tint: string }
 
 // Colours from the design system; tint is for list icons (markers use status colours instead).
 export const HAZARDS: Record<string, HazardInfo> = {
@@ -6,7 +8,7 @@ export const HAZARDS: Record<string, HazardInfo> = {
   flood: { label: 'Flooding', icon: 'flood', tint: 'bg-[#dceafa] text-hazard-flood-blue' },
   accident: { label: 'Accident', icon: 'car_crash', tint: 'bg-[#fde6d9] text-hazard-accident-orange' },
   road_blocked: { label: 'Road blocked', icon: 'block', tint: 'bg-error-container text-hazard-blocked-red' },
-  road_works: { label: 'Road works', icon: 'construction', tint: 'bg-[#fff1d6] text-hazard-works-amber' },
+  road_works: { label: 'Road works', icon: 'construction', tint: 'bg-[#fffbeb] text-hazard-works-amber' },
   other: { label: 'Hazard', icon: 'warning', tint: 'bg-surface-container text-on-surface-variant' },
 }
 

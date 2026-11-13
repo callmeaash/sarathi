@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react'
 
 import { Icon } from '../../components/Icon'
+import type { IconName } from '../../components/icons'
 
 type AuthHeadingProps = {
   title: string
   children?: ReactNode
-  icon?: string
+  icon?: IconName
 }
 
 /** Title and short explanation at the top of a sign-in form; also sets the tab title. */

@@ -160,14 +160,14 @@ Measure how often the facility nearest in a straight line is not the nearest by 
 
 ## Frontend
 
-React + TypeScript + Vite, styled with Tailwind using the design tokens from `ui/bato_civic_navigation/DESIGN.md`. Run the API first, then from `frontend/`:
+React + TypeScript + Vite, styled with Tailwind. The design tokens are in `src/index.css`: slate neutrals, white surfaces with thin borders, the Inter font and 6/8/12 px corners (the same design system as the GeoKitta project), with Sarathi's brand blue as the primary colour. Icons are line icons drawn in `src/components/icons.ts`, so no icon font is downloaded. Run the API first, then from `frontend/`:
 
 ```
 npm install
 npm run dev
 ```
 
-Open http://localhost:5173. The map background uses Stadia Maps' "OSM Bright" tiles (OpenStreetMap data with English labels); they work on localhost without an account. For a real domain, add a free Stadia key as `VITE_STADIA_API_KEY` in `frontend/.env.local` (see `frontend/.env.example`). In development Vite forwards `/api` to the API on port 8000 (`SARATHI_API_URL` changes this), so no CORS setup is needed.
+Open http://localhost:5173. The map background uses Stadia Maps' "OSM Bright" tiles (OpenStreetMap data with English labels), shown in soft greys so that routes, hazards and facilities are the only colour on the map; they work on localhost without an account. For a real domain, add a free Stadia key as `VITE_STADIA_API_KEY` in `frontend/.env.local` (see `frontend/.env.example`). In development Vite forwards `/api` to the API on port 8000 (`SARATHI_API_URL` changes this), so no CORS setup is needed.
 
 | Command | What it does |
 |---|---|

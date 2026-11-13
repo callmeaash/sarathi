@@ -25,15 +25,13 @@ export function LayersControl({ buttonClass }: { buttonClass: string }) {
   return (
     <div ref={box} className="relative">
       <button type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-controls={panelId}
-        aria-label="Map layers" className={`${buttonClass} rounded-full border border-border-muted shadow-float`}>
-        <Icon name="layers" filled={open} />
+        aria-label="Map layers" className={`${buttonClass} rounded-md border border-border-muted shadow-float ${open ? 'text-primary' : ''}`}>
+        <Icon name="layers" className="text-[20px]" />
       </button>
       {open && (
         <div id={panelId} role="group" aria-label="Map layers"
-          className="absolute right-0 bottom-full mb-2 w-60 rounded-xl border border-border-muted bg-surface-container-lowest p-4 shadow-float">
-          <p className="mb-2 flex items-center gap-2 text-title-md text-on-surface">
-            <Icon name="layers" className="text-[20px]" /> Map layers
-          </p>
+          className="absolute right-0 bottom-full mb-2 w-60 rounded-md border border-border-muted bg-surface-container-lowest p-4 shadow-float">
+          <p className="mb-2 text-[11px] font-semibold tracking-[0.07em] text-text-secondary uppercase">Map layers</p>
           {LAYERS.map(({ key, label, dot }) => (
             <label key={key} className="flex cursor-pointer items-center gap-3 py-2 text-body-md text-on-surface">
               <span className={`size-2.5 rounded-sm ${dot}`} aria-hidden />
@@ -41,7 +39,7 @@ export function LayersControl({ buttonClass }: { buttonClass: string }) {
               <input type="checkbox" role="switch" checked={layers[key]} onChange={(e) => setLayer(key, e.target.checked)}
                 className="peer sr-only" />
               <span aria-hidden
-                className="relative h-6 w-10 rounded-full bg-outline-variant transition-colors peer-checked:bg-primary peer-focus-visible:outline-2 peer-focus-visible:outline-primary after:absolute after:top-1 after:left-1 after:size-4 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-4" />
+                className="relative h-[22px] w-[38px] rounded-full bg-outline-variant transition-colors peer-checked:bg-primary peer-focus-visible:outline-2 peer-focus-visible:outline-primary after:absolute after:top-[3px] after:left-[3px] after:size-4 after:shadow-[0_1px_2px_rgb(0_0_0/0.2)] after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-4" />
             </label>
           ))}
         </div>

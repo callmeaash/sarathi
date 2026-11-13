@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useMap, useMapEvents } from 'react-leaflet'
 
 import { coveredBottom, coveredTop } from '../map/focus'
+import { Icon } from '../components/Icon'
 
 export type LatLon = { lat: number; lon: number }
 
@@ -34,7 +35,7 @@ export function CenterPin({ onMove }: { onMove: (point: LatLon) => void }) {
 
   return createPortal(
     <div className="report-center-pin" aria-hidden>
-      <span className="icon icon-filled">location_on</span>
+      <Icon name="pin_solid" />
       <span className="report-center-pin__dot" />
     </div>,
     map.getContainer(),

@@ -40,7 +40,7 @@ export function AccountPage() {
             </span>
           ) : (
             <Link to={`/verify?email=${encodeURIComponent(user.email)}`}
-              className="inline-flex items-center gap-1 rounded-full bg-[#fff1d6] px-3 py-1 text-label-md text-on-surface">
+              className="inline-flex items-center gap-1 rounded-full bg-[#fffbeb] px-3 py-1 text-label-md text-on-surface">
               <Icon name="error" className="text-[16px] text-pending-amber" /> Verify your email
             </Link>
           )}

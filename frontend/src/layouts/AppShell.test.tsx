@@ -16,7 +16,7 @@ describe('app shell', () => {
     expect(within(mobile).getByRole('link', { name: /Nearby/ })).toHaveAttribute('aria-current', 'page')
     expect(within(desktop).getByRole('link', { name: /Map/ })).not.toHaveAttribute('aria-current')
     expect(within(mobile).getAllByRole('link').map((link) => link.textContent)).toEqual(
-      ['exploreExplore', 'directionsDirections', 'location_onNearby', 'assignmentMy reports', 'account_circleAccount'],
+      ['Explore', 'Directions', 'Nearby', 'My reports', 'Account'],
     )
   })
 

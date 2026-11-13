@@ -13,8 +13,9 @@ import { MapPick, RouteLayer } from '../directions/RouteLayer'
 import { BaseLayers } from '../map/BaseLayers'
 import { useAppMap } from '../map/context'
 import { MapLayers } from '../map/MapLayers'
+import type { IconName } from '../components/icons'
 
-const WEIGHTS: { value: Weight; label: string; icon: string }[] = [
+const WEIGHTS: { value: Weight; label: string; icon: IconName }[] = [
   { value: 'time', label: 'Fastest', icon: 'bolt' },
   { value: 'length', label: 'Shortest', icon: 'straighten' },
 ]

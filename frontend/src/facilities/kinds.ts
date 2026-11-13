@@ -1,10 +1,12 @@
+import type { IconName } from '../components/icons'
+
 export const FACILITY_KINDS = ['hospital', 'police', 'pharmacy', 'fire_station'] as const
 export type FacilityKind = (typeof FACILITY_KINDS)[number]
 
 type KindInfo = {
   label: string        // one place: "Hospital"
   plural: string       // filter chip: "Hospitals"
-  icon: string         // Material Symbols name
+  icon: IconName         // Material Symbols name
   minZoom: number      // hidden when zoomed further out, to keep the map readable
   chip: string         // chip colours when switched on
   badge: string        // solid colour of the icon square on the panel cards

@@ -11,6 +11,7 @@ import { useNearestRoad } from '../map/roads'
 import { useDebounced } from '../search/api'
 import { PlaceSearch } from '../search/PlaceSearch'
 import { CenterPin, type LatLon } from './CenterPin'
+import type { IconName } from '../components/icons'
 
 export const MAX_ROAD_DISTANCE_M = 150  // the API only accepts hazards this close to a road
 const PIN_ZOOM = 17
@@ -37,7 +38,7 @@ export function LocationStep({ point, start, onMove, onNext }: LocationStepProps
   }, [map, start])
 
   const onRoad = road != null && road.distance_m <= MAX_ROAD_DISTANCE_M
-  let status: { icon: string; text: string; tone: 'ok' | 'warn' | 'muted' }
+  let status: { icon: IconName; text: string; tone: 'ok' | 'warn' | 'muted' }
   if (!point) status = { icon: 'pan_tool', text: 'Move the map to place the pin', tone: 'muted' }
   else if (!inside) status = { icon: 'wrong_location', text: 'Outside Kathmandu District', tone: 'warn' }
   else if (isFetching && !road) status = { icon: 'more_horiz', text: 'Finding the nearest road…', tone: 'muted' }
@@ -63,7 +64,7 @@ export function LocationStep({ point, start, onMove, onNext }: LocationStepProps
           placeholder="Search a place"
           clearOnSelect
           onSelect={(hit) => map && focusOn(map, [hit.lat, hit.lon], PIN_ZOOM)}
-          boxClassName="flex h-11 items-center gap-2 rounded-full bg-surface-container px-4 focus-within:ring-2 focus-within:ring-primary"
+          boxClassName="flex h-11 items-center gap-2 rounded-md border border-border-muted bg-surface px-3 focus-within:border-primary focus-within:ring-[3px] focus-within:ring-primary/15"
         />
       </div>
 

@@ -8,7 +8,7 @@ import { PlaceSearch } from './PlaceSearch'
 const IS_MAC = typeof navigator !== 'undefined' && /mac/i.test(navigator.platform || navigator.userAgent)
 
 const BOX = {
-  desktop: 'flex h-11 items-center gap-3 rounded-xl bg-surface-container-lowest px-4 shadow-[0_2px_8px_rgb(0_0_0/0.15)] focus-within:ring-2 focus-within:ring-white/60',
+  desktop: 'flex h-[38px] items-center gap-2.5 rounded-md border border-border-muted bg-surface px-3 transition-shadow focus-within:border-primary focus-within:bg-surface-container-lowest focus-within:ring-[3px] focus-within:ring-primary/15',
   phone: 'flex h-11 items-center gap-2 px-2',  // sits inside the floating pill, which has the background
 }
 
@@ -35,7 +35,7 @@ export function HeaderSearch({ variant }: { variant: 'desktop' | 'phone' }) {
     <PlaceSearch
       label="Search places and roads"
       placeholder={variant === 'desktop'
-        ? 'Search places, roads, hospitals, and police posts in Kathmandu…'
+        ? 'Search places, roads, hospitals and police…'
         : 'Search hospitals, police, roads…'}
       onSelect={(hit) => {
         input.current?.blur()
@@ -45,7 +45,7 @@ export function HeaderSearch({ variant }: { variant: 'desktop' | 'phone' }) {
       inputRef={input}
       boxClassName={BOX[variant]}
       trailing={variant === 'desktop' && (
-        <kbd aria-hidden className="shrink-0 rounded-md border border-border-muted bg-surface-container-low px-1.5 py-0.5 font-sans text-label-sm text-on-surface-variant">
+        <kbd aria-hidden className="shrink-0 rounded-sm border border-border-muted bg-surface-container-lowest px-1.5 py-0.5 font-sans text-label-sm text-text-secondary">
           {IS_MAC ? '⌘K' : 'Ctrl K'}
         </kbd>
       )}

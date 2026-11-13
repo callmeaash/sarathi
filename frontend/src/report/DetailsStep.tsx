@@ -69,7 +69,7 @@ export function DetailsStep({ point, roadName, onBack, onSubmitted }: DetailsSte
           <p className="truncate text-title-md text-on-surface">{roadName ?? 'Unnamed road'}</p>
           <p className="text-body-sm text-text-secondary tabular-nums">{point.lat.toFixed(5)}, {point.lon.toFixed(5)}</p>
         </div>
-        <button type="button" onClick={onBack} className="rounded-full px-3 py-1.5 text-label-lg text-primary hover:bg-surface-tint-light">
+        <button type="button" onClick={onBack} className="rounded-md px-3 py-1.5 text-label-lg text-primary hover:bg-surface-container">
           Change
         </button>
       </div>

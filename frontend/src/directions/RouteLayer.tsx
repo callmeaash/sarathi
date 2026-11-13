@@ -8,12 +8,13 @@ import { ROUTE_LINE_PANE, ROUTE_MARKER_PANE, ensureRoutePanes } from '../map/Rou
 import type { Route } from './api'
 import { type Avoided, midpoint } from './avoided'
 import type { Point } from './params'
+import { iconHtml } from '../components/icons'
 
 const END_PIN = L.divIcon({
   className: '',
   iconSize: [44, 44],
-  iconAnchor: [22, 42],
-  html: '<span class="drop-pin drop-pin--route"><span class="icon icon-filled">location_on</span></span>',
+  iconAnchor: [22, 43],
+  html: `<span class="drop-pin drop-pin--route">${iconHtml('pin_solid')}</span>`,
 })
 
 const CASING = { color: '#ffffff', weight: 10, opacity: 0.9, lineCap: 'round' as const, lineJoin: 'round' as const }

@@ -1,7 +1,9 @@
+import type { IconName } from '../components/icons'
+
 export type NavItem = {
   to: string
   label: string
-  icon: string
+  icon: IconName
 }
 
 // Desktop has room for every section beside the map; phones get the five used most.

@@ -136,7 +136,7 @@ export function UnverifiedReports({ through, around, noRouteAround, choice, onCh
     return (
       <div role="status" className={BOX}>
         <p className="flex items-center gap-2 text-label-lg">
-          <Icon name="alt_route" className="text-[20px] text-[#7a5200]" />
+          <Icon name="alt_route" className="text-[20px] text-[#92400e]" />
           Going around {count || 'the'} unverified {plural(count)}
         </p>
         <p className="mt-1 text-body-sm text-text-secondary">
@@ -153,7 +153,7 @@ export function UnverifiedReports({ through, around, noRouteAround, choice, onCh
     return (
       <div className={BOX}>
         <p className="flex items-center gap-2 text-label-lg">
-          <Icon name="warning" className="text-[20px] text-[#7a5200]" />
+          <Icon name="warning" className="text-[20px] text-[#92400e]" />
           Passes {count} unverified {plural(count)}
         </p>
         <ReportList route={through} />
@@ -171,7 +171,7 @@ export function UnverifiedReports({ through, around, noRouteAround, choice, onCh
   return (
     <section aria-label="Unverified reports on this route" className={BOX}>
       <p className="flex items-center gap-2 text-label-lg">
-        <Icon name="warning" className="text-[20px] text-[#7a5200]" />
+        <Icon name="warning" className="text-[20px] text-[#92400e]" />
         {count === 1 ? 'Unverified report on your route' : `${count} unverified reports on your route`}
       </p>
       <ReportList route={through} />
@@ -182,13 +182,13 @@ export function UnverifiedReports({ through, around, noRouteAround, choice, onCh
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
         <button type="button" onClick={() => onChoose('around')} disabled={!around}
-          className="inline-flex h-10 items-center gap-1.5 rounded-full bg-on-surface px-4 text-label-lg text-white hover:bg-inverse-surface disabled:opacity-60">
+          className="inline-flex h-9 items-center gap-1.5 rounded-md bg-on-surface px-3.5 text-label-lg text-white hover:bg-inverse-surface disabled:opacity-60">
           {around ? <Icon name="alt_route" className="text-[18px]" />
             : <span className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" aria-hidden />}
           Go around
         </button>
         <button type="button" onClick={() => onChoose('through')}
-          className="inline-flex h-10 items-center rounded-full border border-border-muted bg-surface-container-lowest px-4 text-label-lg text-on-surface hover:bg-surface-container-low">
+          className="inline-flex h-9 items-center rounded-md border border-border-muted bg-surface-container-lowest px-4 text-label-lg text-on-surface hover:bg-surface-container-low">
           Keep this route
         </button>
       </div>

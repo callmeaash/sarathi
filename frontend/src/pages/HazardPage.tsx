@@ -11,14 +11,15 @@ import { LOCATE_ZOOM } from '../map/config'
 import { useAppMap } from '../map/context'
 import { BaseLayers } from '../map/BaseLayers'
 import { focusOn } from '../map/focus'
+import type { IconName } from '../components/icons'
 
-const STATUS: Record<string, { text: string; detail: string; style: string; icon: string }> = {
+const STATUS: Record<string, { text: string; detail: string; style: string; icon: IconName }> = {
   verified: {
     text: 'Verified closure', icon: 'block', style: 'bg-error-container text-on-error-container',
     detail: 'A moderator confirmed this. Routes and nearest-facility results avoid the roads around it.',
   },
   pending: {
-    text: 'Waiting for review', icon: 'schedule', style: 'bg-[#fff1d6] text-[#7a5200]',
+    text: 'Waiting for review', icon: 'schedule', style: 'bg-[#fffbeb] text-[#92400e]',
     detail: "Reported by a Sarathi user. It doesn't change routes until a moderator checks it.",
   },
   cleared: {
@@ -28,7 +29,7 @@ const STATUS: Record<string, { text: string; detail: string; style: string; icon
 }
 
 /** A labelled line of the hazard's history or details. */
-function Fact({ icon, children }: { icon: string; children: ReactNode }) {
+function Fact({ icon, children }: { icon: IconName; children: ReactNode }) {
   return (
     <li className="flex items-start gap-3 py-2.5 text-body-md text-on-surface">
       <Icon name={icon} className="mt-px text-[20px] text-on-surface-variant" />
@@ -106,7 +107,7 @@ export function HazardPage() {
     <>
       <BaseLayers hazardId={id} />
       <button type="button" onClick={back}
-        className="-ml-2 mb-3 inline-flex items-center gap-1 rounded-full px-2 py-1 text-label-lg text-primary hover:bg-surface-tint-light">
+        className="-ml-2 mb-3 inline-flex items-center gap-1 rounded-md px-2 py-1 text-label-lg text-primary hover:bg-surface-container">
         <Icon name="arrow_back" className="text-[20px]" /> Back
       </button>
       {notFound ? (

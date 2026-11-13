@@ -12,11 +12,12 @@ import { LOCATE_ZOOM, inDistrict } from '../map/config'
 import { useAppMap } from '../map/context'
 import { focusOn, showAll } from '../map/focus'
 import { BaseLayers } from '../map/BaseLayers'
+import type { IconName } from '../components/icons'
 
 type Facility = Schemas['FacilityDetail']
 
 /** One row of details: an icon, a main line, a secondary line, and an optional action on the right. */
-function Row({ icon, children, sub, action }: { icon: string; children: ReactNode; sub?: ReactNode; action?: ReactNode }) {
+function Row({ icon, children, sub, action }: { icon: IconName; children: ReactNode; sub?: ReactNode; action?: ReactNode }) {
   return (
     <div className="flex items-start gap-4 py-3">
       <span className="grid size-11 shrink-0 place-items-center rounded-full bg-surface-container text-on-surface-variant">
@@ -175,7 +176,7 @@ export function PlacePage() {
     <>
       <BaseLayers facilityId={id} />
       <button type="button" onClick={back}
-        className="-ml-2 mb-2 inline-flex items-center gap-1 rounded-full px-2 py-1 text-label-lg text-primary hover:bg-surface-tint-light">
+        className="-ml-2 mb-2 inline-flex items-center gap-1 rounded-md px-2 py-1 text-label-lg text-primary hover:bg-surface-container">
         <Icon name="arrow_back" className="text-[20px]" /> Back
       </button>
       {notFound ? (

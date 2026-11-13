@@ -84,7 +84,7 @@ function YouAreHere() {
   )
 }
 
-const controlButton = 'grid size-11 place-items-center bg-surface-container-lowest text-on-surface hover:bg-surface-container-low disabled:opacity-60'
+const controlButton = 'grid size-10 place-items-center bg-surface-container-lowest text-on-surface hover:bg-surface disabled:opacity-60'
 
 /** Locate and zoom buttons; they sit above the phone's bottom sheet. */
 function MapControls() {
@@ -96,24 +96,24 @@ function MapControls() {
     <div className="absolute right-4 bottom-[calc(var(--sheet-height,0px)+2.25rem)] z-[1000] flex flex-col items-end gap-2 transition-[bottom] in-data-[dragging]:transition-none in-data-[sheet=expanded]:hidden lg:right-4 lg:bottom-10 lg:in-data-[sheet=expanded]:flex">
       <LayersControl buttonClass={controlButton} />
       <button type="button" onClick={() => locate()} disabled={locating} aria-label="Show my location"
-        className={`${controlButton} rounded-full border border-border-muted shadow-float`}>
+        className={`${controlButton} rounded-md border border-border-muted shadow-float`}>
         {locating
           ? <span className="size-5 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden />
-          : <Icon name="my_location" className={locateStatus === 'found' ? 'text-primary' : ''} />}
+          : <Icon name="my_location" className={`text-[20px] ${locateStatus === 'found' ? 'text-primary' : ''}`} />}
       </button>
-      <div className="hidden flex-col overflow-hidden rounded-xl border border-border-muted shadow-float lg:flex">
+      <div className="hidden flex-col overflow-hidden rounded-md border border-border-muted shadow-float lg:flex">
         <button type="button" onClick={() => map?.zoomIn()} aria-label="Zoom in" className={controlButton}>
-          <Icon name="add" />
+          <Icon name="add" className="text-[20px]" />
         </button>
         <span className="h-px bg-border-muted" aria-hidden />
         <button type="button" onClick={() => map?.zoomOut()} aria-label="Zoom out" className={controlButton}>
-          <Icon name="remove" />
+          <Icon name="remove" className="text-[20px]" />
         </button>
       </div>
       {/* Phones: the main action floats just above the sheet; desktop has it in the header. */}
       {!reporting && <Link to="/report"
-        className="mt-1 flex h-12 items-center gap-1.5 rounded-full bg-hazard-closure-red pr-5 pl-4 text-label-lg text-white shadow-float lg:hidden">
-        <Icon name="add" className="text-[22px]" />
+        className="mt-1 flex h-11 items-center gap-1.5 rounded-md bg-hazard-closure-red pr-4 pl-3 text-label-lg text-white shadow-float lg:hidden">
+        <Icon name="add" className="text-[20px]" />
         Report
       </Link>}
     </div>
@@ -136,10 +136,10 @@ function MapNotice() {
   }, [notice, showNotice])
   if (!notice) return null
   return (
-    <div role="status" className="absolute inset-x-3 top-[calc(var(--map-top,0px)+0.75rem)] z-[1001] mx-auto flex max-w-md items-start gap-3 rounded-xl bg-inverse-surface px-4 py-3 text-body-md text-inverse-on-surface shadow-float">
+    <div role="status" className="absolute inset-x-3 top-[calc(var(--map-top,0px)+0.75rem)] z-[1001] mx-auto flex max-w-md items-start gap-3 rounded-md bg-inverse-surface px-3.5 py-2.5 text-body-md text-inverse-on-surface shadow-float">
       <Icon name="info" className="text-[20px]" />
       <p className="flex-1">{notice}</p>
-      <button type="button" onClick={() => showNotice(null)} aria-label="Dismiss" className="-my-1 -mr-1 grid size-8 place-items-center rounded-full hover:bg-white/10">
+      <button type="button" onClick={() => showNotice(null)} aria-label="Dismiss" className="-my-1 -mr-1 grid size-8 place-items-center rounded-md hover:bg-white/10">
         <Icon name="close" className="text-[20px]" />
       </button>
     </div>
@@ -153,8 +153,8 @@ export function MapView() {
     <div className="relative isolate size-full">
       <MapContainer center={view.center} zoom={view.zoom} minZoom={MIN_ZOOM} maxZoom={MAX_ZOOM}
         maxBounds={PANNING_BOUNDS} maxBoundsViscosity={0.9} zoomControl={false} attributionControl={false}
-        className="size-full bg-surface-tint-medium">
-        <TileLayer url={TILES.url} attribution={TILES.attribution} maxZoom={MAX_ZOOM} />
+        className="size-full">
+        <TileLayer url={TILES.url} attribution={TILES.attribution} maxZoom={MAX_ZOOM} className="tiles-light" />
         <AttributionControl position="bottomright" prefix={false} />
         <ScaleControl position="bottomleft" imperial={false} />
         <ShareMap />

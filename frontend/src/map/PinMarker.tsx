@@ -1,11 +1,12 @@
 import L from 'leaflet'
 import { Marker } from 'react-leaflet'
+import { iconHtml } from '../components/icons'
 
 const PIN = L.divIcon({
   className: '',
   iconSize: [44, 44],
-  iconAnchor: [22, 42],  // the tip of the pin sits on the spot
-  html: '<span class="drop-pin"><span class="icon icon-filled">location_on</span></span>',
+  iconAnchor: [22, 43],  // the tip of the pin sits on the spot
+  html: `<span class="drop-pin">${iconHtml('pin_solid')}</span>`,
 })
 
 type PinMarkerProps = { lat: number; lon: number; onMove: (lat: number, lon: number) => void }

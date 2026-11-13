@@ -9,7 +9,7 @@ import { FEATURES } from '../../layouts/brand'
 import { markWelcomed } from './welcomed'
 
 const FEATURE_TINTS = ['bg-error-container text-hazard-closure-red', 'bg-[#fde4e8] text-facility-hospital-pink',
-  'bg-[#fff1d6] text-hazard-works-amber']
+  'bg-[#fffbeb] text-hazard-works-amber']
 
 /** The three ways to continue. */
 function Choices() {
@@ -31,14 +31,15 @@ export function WelcomePage() {
       <title>Welcome · Sarathi</title>
       <BrandPanel logo="nepali" />
 
-      {/* Phones: blue introduction on top, choices below */}
+      {/* Phones: introduction on top, choices below */}
       <div className="lg:hidden">
-        <section className="relative overflow-hidden bg-primary px-6 pt-[max(env(safe-area-inset-top),2.5rem)] pb-8 text-white">
+        <section className="relative overflow-hidden border-b border-border-muted bg-surface-tint-light px-6 pt-[max(env(safe-area-inset-top),2.5rem)] pb-8">
           <MapLines />
+          <div className="absolute inset-0 bg-linear-to-t from-surface-tint-light via-surface-tint-light/80 to-transparent" aria-hidden />
           <div className="relative">
-            <Logo variant="nepali" onBlue className="h-16" />
-            <h1 className="mt-8 text-display-lg-mobile">Find open roads in Kathmandu</h1>
-            <p className="mt-3 text-body-lg text-white/85">
+            <Logo variant="nepali" className="h-16" />
+            <h1 className="mt-8 text-display-lg-mobile text-on-surface">Find open roads in Kathmandu</h1>
+            <p className="mt-3 text-body-lg text-on-surface-variant">
               Verified road closures, routes around them, and the nearest hospital by road.
             </p>
           </div>
@@ -47,7 +48,7 @@ export function WelcomePage() {
           <ul className="grid grid-cols-3 gap-3 text-center">
             {FEATURES.map((feature, index) => (
               <li key={feature.title}>
-                <span className={`mx-auto grid size-14 place-items-center rounded-full ${FEATURE_TINTS[index]}`}>
+                <span className={`mx-auto grid size-12 place-items-center rounded-lg ${FEATURE_TINTS[index]}`}>
                   <Icon name={feature.icon} />
                 </span>
                 <span className="mt-2 block text-label-lg text-on-surface">{feature.title}</span>

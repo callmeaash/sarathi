@@ -13,15 +13,15 @@ function TopBar() {
   return (
     <div className="flex h-16 items-center justify-between pt-safe lg:hidden">
       <button type="button" onClick={back} aria-label="Back"
-        className="grid size-10 place-items-center rounded-full bg-surface-container hover:bg-surface-container-high">
-        <Icon name="arrow_back" className="text-[22px]" />
+        className="grid size-10 place-items-center rounded-md border border-border-muted bg-surface-container-lowest hover:bg-surface">
+        <Icon name="arrow_back" className="text-[20px]" />
       </button>
       <LiveStatusChip />
     </div>
   )
 }
 
-/** Phones: app icon, name and what the app is for, where the desktop has the blue brand panel. */
+/** Phones: app icon, name and what the app is for, where the desktop has the brand panel. */
 function MobileBrand() {
   return (
     <div className="mb-8 lg:hidden">
@@ -42,7 +42,7 @@ export function AuthLayout() {
         {/* Desktop has no top bar, so the way back to the map sits above the form. */}
         <Link
           to="/"
-          className="absolute top-8 left-12 hidden items-center gap-2 rounded-full px-3 py-2 text-label-lg text-primary hover:bg-surface-tint-light lg:inline-flex"
+          className="absolute top-8 left-12 hidden items-center gap-2 rounded-md px-3 py-2 text-label-lg text-primary hover:bg-surface-container lg:inline-flex"
         >
           <Icon name="arrow_back" className="text-[20px]" />
           Back to map

@@ -39,7 +39,7 @@ describe('header search', () => {
     const list = await screen.findByRole('listbox', { name: 'Search places and roads suggestions' })
     const options = await within(list).findAllByRole('option')
     expect(options.map((option) => option.textContent)).toEqual([
-      'local_hospitalBir HospitalHospital · Kanti Path', 'local_hospitalHamro Birthing CentreHospital',
+      'Bir HospitalHospital · Kanti Path', 'Hamro Birthing CentreHospital',
     ])
     expect(within(options[0]).getByText('Bir').tagName).toBe('STRONG')  // the matched part stands out
     // Typing quickly sends one request, not one per letter.

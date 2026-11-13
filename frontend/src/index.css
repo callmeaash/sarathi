@@ -1,55 +1,57 @@
 @import "tailwindcss";
 
-/* Design tokens from ui/bato_civic_navigation/DESIGN.md, named as in the screen designs so their classes carry over. */
+/* Design tokens. The names come from the screen designs in ui/ (so their classes carry over); the values follow the
+   GeoKitta design system: slate neutrals, white surfaces with hairline borders, Inter, and 6/8/12 px corners.
+   The primary colour stays the Sarathi brand blue, to match the logo. */
 @theme {
-  --font-sans: "Roboto Flex", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: "Inter", "Noto Sans Devanagari", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-devanagari: "Noto Sans Devanagari", "Nirmala UI", sans-serif;
 
-  --color-surface: #faf9fb;
-  --color-surface-dim: #dbd9dc;
-  --color-surface-bright: #faf9fb;
+  --color-surface: #f8fafc;
+  --color-surface-dim: #e2e8f0;
+  --color-surface-bright: #ffffff;
   --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #f5f3f5;
-  --color-surface-container: #efedf0;
-  --color-surface-container-high: #e9e8ea;
-  --color-surface-container-highest: #e3e2e4;
-  --color-surface-variant: #e3e2e4;
-  --color-surface-tint-light: #f3f6fd;
-  --color-surface-tint-medium: #e8edfa;
-  --color-on-surface: #1b1c1e;
-  --color-on-surface-variant: #434655;
-  --color-inverse-surface: #303032;
-  --color-inverse-on-surface: #f2f0f3;
-  --color-outline: #747686;
-  --color-outline-variant: #c3c5d7;
-  --color-border-muted: #d0d7de;
-  --color-text-secondary: #5a5f66;
-  --color-background: #faf9fb;
-  --color-on-background: #1b1c1e;
+  --color-surface-container-low: #f8fafc;
+  --color-surface-container: #f1f5f9;
+  --color-surface-container-high: #e2e8f0;
+  --color-surface-container-highest: #cbd5e1;
+  --color-surface-variant: #e2e8f0;
+  --color-surface-tint-light: #f1f5fe;
+  --color-surface-tint-medium: #e6edfd;
+  --color-on-surface: #0f172a;
+  --color-on-surface-variant: #475569;
+  --color-inverse-surface: #0f172a;
+  --color-inverse-on-surface: #f8fafc;
+  --color-outline: #64748b;
+  --color-outline-variant: #cbd5e1;
+  --color-border-muted: #e2e8f0;
+  --color-text-secondary: #64748b;
+  --color-background: #f8fafc;
+  --color-on-background: #0f172a;
 
   --color-primary: #1f55e0;
   --color-primary-hover: #1642b0;
   --color-on-primary: #ffffff;
   --color-primary-deep: #003db8;
-  --color-primary-fixed: #dce1ff;
-  --color-primary-fixed-dim: #b6c4ff;
-  --color-on-primary-fixed: #00164f;
-  --color-secondary: #545e75;
-  --color-secondary-container: #d8e2fd;
-  --color-on-secondary-container: #5a647b;
-  --color-tertiary: #00561d;
-  --color-tertiary-fixed: #9bf7a1;
-  --color-open-green: #1e7b34;
-  --color-error: #ba1a1a;
-  --color-error-container: #ffdad6;
-  --color-on-error-container: #93000a;
+  --color-primary-fixed: #e6edfd;
+  --color-primary-fixed-dim: #bccdf9;
+  --color-on-primary-fixed: #1642b0;
+  --color-secondary: #475569;
+  --color-secondary-container: #e2e8f0;
+  --color-on-secondary-container: #334155;
+  --color-tertiary: #15803d;
+  --color-tertiary-fixed: #bbf7d0;
+  --color-open-green: #15803d;
+  --color-error: #dc2626;
+  --color-error-container: #fef2f2;
+  --color-on-error-container: #991b1b;
 
-  --color-hazard-closure-red: #c62828;
+  --color-hazard-closure-red: #dc2626;
   --color-pending-amber: #f2a900;
   --color-hazard-flood-blue: #1e7fd8;
   --color-hazard-landslide-brown: #8d5a3b;
   --color-hazard-accident-orange: #e8590c;
-  --color-hazard-blocked-red: #d32f2f;
+  --color-hazard-blocked-red: #dc2626;
   --color-hazard-works-amber: #e09100;
   --color-facility-hospital-pink: #d23f57;
   --color-facility-police-blue: #1f55e0;
@@ -97,14 +99,15 @@
   --text-label-sm--letter-spacing: 0.03em;
   --text-label-sm--font-weight: 500;
 
-  --radius-sm: 0.25rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
-  --radius-2xl: 1.5rem;
-  --radius-sheet: 28px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-sheet: 16px;
 
-  --shadow-float: 0 4px 12px rgb(27 28 30 / 0.08);
+  --shadow-modal: 0 24px 48px rgb(15 23 42 / 0.18), 0 4px 12px rgb(15 23 42 / 0.08);
+  --shadow-float: 0 4px 12px rgb(15 23 42 / 0.08), 0 1px 3px rgb(15 23 42 / 0.06);
 }
 
 @layer base {
@@ -132,6 +135,26 @@
 /* Leaflet: use the app font, and lift its bottom controls (scale, attribution) above the phone's bottom sheet. */
 .leaflet-container {
   font-family: inherit;
+  background: #f4f4f2;
+}
+
+.leaflet-container a {
+  color: var(--color-primary);
+}
+
+/* The map background is drawn in soft greys, so routes, hazards and facilities are the only colour on it. */
+.tiles-light {
+  filter: grayscale(1) brightness(1.07) contrast(0.88);
+}
+
+.leaflet-control-attribution {
+  font-size: 10.5px;
+}
+
+.leaflet-control-scale-line {
+  border-color: #334155;
+  color: #334155;
+  background: rgb(255 255 255 / 0.85);
 }
 
 .leaflet-bottom {
@@ -154,21 +177,22 @@
   border-radius: 9999px;
   background: var(--pin, var(--color-outline));
   color: #fff;
-  box-shadow: 0 1px 4px rgb(27 28 30 / 0.35);
+  box-shadow: 0 1px 4px rgb(15 23 42 / 0.35);
   cursor: pointer;
 }
 
 .facility-pin .icon {
-  font-size: 16px;
+  font-size: 15px;
+  stroke-width: 2.2;
 }
 
 .facility-pin.is-selected {
   border-width: 3px;
-  box-shadow: 0 0 0 4px rgb(255 255 255 / 0.6), 0 2px 8px rgb(27 28 30 / 0.4);
+  box-shadow: 0 0 0 4px rgb(255 255 255 / 0.6), 0 2px 8px rgb(15 23 42 / 0.4);
 }
 
 .facility-pin.is-selected .icon {
-  font-size: 22px;
+  font-size: 20px;
 }
 
 /* Numbered result badges on the Nearby page. */
@@ -183,17 +207,18 @@
 .facility-pin--fire_station { --pin: var(--color-facility-fire-orange); }
 
 .leaflet-tooltip.facility-label {
-  border: 1px solid var(--color-border-muted);
-  border-radius: 9999px;
-  padding: 2px 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 3px 8px;
+  background: var(--color-on-surface);
   font-size: 12px;
   font-weight: 500;
-  color: var(--color-on-surface);
-  box-shadow: 0 1px 4px rgb(27 28 30 / 0.15);
+  color: #fff;
+  box-shadow: var(--shadow-float);
 }
 
 .leaflet-tooltip.facility-label::before {
-  display: none;
+  border-top-color: var(--color-on-surface);
 }
 
 /* Hazard markers: rounded squares, red when verified, amber while waiting for review. */
@@ -204,12 +229,13 @@
   height: 100%;
   border: 2px solid #fff;
   border-radius: 8px;
-  box-shadow: 0 1px 4px rgb(27 28 30 / 0.35);
+  box-shadow: 0 1px 4px rgb(15 23 42 / 0.35);
   cursor: pointer;
 }
 
 .hazard-pin .icon {
-  font-size: 18px;
+  font-size: 17px;
+  stroke-width: 2.1;
 }
 
 .hazard-pin--verified {
@@ -224,11 +250,11 @@
 
 .hazard-pin.is-selected {
   border-width: 3px;
-  box-shadow: 0 0 0 4px rgb(255 255 255 / 0.6), 0 2px 8px rgb(27 28 30 / 0.4);
+  box-shadow: 0 0 0 4px rgb(255 255 255 / 0.6), 0 2px 8px rgb(15 23 42 / 0.4);
 }
 
 .hazard-pin.is-selected .icon {
-  font-size: 24px;
+  font-size: 22px;
 }
 
 /* The dropped pin: a large dark map pin whose tip marks the spot. */
@@ -238,7 +264,7 @@
   height: 100%;
   cursor: grab;
   color: var(--color-on-surface);
-  filter: drop-shadow(0 2px 3px rgb(27 28 30 / 0.4));
+  filter: drop-shadow(0 2px 3px rgb(15 23 42 / 0.4));
 }
 
 .drop-pin .icon {
@@ -259,7 +285,7 @@
   transform: translate(-50%, -100%);
   pointer-events: none;
   color: var(--color-hazard-closure-red);
-  filter: drop-shadow(0 2px 3px rgb(27 28 30 / 0.4));
+  filter: drop-shadow(0 2px 3px rgb(15 23 42 / 0.4));
   transition: top 0.2s;
 }
 
@@ -279,7 +305,7 @@
   width: 8px;
   height: 8px;
   border-radius: 9999px;
-  background: rgb(27 28 30 / 0.35);
+  background: rgb(15 23 42 / 0.35);
   transform: translateX(-50%);
 }
 
@@ -290,16 +316,17 @@
   align-items: center;
   gap: 6px;
   white-space: nowrap;
-  border-radius: 9999px;
-  padding: 3px 10px;
-  font-size: 13px;
+  border-radius: var(--radius-sm);
+  padding: 3px 9px;
+  font-size: 12.5px;
   font-weight: 600;
   line-height: 18px;
-  box-shadow: 0 1px 4px rgb(27 28 30 / 0.25);
+  box-shadow: var(--shadow-float);
 }
 
 .map-pill--time {
   transform: translate(-50%, -150%);
+  border: 1px solid var(--color-border-muted);
   background: #fff;
   color: var(--color-on-surface);
 }
@@ -337,28 +364,18 @@
   border: 1.5px solid #fff;
   border-radius: 9999px;
   background: var(--pin, var(--color-outline));
-  box-shadow: 0 0 0 0.5px rgb(27 28 30 / 0.25);
+  box-shadow: 0 0 0 0.5px rgb(15 23 42 / 0.25);
   cursor: pointer;
 }
 
+/* Line icons (components/Icon.tsx): an <svg> as tall and wide as the text size, 24 px unless a text-[..] class says. */
 @utility icon {
-  font-family: "Material Symbols Outlined";
-  font-weight: normal;
-  font-style: normal;
-  font-size: 24px;
-  line-height: 1;
-  letter-spacing: normal;
-  text-transform: none;
   display: inline-block;
-  white-space: nowrap;
-  direction: ltr;
+  flex: none;
+  width: 1em;
+  height: 1em;
+  font-size: 24px;
   user-select: none;
-  -webkit-font-smoothing: antialiased;
-  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
-}
-
-@utility icon-filled {
-  font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
 }
 
 @utility pb-safe {

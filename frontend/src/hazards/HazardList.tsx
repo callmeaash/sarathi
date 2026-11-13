@@ -9,7 +9,7 @@ import { hazardInfo, roadLabel } from './kinds'
 
 const BADGES: Record<string, { text: string; style: string }> = {
   verified: { text: 'Closed', style: 'bg-error-container text-on-error-container' },
-  pending: { text: 'Pending', style: 'bg-[#fff1d6] text-[#7a5200]' },
+  pending: { text: 'Pending', style: 'bg-[#fffbeb] text-[#92400e]' },
   cleared: { text: 'Cleared', style: 'bg-tertiary-fixed/50 text-tertiary' },
 }
 
