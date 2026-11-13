@@ -225,6 +225,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/logout-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Logout All
+         * @description Sign out of every device, this one included.
+         */
+        post: operations["logout_all_api_auth_logout_all_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/change-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Change Password
+         * @description Change the password (the current one is needed); other devices are signed out, this one stays.
+         */
+        post: operations["change_password_api_auth_change_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/forgot-password": {
         parameters: {
             query?: never;
@@ -279,6 +319,50 @@ export interface paths {
         get: operations["me_api_me_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update Me
+         * @description Change the name on the account.
+         */
+        patch: operations["update_me_api_me_patch"];
+        trace?: never;
+    };
+    "/api/me/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My Summary
+         * @description How many hazards the signed-in user has reported and how many were verified.
+         */
+        get: operations["my_summary_api_me_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/me/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Delete Me
+         * @description Delete the account for good (the password is needed); reports stay on the map without a name.
+         */
+        post: operations["delete_me_api_me_delete_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -573,6 +657,15 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AccountSummary */
+        AccountSummary: {
+            /** Reports */
+            reports: number;
+            /** Pending */
+            pending: number;
+            /** Verified */
+            verified: number;
+        };
         /**
          * Algorithm
          * @enum {string}
@@ -619,6 +712,13 @@ export interface components {
         Body_add_photo_api_incidents__incident_id__photos_post: {
             /** File */
             file: string;
+        };
+        /** ChangePasswordIn */
+        ChangePasswordIn: {
+            /** Current Password */
+            current_password: string;
+            /** New Password */
+            new_password: string;
         };
         /** ClosureOut */
         ClosureOut: {
@@ -884,6 +984,11 @@ export interface components {
             /** Results */
             results: components["schemas"]["NearbyOut"][];
         };
+        /** PasswordIn */
+        PasswordIn: {
+            /** Password */
+            password: string;
+        };
         /** PhotoOut */
         PhotoOut: {
             /** Id */
@@ -894,6 +999,11 @@ export interface components {
             width: number;
             /** Height */
             height: number;
+        };
+        /** ProfileIn */
+        ProfileIn: {
+            /** Full Name */
+            full_name: string;
         };
         /** QueueItem */
         QueueItem: {
@@ -1517,6 +1627,57 @@ export interface operations {
             };
         };
     };
+    logout_all_api_auth_logout_all_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    change_password_api_auth_change_password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                sarathi_refresh?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangePasswordIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     forgot_password_api_auth_forgot_password_post: {
         parameters: {
             query?: never;
@@ -1599,6 +1760,90 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserOut"];
+                };
+            };
+        };
+    };
+    update_me_api_me_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProfileIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    my_summary_api_me_summary_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountSummary"];
+                };
+            };
+        };
+    };
+    delete_me_api_me_delete_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

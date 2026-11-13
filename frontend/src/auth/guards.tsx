@@ -1,14 +1,23 @@
+import { useEffect } from 'react'
 import { Navigate, Outlet, useLocation, useSearchParams } from 'react-router'
 
 import { Spinner } from '../components/Spinner'
 import { safeNext, useAuth } from './context'
+import { forgetSignOut, signedOutOnPurpose } from './session'
 
-/** Pages for signed-in users only; others are sent to log in and brought back afterwards. */
+/**
+ * Pages for signed-in users only; others are sent to log in and brought back afterwards. Someone who just
+ * signed out here on purpose goes to the map instead.
+ */
 export function RequireAuth() {
   const { status } = useAuth()
   const location = useLocation()
+  useEffect(() => {
+    if (status === 'signed-out') forgetSignOut()  // acted on below; later visits ask to log in as usual
+  }, [status])
   if (status === 'loading') return <Spinner label="Checking your session" />
   if (status === 'signed-out') {
+    if (signedOutOnPurpose()) return <Navigate to="/" replace />
     const next = encodeURIComponent(location.pathname + location.search)
     return <Navigate to={`/login?next=${next}`} replace />
   }

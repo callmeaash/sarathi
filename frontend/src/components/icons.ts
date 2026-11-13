@@ -92,6 +92,8 @@ export const ICONS = {
   verified: '<path d="m12 3 2.300 1.600 2.800-.1 1 2.600 2.200 1.700-.8 2.700.8 2.700-2.200 1.700-1 2.600-2.800-.1L12 21l-2.300-1.600-2.800.1-1-2.600-2.200-1.700.8-2.700-.8-2.700 2.200-1.700 1-2.600 2.800.1z"/><path d="m9 12 2 2 4-4"/>',
 
   // Accounts
+  devices: '<rect x="3" y="4" width="13" height="10" rx="1.500"/><path d="M6 18h7M9.500 14v4"/><rect x="16" y="9" width="5.500" height="11" rx="1.500"/>',
+  delete: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v5M14 11v5"/>',
   person: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
   account_circle: `${RING}<circle cx="12" cy="10" r="3"/><path d="M6.500 18.200a6.500 6.500 0 0 1 11 0"/>`,
   shield: `<path d="${SHIELD}"/>`,

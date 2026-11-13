@@ -147,7 +147,7 @@ describe('log in', () => {
     expect(router.state.location.search).toBe('?next=%2Faccount')
     await logIn(user)
     await waitFor(() => expect(router.state.location.pathname).toBe('/account'))
-    expect(await screen.findByText('Ramesh Karki')).toBeInTheDocument()
+    expect((await screen.findAllByText('Ramesh Karki')).length).toBeGreaterThan(0)
   })
 
   it('sends people with an unconfirmed email to enter their code', async () => {
@@ -209,7 +209,7 @@ describe('session on reload', () => {
     mockApi({ 'POST /api/auth/refresh': sessionReply() })
     renderApp('/account')
     expect(screen.getByRole('status')).toHaveTextContent('Checking your session')
-    expect(await screen.findByText('Ramesh Karki')).toBeInTheDocument()
+    expect((await screen.findAllByText('Ramesh Karki')).length).toBeGreaterThan(0)
   })
 
   it('sends people whose session ended to log in', async () => {

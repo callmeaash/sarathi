@@ -22,22 +22,6 @@ pytestmark = needs_db
 EMAIL, PASSWORD = "ramesh.k@example.com", "correct horse battery"
 
 
-@pytest.fixture
-def outbox():
-    return MemoryEmail()
-
-
-@pytest.fixture
-def client(db_engine, outbox):
-    with db_engine.begin() as conn:
-        conn.execute(text("TRUNCATE users RESTART IDENTITY CASCADE"))
-    routing = RoutingState(build_graph([(1, 85.3, 27.7)], []), FacilityIndex({}, 0))
-    with TestClient(create_app(engine=db_engine, routing_state=routing, auth_settings=TEST_AUTH,
-                               sender=outbox)) as c:
-        c.db = db_engine
-        yield c
-
-
 def sql(client, statement, **params):
     with client.db.begin() as conn:
         return conn.execute(text(statement), params)

@@ -104,8 +104,13 @@ The road graph and facilities load into memory at startup (about 1 s). Interacti
 | `POST /api/auth/logout` | End this session and remove the cookie |
 | `POST /api/auth/forgot-password`, `POST /api/auth/reset-password` | Reset the password with an emailed code; ends all sessions |
 | `GET /api/me` | The signed-in user (send `Authorization: Bearer <access token>`) |
+| `PATCH /api/me` | Change the name on the account (`full_name`) |
+| `GET /api/me/summary` | How many hazards the user has reported, and how many are pending or were verified |
+| `POST /api/auth/change-password` | Set a new password (`current_password`, `new_password`); other devices are signed out, this one stays |
+| `POST /api/auth/logout-all` | End every session on all devices and remove the cookie |
+| `POST /api/me/delete` | Delete the account for good (`password`); its reports stay on the map, no longer linked to anyone |
 
-Rules: passwords are hashed with Argon2; codes expire after 15 minutes, allow 5 wrong tries, can be resent once a minute and at most 5 times an hour; 10 wrong passwords lock the account for 15 minutes; a refresh token that was already swapped coming back signs the user out everywhere (unless it was swapped in the last 10 seconds: that is two tabs refreshing at once, answered with 409 so the tab can retry). The refresh token is kept in an httpOnly, SameSite=Strict cookie limited to `/api/auth`, so page scripts cannot read it; it is HTTPS-only unless `COOKIE_SECURE=false`. Resend and forgot-password give the same answer whether or not the account exists.
+Rules: passwords are hashed with Argon2; codes expire after 15 minutes, allow 5 wrong tries, can be resent once a minute and at most 5 times an hour; 10 wrong passwords lock the account for 15 minutes; a refresh token that was already swapped coming back signs the user out everywhere (unless it was swapped in the last 10 seconds: that is two tabs refreshing at once, answered with 409 so the tab can retry). The refresh token is kept in an httpOnly, SameSite=Strict cookie limited to `/api/auth`, so page scripts cannot read it; it is HTTPS-only unless `COOKIE_SECURE=false`. Resend and forgot-password give the same answer whether or not the account exists. Changing the password or deleting the account asks for the current password; wrong tries there count towards the same 15-minute lock as wrong log-ins.
 
 With `EMAIL_BACKEND=console` (the default) codes are printed in the API's log instead of being emailed. Set `EMAIL_BACKEND=smtp` and the `SMTP_*` settings in `backend/.env` to send real email.
 

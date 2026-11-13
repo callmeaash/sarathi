@@ -2,7 +2,7 @@ import math
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -68,6 +68,14 @@ def normalise_email(email: str) -> str:
     return email.strip().lower()
 
 
+def clean_name(full_name: str) -> str:
+    """A name with tidy spacing, or an error if it is empty or too long."""
+    full_name = " ".join(full_name.split())
+    if not full_name or len(full_name) > MAX_NAME_LENGTH:
+        raise InvalidInput(f"full name must be 1 to {MAX_NAME_LENGTH} characters")
+    return full_name
+
+
 def find_user(session: Session, email: str) -> User | None:
     """Look up a user by email."""
     return session.scalar(select(User).where(User.email == normalise_email(email)))
@@ -99,9 +107,7 @@ def send_code(session: Session, settings: AuthSettings, sender: EmailSender, use
 def register(session: Session, settings: AuthSettings, sender: EmailSender, full_name: str, email: str,
              password: str, now: datetime) -> User:
     """Create an unverified account and email it a verification code."""
-    email, full_name = normalise_email(email), " ".join(full_name.split())
-    if not full_name or len(full_name) > MAX_NAME_LENGTH:
-        raise InvalidInput(f"full name must be 1 to {MAX_NAME_LENGTH} characters")
+    email, full_name = normalise_email(email), clean_name(full_name)
     if problem := password_problem(password, email):
         raise InvalidInput(problem)
     if find_user(session, email):
@@ -192,11 +198,60 @@ def login(session: Session, settings: AuthSettings, email: str, password: str,
     return user, issue_tokens(session, settings, user, now)
 
 
-def revoke_all_tokens(session: Session, user_id: int, now: datetime, reason: str) -> None:
-    """Sign a user out everywhere."""
-    session.execute(update(RefreshToken).where(
-        RefreshToken.user_id == user_id, RefreshToken.revoked_at.is_(None),
-    ).values(revoked_at=now, revoke_reason=reason))
+def revoke_all_tokens(session: Session, user_id: int, now: datetime, reason: str,
+                      keep: str | None = None) -> None:
+    """Sign a user out everywhere, except the session holding the refresh token `keep`, if given."""
+    query = update(RefreshToken).where(RefreshToken.user_id == user_id, RefreshToken.revoked_at.is_(None))
+    if keep:
+        query = query.where(RefreshToken.token_hash != hash_token(keep))
+    session.execute(query.values(revoked_at=now, revoke_reason=reason))
+
+
+def confirm_password(session: Session, user: User, password: str, now: datetime) -> None:
+    """Check the signed-in user's password before a sensitive change; wrong tries count towards the lock."""
+    if user.locked_until and user.locked_until > now:
+        raise TooManyRequests("too many failed attempts; try again later", seconds_until(user.locked_until, now))
+    if not verify_password(user.password_hash, password):
+        user.failed_logins += 1
+        if user.failed_logins >= MAX_FAILED_LOGINS:
+            user.failed_logins, user.locked_until = 0, now + LOCK_DURATION
+        session.commit()
+        raise InvalidInput("current password is incorrect")
+    user.failed_logins, user.locked_until = 0, None
+
+
+def update_profile(session: Session, user: User, full_name: str) -> User:
+    """Change the name shown on the account."""
+    user.full_name = clean_name(full_name)
+    session.commit()
+    return user
+
+
+def change_password(session: Session, user: User, current_password: str, new_password: str,
+                    refresh_token: str | None, now: datetime) -> None:
+    """Set a new password for the signed-in user and sign out every other device."""
+    confirm_password(session, user, current_password, now)
+    if problem := password_problem(new_password, user.email):
+        raise InvalidInput(problem)
+    if new_password == current_password:
+        raise InvalidInput("new password must be different from the current one")
+    user.password_hash = hash_password(new_password)
+    revoke_all_tokens(session, user.id, now, "reset", keep=refresh_token)
+    session.commit()
+
+
+def logout_everywhere(session: Session, user: User, now: datetime) -> None:
+    """End every session of the signed-in user, on all devices."""
+    revoke_all_tokens(session, user.id, now, "logout")
+    session.commit()
+
+
+def delete_account(session: Session, user: User, password: str, now: datetime) -> None:
+    """Delete the signed-in user's account; their reports stay on the map without a name."""
+    confirm_password(session, user, password, now)
+    # Sessions and email codes go with the account; reports and the audit log keep their rows with no user.
+    session.execute(delete(User).where(User.id == user.id))
+    session.commit()
 
 
 def refresh(session: Session, settings: AuthSettings, raw_token: str, now: datetime) -> tuple[User, TokenPair]:

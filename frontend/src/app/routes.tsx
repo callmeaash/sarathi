@@ -3,7 +3,8 @@ import type { RouteObject } from 'react-router'
 import { GuestOnly, RequireAuth } from '../auth/guards'
 import { AppShell } from '../layouts/AppShell'
 import { AuthLayout } from '../layouts/AuthLayout'
-import { AccountPage } from '../pages/AccountPage'
+import { ChangePasswordPage, DeleteAccountPage, EditNamePage } from '../pages/account/AccountForms'
+import { AccountPage } from '../pages/account/AccountPage'
 import { NotFoundPage, RouteErrorPage } from '../pages/ErrorPages'
 import { ExplorePage } from '../pages/ExplorePage'
 import { PinPage } from '../pages/PinPage'
@@ -66,6 +67,9 @@ export const routes: RouteObject[] = [
               { path: 'report', element: <ReportPage />, handle: MAP_PAGE },
               { path: 'report/submitted/:id', element: <ReportSubmittedPage />, handle: MAP_PAGE },
               { path: 'account', element: <AccountPage /> },
+              { path: 'account/name', element: <EditNamePage /> },
+              { path: 'account/password', element: <ChangePasswordPage /> },
+              { path: 'account/delete', element: <DeleteAccountPage /> },
             ],
           },
           { path: '*', element: <NotFoundPage /> },

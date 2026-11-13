@@ -11,9 +11,11 @@ export type Session = { accessToken: string; expiresAt: number; user: User }
 const SIGNED_IN_HINT = 'sarathi.signedIn'
 const REFRESH_EARLY_MS = 30_000  // renew a little before the access token expires
 const RACE_RETRY_MS = 400
-const AUTH_PATHS = '/api/auth/'
+const AUTH_PATHS = '/api/auth/'  // signing in, codes and the cookie: these work without an access token...
+const SIGNED_IN_AUTH_PATHS = ['/api/auth/change-password', '/api/auth/logout-all']  // ...except these, which need one
 
 let current: Session | null = null
+let leftOnPurpose = false  // the user just signed out (or deleted the account) themselves
 const listeners = new Set<() => void>()
 
 /** The signed-in session, or null. */
@@ -27,13 +29,34 @@ export function subscribe(listener: () => void): () => void {
   return () => listeners.delete(listener)
 }
 
-/** Start a session from an API response, or end it with null. */
-export function setSession(body: Schemas['SessionOut'] | null): void {
+/**
+ * Start a session from an API response, or end it with null. `onPurpose` marks an ending the user asked for,
+ * so the page they were on sends them to the map instead of asking them to log in again.
+ */
+export function setSession(body: Schemas['SessionOut'] | null, onPurpose = false): void {
   current = body
     ? { accessToken: body.access_token, expiresAt: Date.now() + body.expires_in * 1000, user: body.user }
     : null
+  leftOnPurpose = !current && onPurpose
   if (current) storage.set(SIGNED_IN_HINT, '1')
   else storage.remove(SIGNED_IN_HINT)
+  listeners.forEach((listener) => listener())
+}
+
+/** Whether the session just ended because the user signed out themselves. */
+export function signedOutOnPurpose(): boolean {
+  return leftOnPurpose
+}
+
+/** Forget a deliberate sign-out once it has been acted on. */
+export function forgetSignOut(): void {
+  leftOnPurpose = false
+}
+
+/** Replace the signed-in user's details (after they change their name, say) without touching the session. */
+export function updateUser(user: User): void {
+  if (!current) return
+  current = { ...current, user }
   listeners.forEach((listener) => listener())
 }
 
@@ -84,7 +107,7 @@ const retryCopies = new Map<string, Request>()
 /** Adds the access token to API calls, renewing it when it is about to expire or has just been refused. */
 export const authMiddleware: Middleware = {
   async onRequest({ request, schemaPath, id }) {
-    if (schemaPath.startsWith(AUTH_PATHS)) return undefined
+    if (schemaPath.startsWith(AUTH_PATHS) && !SIGNED_IN_AUTH_PATHS.includes(schemaPath)) return undefined
     let session = current
     if (session && session.expiresAt - Date.now() < REFRESH_EARLY_MS) {
       session = await refreshSession().catch(() => current)

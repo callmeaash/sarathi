@@ -1,5 +1,5 @@
 import { api, unwrap } from '../api/client'
-import { setSession, type User } from './session'
+import { setSession, updateUser, type User } from './session'
 
 /** Sign in with email and password; returns the user. */
 export async function logIn(email: string, password: string): Promise<User> {
@@ -35,11 +35,37 @@ export function resetPassword(email: string, code: string, newPassword: string):
   return unwrap(api.POST('/api/auth/reset-password', { body: { email, code, new_password: newPassword } }))
 }
 
+/** Change the name on the account; the header and account page show it straight away. */
+export async function updateName(fullName: string): Promise<User> {
+  const user = await unwrap(api.PATCH('/api/me', { body: { full_name: fullName } }))
+  updateUser(user)
+  return user
+}
+
+/** Change the password; the server signs out every other device and keeps this one. */
+export function changePassword(currentPassword: string, newPassword: string): Promise<unknown> {
+  return unwrap(api.POST('/api/auth/change-password', {
+    body: { current_password: currentPassword, new_password: newPassword },
+  }))
+}
+
+/** Sign out of every device; this one is signed out only once the server has done it. */
+export async function logOutEverywhere(): Promise<void> {
+  await unwrap(api.POST('/api/auth/logout-all'))
+  setSession(null, true)
+}
+
+/** Delete the account for good, then end this browser's session. */
+export async function deleteAccount(password: string): Promise<void> {
+  await unwrap(api.POST('/api/me/delete', { body: { password } }))
+  setSession(null, true)
+}
+
 /** Sign out here; the local session ends even if the server can't be reached. */
 export async function logOut(): Promise<void> {
   try {
     await api.POST('/api/auth/logout')
   } finally {
-    setSession(null)
+    setSession(null, true)
   }
 }

@@ -175,6 +175,27 @@ class UserOut(BaseModel):
     created_at: datetime
 
 
+class ProfileIn(BaseModel):
+    full_name: str = Field(min_length=1, max_length=100)
+
+
+class ChangePasswordIn(BaseModel):
+    current_password: str = Field(min_length=1, max_length=200)
+    new_password: str = Field(min_length=1, max_length=200)
+
+
+class PasswordIn(BaseModel):
+    password: str = Field(min_length=1, max_length=200)
+
+
+class AccountSummary(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    reports: int   # every report the user has sent
+    pending: int   # still waiting for a moderator
+    verified: int  # confirmed by a moderator (including ones cleared since)
+
+
 class SessionOut(BaseModel):
     access_token: str  # the refresh token is set as an httpOnly cookie, out of reach of page scripts
     token_type: Literal["bearer"] = "bearer"

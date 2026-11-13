@@ -49,6 +49,13 @@ BY_REPORTER = text(f"""
     SELECT {FIELDS} FROM incidents i WHERE i.reporter_id = :user ORDER BY i.created_at DESC, i.id DESC LIMIT :limit
 """)
 
+REPORT_COUNTS = text("""
+    SELECT count(*) AS reports,
+           count(*) FILTER (WHERE status = 'pending') AS pending,
+           count(*) FILTER (WHERE status IN ('verified', 'cleared')) AS verified
+    FROM incidents WHERE reporter_id = :user
+""")
+
 QUEUE = text(f"""
     SELECT {FIELDS}, i.reporter_id, u.full_name AS reporter_name,
         (SELECT count(*) FROM incidents r WHERE r.reporter_id = i.reporter_id
@@ -225,6 +232,11 @@ def incidents_in_bbox(session: Session, bbox: tuple[float, float, float, float],
 def reports_by(session: Session, user: User, limit: int) -> list[Row]:
     """A user's own reports, newest first, whatever their status."""
     return session.execute(BY_REPORTER, {"user": user.id, "limit": limit}).all()
+
+
+def report_counts(session: Session, user: User) -> Row:
+    """How many reports a user has sent and what became of them."""
+    return session.execute(REPORT_COUNTS, {"user": user.id}).one()
 
 
 def queue(session: Session, limit: int) -> list[Row]:

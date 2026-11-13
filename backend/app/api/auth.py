@@ -5,11 +5,13 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import current_user, get_auth_settings, get_email, get_session, utc_now
 from app.auth import service
+from app.incidents import service as incidents
 from app.auth.email import EmailSender
 from app.config import AuthSettings
 from app.models import User
 from app.schemas import (
-    EmailCodeIn, EmailIn, LoginIn, MessageOut, RegisterIn, ResetPasswordIn, SessionOut, UserOut,
+    AccountSummary, ChangePasswordIn, EmailCodeIn, EmailIn, LoginIn, MessageOut, PasswordIn, ProfileIn, RegisterIn,
+    ResetPasswordIn, SessionOut, UserOut,
 )
 
 router = APIRouter(tags=["auth"])
@@ -78,16 +80,37 @@ def refresh(response: Response, token: RefreshCookie = None, session: Session = 
     return start_session(response, settings, *service.refresh(session, settings, require_cookie(token), utc_now()))
 
 
+def signed_out(settings: AuthSettings) -> Response:
+    """An empty reply that removes the session cookie."""
+    response = Response(status_code=204)
+    response.delete_cookie(REFRESH_COOKIE, path=COOKIE_PATH, secure=settings.cookie_secure, httponly=True,
+                           samesite="strict")
+    return response
+
+
 @router.post("/auth/logout", status_code=204)
 def logout(token: RefreshCookie = None, session: Session = Depends(get_session),
            settings: AuthSettings = Depends(get_auth_settings)) -> Response:
     """Sign out of this session and remove the cookie."""
     if token:
         service.logout(session, token, utc_now())
-    response = Response(status_code=204)
-    response.delete_cookie(REFRESH_COOKIE, path=COOKIE_PATH, secure=settings.cookie_secure, httponly=True,
-                           samesite="strict")
-    return response
+    return signed_out(settings)
+
+
+@router.post("/auth/logout-all", status_code=204)
+def logout_all(user: User = Depends(current_user), session: Session = Depends(get_session),
+               settings: AuthSettings = Depends(get_auth_settings)) -> Response:
+    """Sign out of every device, this one included."""
+    service.logout_everywhere(session, user, utc_now())
+    return signed_out(settings)
+
+
+@router.post("/auth/change-password", status_code=204)
+def change_password(body: ChangePasswordIn, token: RefreshCookie = None, user: User = Depends(current_user),
+                    session: Session = Depends(get_session)) -> Response:
+    """Change the password (the current one is needed); other devices are signed out, this one stays."""
+    service.change_password(session, user, body.current_password, body.new_password, token, utc_now())
+    return Response(status_code=204)
 
 
 @router.post("/auth/forgot-password", response_model=MessageOut, status_code=202)
@@ -111,3 +134,24 @@ def reset_password(body: ResetPasswordIn, session: Session = Depends(get_session
 def me(user: User = Depends(current_user)) -> UserOut:
     """The signed-in user's account."""
     return UserOut.model_validate(user)
+
+
+@router.patch("/me", response_model=UserOut)
+def update_me(body: ProfileIn, user: User = Depends(current_user),
+              session: Session = Depends(get_session)) -> UserOut:
+    """Change the name on the account."""
+    return UserOut.model_validate(service.update_profile(session, user, body.full_name))
+
+
+@router.get("/me/summary", response_model=AccountSummary)
+def my_summary(user: User = Depends(current_user), session: Session = Depends(get_session)) -> AccountSummary:
+    """How many hazards the signed-in user has reported and how many were verified."""
+    return AccountSummary.model_validate(incidents.report_counts(session, user))
+
+
+@router.post("/me/delete", status_code=204)
+def delete_me(body: PasswordIn, user: User = Depends(current_user), session: Session = Depends(get_session),
+              settings: AuthSettings = Depends(get_auth_settings)) -> Response:
+    """Delete the account for good (the password is needed); reports stay on the map without a name."""
+    service.delete_account(session, user, body.password, utc_now())
+    return signed_out(settings)
