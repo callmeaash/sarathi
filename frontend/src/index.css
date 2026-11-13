@@ -2,7 +2,7 @@
 
 /* Design tokens. The names come from the screen designs in ui/ (so their classes carry over); the values follow the
    GeoKitta design system: slate neutrals, white surfaces with hairline borders, Inter, and 6/8/12 px corners.
-   The primary colour stays the Sarathi brand blue, to match the logo. */
+   The primary colour is the same teal, and the logo is drawn in it. */
 @theme {
   --font-sans: "Inter", "Noto Sans Devanagari", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-devanagari: "Noto Sans Devanagari", "Nirmala UI", sans-serif;
@@ -16,8 +16,8 @@
   --color-surface-container-high: #e2e8f0;
   --color-surface-container-highest: #cbd5e1;
   --color-surface-variant: #e2e8f0;
-  --color-surface-tint-light: #f1f5fe;
-  --color-surface-tint-medium: #e6edfd;
+  --color-surface-tint-light: #f0fdfa;
+  --color-surface-tint-medium: #dcf5f0;
   --color-on-surface: #0f172a;
   --color-on-surface-variant: #475569;
   --color-inverse-surface: #0f172a;
@@ -29,13 +29,13 @@
   --color-background: #f8fafc;
   --color-on-background: #0f172a;
 
-  --color-primary: #1f55e0;
-  --color-primary-hover: #1642b0;
+  --color-primary: #0f766e;
+  --color-primary-hover: #115e59;
   --color-on-primary: #ffffff;
-  --color-primary-deep: #003db8;
-  --color-primary-fixed: #e6edfd;
-  --color-primary-fixed-dim: #bccdf9;
-  --color-on-primary-fixed: #1642b0;
+  --color-primary-deep: #134e4a;
+  --color-primary-fixed: #e6f7f4;
+  --color-primary-fixed-dim: #c5ebe5;
+  --color-on-primary-fixed: #115e59;
   --color-secondary: #475569;
   --color-secondary-container: #e2e8f0;
   --color-on-secondary-container: #334155;

@@ -26,7 +26,7 @@ function rankIcon(rank: number, kind: string, selected: boolean): L.DivIcon {
 }
 
 const CASING = { color: '#ffffff', weight: 9, opacity: 0.9, lineCap: 'round' as const, lineJoin: 'round' as const }
-const LINE = { color: '#1f55e0', weight: 5, opacity: 0.95, lineCap: 'round' as const, lineJoin: 'round' as const }
+const LINE = { color: '#0f766e', weight: 5, opacity: 0.95, lineCap: 'round' as const, lineJoin: 'round' as const }
 
 type NearbyLayerProps = {
   origin: { lat: number; lon: number }
@@ -54,7 +54,7 @@ export function NearbyLayer({ origin, results, selected, onSelect }: NearbyLayer
       {route.length > 1 && <Polyline positions={route} pathOptions={CASING} interactive={false} pane={ROUTE_LINE_PANE} />}
       {route.length > 1 && <Polyline positions={route} pathOptions={LINE} interactive={false} pane={ROUTE_LINE_PANE} />}
       <CircleMarker center={[origin.lat, origin.lon]} radius={8} interactive={false} pane={ROUTE_MARKER_PANE}
-        pathOptions={{ color: '#ffffff', weight: 3, fillColor: '#1f55e0', fillOpacity: 1 }} />
+        pathOptions={{ color: '#ffffff', weight: 3, fillColor: '#0f766e', fillOpacity: 1 }} />
       {results.map((result, index) => (
         <Marker
           key={`${result.facility.id}:${index === selected}`}

@@ -160,7 +160,7 @@ Measure how often the facility nearest in a straight line is not the nearest by 
 
 ## Frontend
 
-React + TypeScript + Vite, styled with Tailwind. The design tokens are in `src/index.css`: slate neutrals, white surfaces with thin borders, the Inter font and 6/8/12 px corners (the same design system as the GeoKitta project), with Sarathi's brand blue as the primary colour. Icons are line icons drawn in `src/components/icons.ts`, so no icon font is downloaded. Run the API first, then from `frontend/`:
+React + TypeScript + Vite, styled with Tailwind. The design tokens are in `src/index.css`: slate neutrals, white surfaces with thin borders, the Inter font and 6/8/12 px corners (the same design system as the GeoKitta project), including its teal primary colour, which the Sarathi logo is drawn in too. Icons are line icons drawn in `src/components/icons.ts`, so no icon font is downloaded. Run the API first, then from `frontend/`:
 
 ```
 npm install

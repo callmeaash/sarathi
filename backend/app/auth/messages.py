@@ -6,8 +6,8 @@ LOGO = Path(__file__).parent / "assets" / "logo-white.png"
 LOGO_CID = "sarathi-logo"  # the logo travels inside the email, so it shows without loading anything from the web
 
 # Brand colours (brand/ and the design system).
-BLUE = "#1F55E0"
-TINT = "#F3F6FD"
+TEAL = "#0F766E"
+TINT = "#F0FDFA"
 INK = "#1B1C1E"
 MUTED = "#5A5F66"
 BORDER = "#D0D7DE"
@@ -100,6 +100,6 @@ def code_email(purpose: str, code: str, name: str, minutes: int) -> Email:
         subject=escape(subject), preheader=escape(preheader), heading=escape(words["heading"]),
         name=escape(first_name), action=escape(words["action"]), code=escape(code), minutes=minutes,
         safety=escape(words["safety"]), logo_cid=LOGO_CID,
-        blue=BLUE, tint=TINT, ink=INK, muted=MUTED, border=BORDER, font=FONT,
+        blue=TEAL, tint=TINT, ink=INK, muted=MUTED, border=BORDER, font=FONT,
     )
     return Email(subject=subject, text=text, html=html, preheader=preheader)

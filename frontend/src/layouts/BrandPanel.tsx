@@ -7,7 +7,7 @@ import { FEATURES } from './brand'
 // Fixed when the page loads; good enough for a copyright line.
 const YEAR = new Date().getFullYear()
 
-/** Faint ring road and river lines behind the brand areas, in the brand blue on a light background. */
+/** Faint ring road and river lines behind the brand areas, in the brand teal on a light background. */
 export function MapLines({ className = 'text-primary' }: { className?: string }) {
   return (
     <svg viewBox="0 0 600 900" preserveAspectRatio="xMidYMid slice" aria-hidden className={`pointer-events-none absolute inset-0 size-full ${className}`}>

@@ -15,7 +15,7 @@ import { saveView, savedView } from './view'
 
 const NOTICE_MS = 6000
 const SHOW_ACCURACY_UP_TO_M = 1000
-const PRIMARY = '#1f55e0'
+const PRIMARY = '#0f766e'
 
 /** Hands the Leaflet map to the rest of the app. */
 function ShareMap() {

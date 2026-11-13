@@ -18,7 +18,7 @@ const END_PIN = L.divIcon({
 })
 
 const CASING = { color: '#ffffff', weight: 10, opacity: 0.9, lineCap: 'round' as const, lineJoin: 'round' as const }
-const LINE = { color: '#1f55e0', weight: 6, opacity: 0.95, lineCap: 'round' as const, lineJoin: 'round' as const }
+const LINE = { color: '#0f766e', weight: 6, opacity: 0.95, lineCap: 'round' as const, lineJoin: 'round' as const }
 // The way the route goes around: red dashes, drawn under the route line.
 const AVOIDED = { color: '#c62828', weight: 4, opacity: 0.8, dashArray: '2 9', lineCap: 'round' as const }
 
@@ -59,7 +59,7 @@ export function RouteLayer({ route, from, to, avoided = null }: RouteLayerProps)
       )}
       {from && (
         <CircleMarker center={[from.lat, from.lon]} radius={8} interactive={false} pane={ROUTE_MARKER_PANE}
-          pathOptions={{ color: '#ffffff', weight: 3, fillColor: '#1f55e0', fillOpacity: 1 }} />
+          pathOptions={{ color: '#ffffff', weight: 3, fillColor: '#0f766e', fillOpacity: 1 }} />
       )}
       {to && <Marker position={[to.lat, to.lon]} icon={END_PIN} interactive={false} pane={ROUTE_MARKER_PANE} />}
       {route && middle && positions.length > 1 && (
