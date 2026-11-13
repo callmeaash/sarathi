@@ -11,7 +11,8 @@ from app.auth.tokens import create_access_token
 from app.incidents.photos import MAX_PHOTOS, MAX_SIDE_PX, MAX_UPLOAD_BYTES
 from app.main import create_app
 from tests.conftest import TEST_AUTH, needs_db
-from tests.incidents.test_incidents_api import MAP, USERS, WEST_ROAD, act, as_, reported, sql
+from tests.incidents.conftest import USERS, WEST_ROAD
+from tests.incidents.test_incidents_api import MAP, act, as_, reported, sql
 from tests.seed import seed_network
 
 pytestmark = needs_db

@@ -80,6 +80,6 @@ def list_closures(session: Session = Depends(get_session),
                   routing: RoutingState = Depends(get_routing)) -> list[ClosureOut]:
     """Roads closed right now by verified hazards, for drawing on the map."""
     return [ClosureOut(incident_id=r.id, kind=r.kind, road_name=r.road_name, radius_m=r.closure_radius_m,
-                       verified_at=r.reviewed_at, lon=r.lon, lat=r.lat, edges=r.edges,
+                       verified_at=r.reviewed_at, lon=r.lon, lat=r.lat, edges=r.edges, length_m=r.length_m,
                        geometry=json.loads(r.geometry) if r.geometry else None)
             for r in service.closures(session, routing)]

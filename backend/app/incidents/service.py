@@ -16,6 +16,7 @@ MAX_REPORTS_PER_HOUR = 10
 DUPLICATE_RADIUS_M = 50         # the same user reporting the same kind this close, within an hour, is a repeat
 SIMILAR_RADIUS_M = 150          # other people's pending reports this close are shown to moderators
 SIMILAR_WINDOW = timedelta(hours=2)
+MAX_NEARBY = 10                 # open reports listed next to one report, as candidates for merging
 MIN_CLOSURE_RADIUS_M, MAX_CLOSURE_RADIUS_M = 5, 200
 MAX_NOTE_LENGTH = 200
 MIN_REASON_LENGTH, MAX_REASON_LENGTH = 3, 300
@@ -56,8 +57,11 @@ REPORT_COUNTS = text("""
     FROM incidents WHERE reporter_id = :user
 """)
 
-QUEUE = text(f"""
+# What moderators see of a report: the public fields plus the reporter and their record, where the pin was
+# dropped, who reviewed it, and how many other pending reports are close by in place and time.
+FOR_MODERATORS = f"""
     SELECT {FIELDS}, i.reporter_id, u.full_name AS reporter_name,
+        ST_X(i.reported_geom) AS reported_lon, ST_Y(i.reported_geom) AS reported_lat, m.full_name AS reviewer_name,
         (SELECT count(*) FROM incidents r WHERE r.reporter_id = i.reporter_id
             AND r.status IN ('verified', 'cleared')) AS reporter_verified,
         (SELECT count(*) FROM incidents r WHERE r.reporter_id = i.reporter_id
@@ -65,28 +69,60 @@ QUEUE = text(f"""
         (SELECT count(*) FROM incidents s WHERE s.id <> i.id AND s.status = 'pending'
             AND abs(extract(epoch FROM s.created_at - i.created_at)) <= :window
             AND ST_DWithin(s.geom::geography, i.geom::geography, :radius)) AS similar_reports
-    FROM incidents i LEFT JOIN users u ON u.id = i.reporter_id
-    WHERE i.status = 'pending'
-    ORDER BY i.created_at, i.id
+    FROM incidents i LEFT JOIN users u ON u.id = i.reporter_id LEFT JOIN users m ON m.id = i.reviewed_by
+"""
+
+QUEUE = text(f"{FOR_MODERATORS} WHERE i.status = 'pending' ORDER BY i.created_at, i.id LIMIT :limit")
+
+REVIEWED = text(f"""
+    {FOR_MODERATORS} WHERE i.status = ANY(:statuses)
+    ORDER BY coalesce(i.cleared_at, i.reviewed_at, i.created_at) DESC, i.id DESC
+    LIMIT :limit OFFSET :offset
+""")
+
+FOR_MODERATOR_BY_ID = text(f"{FOR_MODERATORS} WHERE i.id = :id")
+
+# Open reports around one report, nearest first: candidates for "this is the same hazard".
+NEARBY = text("""
+    SELECT s.id, s.kind, s.status, s.road_name, s.created_at,
+           ST_Distance(s.geom::geography, i.geom::geography) AS distance_m
+    FROM incidents i JOIN incidents s ON s.id <> i.id AND s.status IN ('pending', 'verified')
+        AND ST_DWithin(s.geom::geography, i.geom::geography, :radius)
+    WHERE i.id = :id
+    ORDER BY distance_m, s.id
     LIMIT :limit
 """)
 
+# Two-way roads are stored as one edge per direction; `lengths` counts each stretch of road once.
 CLOSURES = text("""
+    WITH pairs AS (
+        SELECT * FROM unnest(CAST(:incident_ids AS int[]), CAST(:edge_ids AS bigint[])) AS c(incident_id, edge_id)
+    ), lengths AS (
+        SELECT d.incident_id, sum(d.length_m) AS length_m FROM (
+            SELECT DISTINCT ON (p.incident_id, least(e.source, e.target), greatest(e.source, e.target))
+                   p.incident_id, e.length_m
+            FROM pairs p JOIN road_edges e ON e.id = p.edge_id) d
+        GROUP BY d.incident_id
+    )
     SELECT i.id, i.kind, i.road_name, i.closure_radius_m, i.reviewed_at, ST_X(i.geom) AS lon, ST_Y(i.geom) AS lat,
-           count(e.id) AS edges, ST_AsGeoJSON(ST_Collect(e.geom)) AS geometry
+           count(e.id) AS edges, ST_AsGeoJSON(ST_Collect(e.geom)) AS geometry,
+           coalesce(max(l.length_m), 0) AS length_m
     FROM incidents i
-    LEFT JOIN unnest(CAST(:incident_ids AS int[]), CAST(:edge_ids AS bigint[])) AS c(incident_id, edge_id)
-        ON c.incident_id = i.id
+    LEFT JOIN pairs c ON c.incident_id = i.id
     LEFT JOIN road_edges e ON e.id = c.edge_id
+    LEFT JOIN lengths l ON l.incident_id = i.id
     WHERE i.id = ANY(:ids)
     GROUP BY i.id
     ORDER BY i.reviewed_at DESC, i.id DESC
 """)
 
 AUDIT = text("""
-    SELECT a.id, a.created_at, a.actor_id, u.full_name AS actor_name, a.action, a.target_type, a.target_id, a.details
+    SELECT a.id, a.created_at, a.actor_id, u.full_name AS actor_name, a.action, a.target_type, a.target_id, a.details,
+           i.kind AS incident_kind, i.road_name AS incident_road, t.full_name AS user_name
     FROM audit_log a LEFT JOIN users u ON u.id = a.actor_id
-    WHERE a.id < :before
+    LEFT JOIN incidents i ON a.target_type = 'incident' AND i.id = a.target_id
+    LEFT JOIN users t ON a.target_type = 'user' AND t.id = a.target_id
+    WHERE a.id < :before AND (CAST(:action AS text) IS NULL OR a.action = :action)
     ORDER BY a.id DESC
     LIMIT :limit
 """)
@@ -102,9 +138,10 @@ def squash(value: str | None) -> str:
     return " ".join(value.split()) if value else ""
 
 
-def audit(session: Session, actor: User, action: str, target_id: int, details: dict, now: datetime) -> None:
-    """Add an audit log entry for an incident (committed together with the change it records)."""
-    session.add(AuditLog(actor_id=actor.id, action=action, target_type="incident", target_id=target_id,
+def audit(session: Session, actor: User, action: str, target_id: int, details: dict, now: datetime,
+          target_type: str = "incident") -> None:
+    """Add an audit log entry (committed together with the change it records)."""
+    session.add(AuditLog(actor_id=actor.id, action=action, target_type=target_type, target_id=target_id,
                          details=details, created_at=now))
 
 
@@ -245,6 +282,22 @@ def queue(session: Session, limit: int) -> list[Row]:
                                    "limit": limit}).all()
 
 
+def reviewed(session: Session, statuses: list[str], limit: int, offset: int) -> list[Row]:
+    """Reports with the given statuses as moderators see them, most recently decided first."""
+    return session.execute(REVIEWED, {"window": SIMILAR_WINDOW.total_seconds(), "radius": SIMILAR_RADIUS_M,
+                                      "statuses": statuses, "limit": limit, "offset": offset}).all()
+
+
+def for_moderator(session: Session, incident_id: int) -> tuple[Row, list[Row]]:
+    """One report as moderators see it, whatever its status, and the open reports close to it."""
+    row = session.execute(FOR_MODERATOR_BY_ID, {"window": SIMILAR_WINDOW.total_seconds(),
+                                                "radius": SIMILAR_RADIUS_M, "id": incident_id}).first()
+    if row is None:
+        raise NotFound(f"report {incident_id} not found")
+    nearby = session.execute(NEARBY, {"id": incident_id, "radius": SIMILAR_RADIUS_M, "limit": MAX_NEARBY}).all()
+    return row, nearby
+
+
 def closures(session: Session, state: RoutingState) -> list[Row]:
     """Roads currently closed by verified hazards, grouped by hazard, with their geometry."""
     current = active_closures(state)
@@ -253,6 +306,6 @@ def closures(session: Session, state: RoutingState) -> list[Row]:
                                       "edge_ids": [p[1] for p in pairs]}).all()
 
 
-def audit_entries(session: Session, limit: int, before_id: int | None) -> list[Row]:
-    """Audit log, newest first; pass the last id seen to get the next page."""
-    return session.execute(AUDIT, {"limit": limit, "before": before_id or 2**31 - 1}).all()
+def audit_entries(session: Session, limit: int, before_id: int | None, action: str | None = None) -> list[Row]:
+    """Audit log, newest first, optionally one kind of action; pass the last id seen to get the next page."""
+    return session.execute(AUDIT, {"limit": limit, "before": before_id or 2**31 - 1, "action": action}).all()

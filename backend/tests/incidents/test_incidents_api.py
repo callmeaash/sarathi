@@ -1,58 +1,21 @@
-from datetime import datetime, timezone
-
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import text
 
 from app.auth.email import MemoryEmail
-from app.auth.tokens import create_access_token
 from app.main import create_app
-from app.state import active_closures, lift_closure
+from app.state import active_closures
 from tests.conftest import TEST_AUTH, needs_db
-from tests.seed import NODES, route, seed_network
+from tests.incidents.conftest import WEST_ROAD
+from tests.seed import NODES, route
 
 pytestmark = needs_db
 
-WEST_ROAD = "Kalimati Marg"           # road 0-4, stored as edges 16 and 17
 ON_WEST_ROAD = (85.2980, 27.7000)
 NEAR_WEST_ROAD = (85.2982, 27.7000)   # 20 m along the same road
 ON_NORTH_ROAD = (85.3000, 27.7050)    # road 0-2
 ON_RIVER_ROAD = (85.3010, 27.7100)    # road 2-3
 MAP = "85.29,27.69,85.31,27.72"
-USERS = {  # key: (full name, role, email verified)
-    "asha": ("Asha Gurung", "user", True),
-    "bikash": ("Bikash Thapa", "user", True),
-    "chandra": ("Chandra Rai", "user", False),
-    "mod": ("Maya Shrestha", "moderator", True),
-}
-
-
-@pytest.fixture(scope="module")
-def app_client(db_engine):
-    seed_network(db_engine, road_names={(0, 4): WEST_ROAD})
-    ids = {}
-    with db_engine.begin() as conn:
-        conn.execute(text("TRUNCATE users RESTART IDENTITY CASCADE"))
-        for key, (name, role, verified) in USERS.items():
-            ids[key] = conn.execute(text("""
-                INSERT INTO users (email, full_name, password_hash, role, email_verified)
-                VALUES (:email, :name, 'not-a-real-hash', :role, :verified) RETURNING id
-            """), {"email": f"{key}@example.com", "name": name, "role": role, "verified": verified}).scalar_one()
-    now = datetime.now(timezone.utc)
-    with TestClient(create_app(engine=db_engine, auth_settings=TEST_AUTH, sender=MemoryEmail())) as c:
-        c.db = db_engine
-        c.user_ids = ids
-        c.tokens = {key: create_access_token(TEST_AUTH, ids[key], USERS[key][1], now) for key in USERS}
-        yield c
-
-
-@pytest.fixture
-def client(app_client):
-    yield app_client
-    state = app_client.app.state.routing
-    for incident_id in active_closures(state):
-        lift_closure(state, incident_id)
-    sql(app_client, "TRUNCATE incidents, audit_log RESTART IDENTITY CASCADE")
 
 
 def sql(client, statement, **params):

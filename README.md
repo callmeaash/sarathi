@@ -132,13 +132,21 @@ Make the first moderator (from `backend/`, after they have signed up):
 | `GET /api/photos/{name}` | anyone with the address | A report photo (JPEG). Reports list their photos as `photos[{id, url, width, height}]` |
 | `GET /api/closures` | anyone | Roads closed right now, grouped by hazard, as GeoJSON lines for the map |
 | `GET /api/moderation/queue` | moderators | Pending reports, oldest first, with the reporter's record and how many similar reports are nearby |
+| `GET /api/moderation/stats` | moderators | Overview numbers: reports waiting and the oldest, roads closed, today's reports and decisions (the day in Kathmandu), and the median time to verify over 7 days |
+| `GET /api/moderation/incidents?status&limit&offset` | moderators | Decided reports (verified, rejected, cleared, merged), most recent decision first, with the reporter and reviewer |
+| `GET /api/moderation/incidents/{id}` | moderators | One report in full, whatever its status: where the pin was dropped, the reporter's record, and open reports within 150 m |
+| `GET /api/moderation/incidents/{id}/closure-preview?radius_m` | moderators | What verifying with that radius would close (segments, road names, length, GeoJSON), without closing anything |
 | `POST /api/incidents/{id}/verify` | moderators | Confirm a report and close every road within `radius_m` (5–200, default 30) |
 | `POST /api/incidents/{id}/reject` | moderators | Turn it down with a `reason` the reporter sees |
 | `POST /api/incidents/{id}/clear` | moderators | The hazard is gone: reopen its roads |
 | `POST /api/incidents/{id}/merge` | moderators | Mark a pending report as a duplicate of `into_id` |
-| `GET /api/audit?limit&before_id` | moderators | Every moderator action, newest first |
+| `GET /api/audit?limit&before_id&action` | moderators | Every moderator action, newest first, with what it was about; `action` shows one kind only |
+| `GET /api/moderation/users?q&role&status&limit&offset` | moderators | Accounts, newest first, searched by name or email, with each one's report record and overall counts |
+| `POST /api/moderation/users/{id}/suspend` | moderators | Shut an account out with a `reason` and sign it out everywhere |
+| `POST /api/moderation/users/{id}/reinstate` | moderators | Let a suspended account back in |
+| `POST /api/moderation/users/{id}/role` | moderators | Make someone a `moderator` or a `user` again |
 
-Rules: reports snap onto the nearest road (the pin must be within 150 m of one); a user can send 10 reports an hour and cannot report the same kind of hazard again within 50 m while the first is waiting. A report is reviewed once: only pending reports can be verified, rejected or merged, and only verified ones cleared. The database is the record of what is closed: at startup the API recomputes the closed roads of every verified hazard from its location and radius, so closures survive restarts and new OSM imports.
+Rules: reports snap onto the nearest road (the pin must be within 150 m of one); a user can send 10 reports an hour and cannot report the same kind of hazard again within 50 m while the first is waiting. A report is reviewed once: only pending reports can be verified, rejected or merged, and only verified ones cleared. The database is the record of what is closed: at startup the API recomputes the closed roads of every verified hazard from its location and radius, so closures survive restarts and new OSM imports. Moderators cannot suspend, reinstate or change the role of their own account, moderators cannot be suspended (their role has to be changed first), and only active accounts with a confirmed email can be made moderators. Every action on an account is written to the audit log.
 
 Photos: every upload is opened to check it really is an image, turned upright, scaled to fit 1600 px and saved again as a JPEG, which removes the location and device details phones store inside photos. Files are kept in `data/uploads/` (not committed; `UPLOAD_DIR` moves them) under random names, so a photo can only be opened by someone who was given its address, i.e. someone who can see the report. Back this folder up together with the database.
 

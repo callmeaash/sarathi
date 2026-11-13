@@ -254,9 +254,82 @@ class ReporterOut(BaseModel):
     reviewed_reports: int  # verified, cleared or rejected
 
 
+class NearbyReport(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    kind: str
+    status: str
+    road_name: str | None
+    created_at: datetime
+    distance_m: float
+
+
 class QueueItem(IncidentOut):
     reporter: ReporterOut | None  # None once the account is deleted
     similar_reports: int  # other pending reports close by and close in time
+    reported_lon: float   # where the reporter dropped the pin, before it was moved onto the road
+    reported_lat: float
+    reviewer_name: str | None = None  # the moderator who verified, rejected or merged it
+    nearby: list[NearbyReport] = []   # open reports close by (only filled in for a single report)
+
+
+class ModerationStats(BaseModel):
+    pending: int
+    oldest_pending_at: datetime | None
+    active_closures: int
+    closed_edges: int
+    reports_today: int      # "today" is the day in Kathmandu
+    verified_today: int
+    rejected_today: int
+    median_verify_s: float | None  # report to verification, over the last 7 days
+
+
+class ClosurePreview(BaseModel):
+    radius_m: float
+    edges: int             # road segments that would close, counting each direction
+    length_m: float        # length of road that would close, counting two-way roads once
+    roads: list[str]       # names of the roads affected
+    geometry: dict | None  # GeoJSON of the segments
+
+
+class ManagedUser(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    full_name: str
+    email: str
+    role: str
+    email_verified: bool
+    status: str
+    created_at: datetime
+    last_login_at: datetime | None
+    reports: int
+    verified: int  # verified or later cleared
+    rejected: int
+
+
+class UserCounts(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    users: int
+    moderators: int
+    suspended: int
+    unverified: int
+
+
+class UserPage(BaseModel):
+    items: list[ManagedUser]
+    total: int  # accounts matching the search and filters
+    counts: UserCounts
+
+
+class SuspendIn(BaseModel):
+    reason: str = Field(min_length=3, max_length=300)
+
+
+class RoleIn(BaseModel):
+    role: Literal["user", "moderator"]
 
 
 class VerifyIn(BaseModel):
@@ -286,6 +359,7 @@ class ClosureOut(BaseModel):
     lon: float
     lat: float
     edges: int
+    length_m: float        # length of road closed, counting two-way roads once
     geometry: dict | None  # GeoJSON of the closed segments
 
 
@@ -298,3 +372,6 @@ class AuditOut(BaseModel):
     target_type: str
     target_id: int
     details: dict
+    incident_kind: str | None = None  # for actions on a report: what and where it was
+    incident_road: str | None = None
+    user_name: str | None = None      # for actions on an account: whose
