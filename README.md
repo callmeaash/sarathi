@@ -167,7 +167,7 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173. The map background uses Stadia Maps' "OSM Bright" tiles (OpenStreetMap data with English labels), shown in soft greys so that routes, hazards and facilities are the only colour on the map; they work on localhost without an account. For a real domain, add a free Stadia key as `VITE_STADIA_API_KEY` in `frontend/.env.local` (see `frontend/.env.example`). In development Vite forwards `/api` to the API on port 8000 (`SARATHI_API_URL` changes this), so no CORS setup is needed.
+Open http://localhost:5173. The map background uses Stadia Maps' "OSM Bright" tiles (OpenStreetMap data with English labels), shown in soft greys so that routes, hazards and facilities are the only colour on the map. A "Street | Satellite" switch (top right of the map on desktop, in the map layers panel on phones) changes the background to Esri World Imagery satellite photos, which are free with attribution for non-commercial use. The Stadia tiles work on localhost without an account. For a real domain, add a free Stadia key as `VITE_STADIA_API_KEY` in `frontend/.env.local` (see `frontend/.env.example`). In development Vite forwards `/api` to the API on port 8000 (`SARATHI_API_URL` changes this), so no CORS setup is needed.
 
 | Command | What it does |
 |---|---|

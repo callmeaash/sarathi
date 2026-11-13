@@ -4,6 +4,7 @@ import { afterEach, beforeEach, vi } from 'vitest'
 
 import { setSession } from '../auth/session'
 import { reloadKinds } from '../facilities/filter'
+import { reloadBaseMap } from '../map/baseMap'
 import { reloadLayers } from '../map/layers'
 
 // The whole app renders in every test, map included; give async checks room when the suite runs in parallel.
@@ -19,6 +20,7 @@ afterEach(() => {
   window.localStorage.clear()
   reloadKinds()  // back to showing every kind of facility
   reloadLayers()
+  reloadBaseMap()  // back to the street map
   vi.unstubAllGlobals()
   vi.useRealTimers()
 })

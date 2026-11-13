@@ -15,7 +15,7 @@ export const MIN_ZOOM = 11
 export const MAX_ZOOM = 19
 export const LOCATE_ZOOM = 16
 
-// The map background: pre-drawn image tiles, shown in soft greys (the tiles-light filter in index.css). Stadia's "OSM Bright" is drawn from OpenStreetMap (the same data as
+// The map background: pre-drawn image tiles, shown in soft greys (a filter in index.css). Stadia's "OSM Bright" is drawn from OpenStreetMap (the same data as
 // Sarathi's roads) with English/Latin labels; OpenStreetMap's own tiles label Nepal in Devanagari only.
 // It works on localhost without an account; a deployed site needs a free Stadia key (VITE_STADIA_API_KEY) or its
 // domain registered with Stadia. VITE_MAP_TILES_URL replaces the style entirely.
@@ -26,6 +26,12 @@ export const TILES = {
   attribution: import.meta.env.VITE_MAP_ATTRIBUTION
     ?? '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> '
     + '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+}
+
+// Satellite photos: Esri World Imagery, free with attribution for non-commercial use; sharp to zoom 19 over Kathmandu.
+export const SATELLITE_TILES = {
+  url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  attribution: 'Imagery &copy; Esri, Maxar, Earthstar Geographics and the GIS User Community',
 }
 
 /** Whether a point is inside the area Sarathi has roads for. */

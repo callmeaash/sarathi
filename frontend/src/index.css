@@ -142,8 +142,9 @@
   color: var(--color-primary);
 }
 
-/* The map background is drawn in soft greys, so routes, hazards and facilities are the only colour on it. */
-.tiles-light {
+/* The street map is drawn in soft greys, so routes, hazards and facilities are the only colour on it.
+   Satellite photos keep their colours. */
+[data-base-map="street"] .leaflet-tile-pane {
   filter: grayscale(1) brightness(1.07) contrast(0.88);
 }
 

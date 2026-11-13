@@ -8,7 +8,9 @@ import {
 import { Link, useLocation, useNavigate } from 'react-router'
 
 import { Icon } from '../components/Icon'
-import { MAX_ZOOM, MIN_ZOOM, PANNING_BOUNDS, TILES } from './config'
+import { useBaseMap } from './baseMap'
+import { BaseMapSwitch } from './BaseMapSwitch'
+import { MAX_ZOOM, MIN_ZOOM, PANNING_BOUNDS, SATELLITE_TILES, TILES } from './config'
 import { useAppMap } from './context'
 import { LayersControl } from './LayersControl'
 import { saveView, savedView } from './view'
@@ -146,16 +148,26 @@ function MapNotice() {
   )
 }
 
+/** The map background: the grey street map, or satellite photos. */
+function Background() {
+  const tiles = useBaseMap() === 'satellite' ? SATELLITE_TILES : TILES
+  // One layer whose address and credits change, so the credits never list both backgrounds.
+  return <TileLayer url={tiles.url} attribution={tiles.attribution} maxZoom={MAX_ZOOM} />
+}
+
 /** The shared map of Kathmandu District: tiles, scale, the user's position, and the map buttons. */
 export function MapView() {
   const [view] = useState(savedView)  // only the starting view; after that the map keeps its own
+  const base = useBaseMap()
   return (
-    <div className="relative isolate size-full">
+    <div data-base-map={base} className="relative isolate size-full">
       <MapContainer center={view.center} zoom={view.zoom} minZoom={MIN_ZOOM} maxZoom={MAX_ZOOM}
         maxBounds={PANNING_BOUNDS} maxBoundsViscosity={0.9} zoomControl={false} attributionControl={false}
         className="size-full">
-        <TileLayer url={TILES.url} attribution={TILES.attribution} maxZoom={MAX_ZOOM} className="tiles-light" />
+        {/* The credits box comes before the background, so the background's credit is counted once (in development
+            React mounts everything twice, and the other order would count it twice and never clear it). */}
         <AttributionControl position="bottomright" prefix={false} />
+        <Background />
         <ScaleControl position="bottomleft" imperial={false} />
         <ShareMap />
         <RememberView />
@@ -164,6 +176,8 @@ export function MapView() {
         <YouAreHere />
       </MapContainer>
       <OverlaySlot />
+      {/* Desktop: the choice of background floats in the corner; phones have it in the layers panel. */}
+      <BaseMapSwitch className="absolute top-4 right-4 z-[1000] hidden shadow-float lg:flex" />
       <MapControls />
       <MapNotice />
     </div>

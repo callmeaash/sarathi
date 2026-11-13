@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react'
 
 import { Icon } from '../components/Icon'
+import { BaseMapSwitch } from './BaseMapSwitch'
 import { LAYERS, setLayer, useLayers } from './layers'
 
 /** "Map layers" button with a small panel of on/off switches. */
@@ -31,7 +32,9 @@ export function LayersControl({ buttonClass }: { buttonClass: string }) {
       {open && (
         <div id={panelId} role="group" aria-label="Map layers"
           className="absolute right-0 bottom-full mb-2 w-60 rounded-md border border-border-muted bg-surface-container-lowest p-4 shadow-float">
-          <p className="mb-2 text-[11px] font-semibold tracking-[0.07em] text-text-secondary uppercase">Map layers</p>
+          <p className="mb-2 text-[11px] font-semibold tracking-[0.07em] text-text-secondary uppercase">Base map</p>
+          <BaseMapSwitch className="mb-4 flex" />
+          <p className="mb-1 text-[11px] font-semibold tracking-[0.07em] text-text-secondary uppercase">Map layers</p>
           {LAYERS.map(({ key, label, dot }) => (
             <label key={key} className="flex cursor-pointer items-center gap-3 py-2 text-body-md text-on-surface">
               <span className={`size-2.5 rounded-sm ${dot}`} aria-hidden />

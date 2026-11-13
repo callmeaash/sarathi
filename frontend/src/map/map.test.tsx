@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import L from 'leaflet'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -80,6 +80,39 @@ describe('saved map view', () => {
   ])('falls back to central Kathmandu with %s', (_, saved) => {
     if (saved) window.localStorage.setItem('sarathi.mapView', saved)
     expect(savedView()).toEqual(START_VIEW)
+  })
+})
+
+describe('base map', () => {
+  it('switches to satellite photos and back, and remembers the choice', async () => {
+    mockApi({ '/api/health': HEALTHY })
+    const user = userEvent.setup()
+    const { container } = renderApp('/')
+    const choices = within(screen.getByRole('group', { name: 'Base map' }))
+    expect(choices.getByRole('button', { name: 'Street' })).toHaveAttribute('aria-pressed', 'true')
+    expect(container.querySelector('[data-base-map="street"]')).toBeInTheDocument()
+    expect(screen.getByText(/Stadia Maps/)).toBeInTheDocument()
+
+    await user.click(choices.getByRole('button', { name: 'Satellite' }))
+    expect(choices.getByRole('button', { name: 'Satellite' })).toHaveAttribute('aria-pressed', 'true')
+    expect(container.querySelector('[data-base-map="satellite"]')).toBeInTheDocument()
+    expect(screen.getByText(/Imagery © Esri/)).toBeInTheDocument()
+    expect(screen.queryByText(/Stadia Maps/)).not.toBeInTheDocument()
+    expect(window.localStorage.getItem('sarathi.baseMap')).toBe('satellite')
+
+    await user.click(choices.getByRole('button', { name: 'Street' }))
+    expect(container.querySelector('[data-base-map="street"]')).toBeInTheDocument()
+    expect(screen.queryByText(/Imagery © Esri/)).not.toBeInTheDocument()
+  })
+
+  it('can also be chosen in the map layers panel', async () => {
+    mockApi({ '/api/health': HEALTHY })
+    const user = userEvent.setup()
+    renderApp('/')
+    await user.click(screen.getByRole('button', { name: 'Map layers' }))
+    const panel = within(screen.getByRole('group', { name: 'Map layers' }))
+    await user.click(panel.getByRole('button', { name: 'Satellite' }))
+    expect(window.localStorage.getItem('sarathi.baseMap')).toBe('satellite')
   })
 })
 
