@@ -8,6 +8,7 @@ import { Icon } from '../components/Icon'
 import { buttonClass } from '../components/form/buttonStyles'
 import type { Incident } from '../hazards/api'
 import { hazardInfo, passableText, roadLabel } from '../hazards/kinds'
+import { PhotoStrip } from '../hazards/PhotoStrip'
 import { dateTime, timeAgo } from '../lib/time'
 import type { IconName } from '../components/icons'
 
@@ -105,12 +106,13 @@ function ReportCard({ report }: { report: Incident }) {
       <Outcome report={report} />
     </>
   )
-  const card = 'block rounded-xl border border-border-muted bg-surface-container-lowest p-4'
+  // The photos sit outside the link, so tapping one shows it large and doesn't open the hazard.
   return (
-    <li>
+    <li className="overflow-hidden rounded-xl border border-border-muted bg-surface-container-lowest">
       {PUBLIC.includes(statusOf(report))
-        ? <Link to={`/hazards/${report.id}`} className={`${card} hover:bg-surface-tint-light`}>{body}</Link>
-        : <div className={card}>{body}</div>}
+        ? <Link to={`/hazards/${report.id}`} className="block p-4 hover:bg-surface-tint-light">{body}</Link>
+        : <div className="p-4">{body}</div>}
+      <PhotoStrip photos={report.photos} className="px-4 pb-4" />
     </li>
   )
 }

@@ -74,6 +74,9 @@ export const ICONS = {
   campaign: '<path d="M4 10v4h3l7 4V6l-7 4z"/><path d="M17.500 9a4 4 0 0 1 0 6M7 14l1 5h2.500l-1-4.500"/>',
   flag: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
 
+  // Photos
+  add_a_photo: '<path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.500" r="3.500"/>',
+
   // Status
   info: `${RING}<path d="M12 16v-4M12 8h.01"/>`,
   error: `${RING}<path d="M12 7.500v5M12 16h.01"/>`,

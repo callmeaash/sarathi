@@ -10,6 +10,7 @@ import { requestSheet } from '../layouts/useBottomSheet'
 import { waitWording } from '../pages/auth/fieldErrors'
 import type { LatLon } from './CenterPin'
 import { type HazardKind, type Passable, useReportHazard } from './api'
+import { PhotoPicker } from './PhotoPicker'
 
 const KINDS: HazardKind[] = ['landslide', 'flood', 'accident', 'road_blocked', 'road_works', 'other']
 const OTHER_LABEL = 'Other'
@@ -40,14 +41,15 @@ type DetailsStepProps = {
   point: LatLon
   roadName: string | null | undefined
   onBack: () => void
-  onSubmitted: (id: number) => void
+  onSubmitted: (id: number, photosFailed: number) => void
 }
 
-/** Step 2 (screen 12): what's happening, whether vehicles get through, and an optional note. */
+/** Step 2 (screen 12): what's happening, whether vehicles get through, an optional note and photos. */
 export function DetailsStep({ point, roadName, onBack, onSubmitted }: DetailsStepProps) {
   const [kind, setKind] = useState<HazardKind | null>(null)
   const [passable, setPassable] = useState<Passable>('unsure')
   const [note, setNote] = useState('')
+  const [photos, setPhotos] = useState<File[]>([])
   const [tried, setTried] = useState(false)
   const report = useReportHazard()
   useEffect(() => requestSheet('full'), [])  // a form: give it the whole screen on phones
@@ -56,8 +58,8 @@ export function DetailsStep({ point, roadName, onBack, onSubmitted }: DetailsSte
     event.preventDefault()
     setTried(true)
     if (!kind) return
-    report.mutate({ kind, passable, note: note.trim() || null, lat: point.lat, lon: point.lon },
-      { onSuccess: (incident) => onSubmitted(incident.id) })
+    report.mutate({ report: { kind, passable, note: note.trim() || null, lat: point.lat, lon: point.lon }, photos },
+      { onSuccess: ({ incident, photosFailed }) => onSubmitted(incident.id, photosFailed) })
   }
 
   return (
@@ -119,9 +121,13 @@ export function DetailsStep({ point, roadName, onBack, onSubmitted }: DetailsSte
         <span className="block text-right text-body-sm text-text-secondary tabular-nums">{note.length}/{MAX_NOTE}</span>
       </label>
 
+      <PhotoPicker photos={photos} onChange={setPhotos} disabled={report.isPending} />
+
       {report.isError && <div className="mt-4"><Alert tone="error">{submitError(report.error, onBack)}</Alert></div>}
 
-      <Button type="submit" full icon="send" loading={report.isPending} className="mt-5">Submit report</Button>
+      <Button type="submit" full icon="send" loading={report.isPending} className="mt-5">
+        {report.isPending && photos.length ? 'Sending report and photos…' : 'Submit report'}
+      </Button>
       <p className="mt-3 flex items-start gap-2 text-body-sm text-text-secondary">
         <Icon name="verified_user" className="text-[18px]" />
         Sarathi moderators check every report before it changes anyone's route.

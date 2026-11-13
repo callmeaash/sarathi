@@ -12,6 +12,10 @@ class InvalidInput(AppError):
     status_code = 422
 
 
+class Forbidden(AppError):
+    status_code = 403
+
+
 class NotFound(AppError):
     status_code = 404
 

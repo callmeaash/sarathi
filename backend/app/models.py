@@ -216,6 +216,23 @@ class Incident(Base):
     )
 
 
+class IncidentPhoto(Base):
+    __tablename__ = "incident_photos"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    incident_id: Mapped[int] = mapped_column(Integer, ForeignKey("incidents.id", ondelete="CASCADE"), nullable=False)
+    file_name: Mapped[str] = mapped_column(String(40), nullable=False)  # random name of the JPEG in the upload folder
+    width: Mapped[int] = mapped_column(Integer, nullable=False)
+    height: Mapped[int] = mapped_column(Integer, nullable=False)
+    size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+
+    __table_args__ = (
+        UniqueConstraint("file_name", name="uq_incident_photos_file_name"),
+        Index("ix_incident_photos_incident", "incident_id"),
+    )
+
+
 class AuditLog(Base):
     __tablename__ = "audit_log"
 

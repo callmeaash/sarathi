@@ -74,7 +74,7 @@ export function ReportPage() {
       {details && <MapLayers><PinMarker lat={chosen.lat} lon={chosen.lon} onMove={() => goTo('location')} /></MapLayers>}
       {details
         ? <DetailsStep point={chosen} roadName={road?.road_name} onBack={() => goTo('location')}
-            onSubmitted={(id) => navigate(`/report/submitted/${id}`, { replace: true })} />
+            onSubmitted={(id, photosFailed) => navigate(`/report/submitted/${id}`, { replace: true, state: { photosFailed } })} />
         : <LocationStep point={point} start={start} onMove={onMove} onNext={() => goTo('details')} />}
     </>
   )

@@ -1,11 +1,13 @@
 import { useEffect, useRef } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, useLocation, useParams } from 'react-router'
 
+import { Alert } from '../components/Alert'
 import { Icon } from '../components/Icon'
 import { Spinner } from '../components/Spinner'
 import { buttonClass } from '../components/form/buttonStyles'
 import { useIncident } from '../hazards/api'
 import { hazardInfo, roadLabel } from '../hazards/kinds'
+import { PhotoStrip } from '../hazards/PhotoStrip'
 import { dateTime } from '../lib/time'
 import { BaseLayers } from '../map/BaseLayers'
 import { useAppMap } from '../map/context'
@@ -23,6 +25,7 @@ const STAGES = [
 export function ReportSubmittedPage() {
   const id = Number(useParams().id)
   const { data } = useIncident(id)
+  const photosFailed = Number((useLocation().state as { photosFailed?: number } | null)?.photosFailed ?? 0)
   const { map } = useAppMap()
   const centred = useRef(false)
   useEffect(() => requestSheet('full'), [])  // the confirmation and what happens next, on the whole screen
@@ -57,6 +60,16 @@ export function ReportSubmittedPage() {
           Routes won't change until a moderator verifies your report. You can follow it in My reports.
         </p>
       </div>
+
+      {photosFailed > 0 && (
+        <div className="mt-4">
+          <Alert tone="info">
+            Your report was sent, but {photosFailed === 1 ? "1 photo couldn't" : `${photosFailed} photos couldn't`} be
+            uploaded. Moderators can still review the report without {photosFailed === 1 ? 'it' : 'them'}.
+          </Alert>
+        </div>
+      )}
+      <PhotoStrip photos={data?.photos} className="mt-4 justify-center" />
 
       <ol aria-label="What happens next" className="mt-6 rounded-xl border border-border-muted bg-surface-container-lowest p-4">
         {STAGES.map((stage, index) => {

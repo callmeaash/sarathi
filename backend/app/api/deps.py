@@ -1,5 +1,6 @@
 from collections.abc import Iterator
 from datetime import datetime, timezone
+from pathlib import Path
 
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -40,6 +41,11 @@ def get_auth_settings(request: Request) -> AuthSettings:
 def get_email(request: Request) -> EmailSender:
     """Where verification and reset emails go."""
     return request.app.state.email
+
+
+def get_upload_dir(request: Request) -> Path:
+    """The folder where report photos are stored."""
+    return request.app.state.upload_dir
 
 
 def utc_now() -> datetime:

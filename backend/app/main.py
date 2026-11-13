@@ -1,6 +1,7 @@
 import logging
 import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,6 +13,7 @@ from app.auth.email import EmailSender, email_sender
 from app.config import AuthSettings, load_auth_settings
 from app.db import get_engine
 from app.errors import AppError
+from app.incidents.photos import upload_dir as default_upload_dir
 from app.routing.geo import SnapError
 from app.routing.search import NoRouteError
 from app.schemas import HealthOut
@@ -24,14 +26,16 @@ DEFAULT_CORS_ORIGINS = "http://localhost:5173,http://127.0.0.1:5173"
 
 
 def create_app(engine: Engine | None = None, routing_state: RoutingState | None = None,
-               auth_settings: AuthSettings | None = None, sender: EmailSender | None = None) -> FastAPI:
-    """Build the API; the database, graph, auth settings and email sender can be passed in for tests."""
+               auth_settings: AuthSettings | None = None, sender: EmailSender | None = None,
+               upload_dir: Path | None = None) -> FastAPI:
+    """Build the API; the database, graph, auth settings, email sender and photo folder can be passed in for tests."""
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         """Load settings, connect to the database and load the road graph once, before serving requests."""
         app.state.auth = auth_settings or load_auth_settings()
         app.state.email = sender or email_sender(app.state.auth)
+        app.state.upload_dir = upload_dir or default_upload_dir()
         app.state.engine = engine or get_engine()
         app.state.routing = routing_state or load_routing_state(app.state.engine)
         yield

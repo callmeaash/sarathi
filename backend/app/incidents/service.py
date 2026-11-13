@@ -30,7 +30,10 @@ DUPLICATE = text("""
 
 FIELDS = """
     i.id, i.kind, i.passable, i.note, i.status, ST_X(i.geom) AS lon, ST_Y(i.geom) AS lat, i.road_name,
-    i.snap_distance_m, i.closure_radius_m, i.created_at, i.reviewed_at, i.review_note, i.cleared_at, i.merged_into_id
+    i.snap_distance_m, i.closure_radius_m, i.created_at, i.reviewed_at, i.review_note, i.cleared_at, i.merged_into_id,
+    (SELECT coalesce(json_agg(json_build_object('id', p.id, 'url', '/api/photos/' || p.file_name,
+                                                'width', p.width, 'height', p.height) ORDER BY p.id), '[]'::json)
+     FROM incident_photos p WHERE p.incident_id = i.id) AS photos
 """
 
 BY_ID = text(f"SELECT {FIELDS} FROM incidents i WHERE i.id = :id")

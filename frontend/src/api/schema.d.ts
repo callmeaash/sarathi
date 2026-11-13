@@ -309,6 +309,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/incidents/{incident_id}/photos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Photo
+         * @description Attach a photo (JPEG, PNG or WebP) to your own report while it is waiting for review.
+         */
+        post: operations["add_photo_api_incidents__incident_id__photos_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/photos/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Photo
+         * @description A report photo; its address is only known to people who can see the report.
+         */
+        get: operations["get_photo_api_photos__name__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/incidents/mine": {
         parameters: {
             query?: never;
@@ -575,6 +615,11 @@ export interface components {
             /** Lat */
             lat: number;
         };
+        /** Body_add_photo_api_incidents__incident_id__photos_post */
+        Body_add_photo_api_incidents__incident_id__photos_post: {
+            /** File */
+            file: string;
+        };
         /** ClosureOut */
         ClosureOut: {
             /** Incident Id */
@@ -767,6 +812,11 @@ export interface components {
             cleared_at: string | null;
             /** Merged Into Id */
             merged_into_id: number | null;
+            /**
+             * Photos
+             * @default []
+             */
+            photos: components["schemas"]["PhotoOut"][];
         };
         /** LineString */
         LineString: {
@@ -834,6 +884,17 @@ export interface components {
             /** Results */
             results: components["schemas"]["NearbyOut"][];
         };
+        /** PhotoOut */
+        PhotoOut: {
+            /** Id */
+            id: number;
+            /** Url */
+            url: string;
+            /** Width */
+            width: number;
+            /** Height */
+            height: number;
+        };
         /** QueueItem */
         QueueItem: {
             /** Id */
@@ -869,6 +930,11 @@ export interface components {
             cleared_at: string | null;
             /** Merged Into Id */
             merged_into_id: number | null;
+            /**
+             * Photos
+             * @default []
+             */
+            photos: components["schemas"]["PhotoOut"][];
             reporter: components["schemas"]["ReporterOut"] | null;
             /** Similar Reports */
             similar_reports: number;
@@ -1589,6 +1655,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["IncidentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_photo_api_incidents__incident_id__photos_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incident_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_add_photo_api_incidents__incident_id__photos_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IncidentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_photo_api_photos__name__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/jpeg": unknown;
                 };
             };
             /** @description Validation Error */

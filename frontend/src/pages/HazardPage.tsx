@@ -6,6 +6,7 @@ import { Icon } from '../components/Icon'
 import { Spinner } from '../components/Spinner'
 import { type Incident, useIncident } from '../hazards/api'
 import { hazardInfo, passableText, roadLabel } from '../hazards/kinds'
+import { PhotoStrip } from '../hazards/PhotoStrip'
 import { dateTime, timeAgo } from '../lib/time'
 import { LOCATE_ZOOM } from '../map/config'
 import { useAppMap } from '../map/context'
@@ -66,6 +67,8 @@ function Details({ incident }: { incident: Incident }) {
           <footer className="mt-1 text-body-sm text-text-secondary">Reporter's note</footer>
         </blockquote>
       )}
+
+      <PhotoStrip photos={incident.photos} className="mt-4" />
 
       <ul className="mt-4 divide-y divide-border-muted">
         {passable && <Fact icon="directions_car">{passable}</Fact>}

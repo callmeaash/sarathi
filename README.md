@@ -120,9 +120,11 @@ Make the first moderator (from `backend/`, after they have signed up):
 | Endpoint | Who | What it does |
 |---|---|---|
 | `POST /api/incidents` | verified users | Report a hazard: `kind` (landslide, flood, accident, road_blocked, road_works, other), `passable` (no, partly, unsure), optional `note`, `lon`, `lat` |
+| `POST /api/incidents/{id}/photos` | the reporter | Attach a photo (multipart field `file`; JPEG, PNG or WebP, up to 8 MB) while the report is pending; at most 3 per report |
 | `GET /api/incidents?bbox&status` | anyone | Pending and verified reports in the map area (`status=cleared` for past ones) |
 | `GET /api/incidents/mine` | signed in | Your own reports and what happened to them, with the reason if rejected |
 | `GET /api/incidents/{id}` | anyone | One report (rejected and merged reports are not public) |
+| `GET /api/photos/{name}` | anyone with the address | A report photo (JPEG). Reports list their photos as `photos[{id, url, width, height}]` |
 | `GET /api/closures` | anyone | Roads closed right now, grouped by hazard, as GeoJSON lines for the map |
 | `GET /api/moderation/queue` | moderators | Pending reports, oldest first, with the reporter's record and how many similar reports are nearby |
 | `POST /api/incidents/{id}/verify` | moderators | Confirm a report and close every road within `radius_m` (5–200, default 30) |
@@ -132,6 +134,8 @@ Make the first moderator (from `backend/`, after they have signed up):
 | `GET /api/audit?limit&before_id` | moderators | Every moderator action, newest first |
 
 Rules: reports snap onto the nearest road (the pin must be within 150 m of one); a user can send 10 reports an hour and cannot report the same kind of hazard again within 50 m while the first is waiting. A report is reviewed once: only pending reports can be verified, rejected or merged, and only verified ones cleared. The database is the record of what is closed: at startup the API recomputes the closed roads of every verified hazard from its location and radius, so closures survive restarts and new OSM imports.
+
+Photos: every upload is opened to check it really is an image, turned upright, scaled to fit 1600 px and saved again as a JPEG, which removes the location and device details phones store inside photos. Files are kept in `data/uploads/` (not committed; `UPLOAD_DIR` moves them) under random names, so a photo can only be opened by someone who was given its address, i.e. someone who can see the report. Back this folder up together with the database.
 
 Clicked points snap to the nearest road junction (up to 1 km away); points further from any road get a 422 error. `CORS_ORIGINS` (comma separated) sets which front ends may call the API; it defaults to the Vite dev server.
 

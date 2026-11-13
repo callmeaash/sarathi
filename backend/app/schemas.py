@@ -198,6 +198,13 @@ class IncidentIn(BaseModel):
     lat: float = Field(ge=-90, le=90)
 
 
+class PhotoOut(BaseModel):
+    id: int
+    url: str  # where the JPEG can be loaded from
+    width: int
+    height: int
+
+
 class IncidentOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -216,6 +223,7 @@ class IncidentOut(BaseModel):
     review_note: str | None  # the reason a report was rejected
     cleared_at: datetime | None
     merged_into_id: int | None
+    photos: list[PhotoOut] = []
 
 
 class ReporterOut(BaseModel):

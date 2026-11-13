@@ -22,6 +22,7 @@ const API = {
 }
 
 const panel = () => within(screen.getByRole('main'))
+const jpeg = (name: string) => new File(['photo'], name, { type: 'image/jpeg' })
 const signIn = (verified = true) => setSession(sessionReply(makeUser({ email_verified: verified })).body as never)
 
 describe('report a hazard: where', () => {
@@ -97,6 +98,63 @@ describe('report a hazard: details', () => {
     expect(await panel().findByText('Flooding on Tripureshwor Marg')).toBeInTheDocument()
     expect(panel().getByRole('list', { name: 'What happens next' })).toHaveTextContent('Waiting for reviewNow')
     expect(panel().getByRole('link', { name: 'View my reports' })).toHaveAttribute('href', '/reports')
+  })
+
+  it('sends the chosen photos after the report and shows them', async () => {
+    signIn()
+    const photo = { id: 9, url: '/api/photos/0123456789abcdef0123456789abcdef.jpg', width: 800, height: 600 }
+    const fetch = mockApi({
+      ...API,
+      'POST /api/incidents/458/photos': () => ({ status: 201, body: { ...created, photos: [photo] } }),
+      '/api/incidents/458': () => ({ body: { ...created, photos: [photo] } }),
+    })
+    const user = userEvent.setup()
+    const { router } = renderApp(DETAILS)
+    await user.click(await panel().findByRole('radio', { name: /Flooding/ }))
+    await user.upload(panel().getByLabelText('Add photos'), [jpeg('flood.jpg'), jpeg('road.jpg')])
+    expect(within(panel().getByRole('list', { name: 'Photos' })).getAllByRole('img')).toHaveLength(2)
+    expect(panel().getByText('2/3')).toBeInTheDocument()
+
+    await user.click(panel().getByRole('button', { name: 'Remove photo 2' }))
+    expect(panel().getByText('1/3')).toBeInTheDocument()
+    await user.click(panel().getByRole('button', { name: 'Submit report' }))
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/report/submitted/458'))
+    // The removed photo is not sent. (The test browser can't read multipart bodies back, so only the call is checked.)
+    const uploads = (await sent(fetch, 'POST', '/api/incidents/458/photos')).map(({ request }) => request)
+    expect(uploads).toHaveLength(1)
+    expect(uploads[0].headers.get('Authorization')).toBe('Bearer access-1')
+    expect(uploads[0].headers.get('Content-Type')).not.toBe('application/json')
+    expect(await panel().findByRole('button', { name: 'View photo 1 of 1' })).toBeInTheDocument()
+    expect(panel().queryByText(/couldn't be uploaded/)).not.toBeInTheDocument()
+  })
+
+  it('still sends the report when a photo fails, and says so', async () => {
+    signIn()
+    mockApi({ ...API, 'POST /api/incidents/458/photos': { status: 422, body: { detail: 'photos must be JPEG, PNG or WebP images' } } })
+    const user = userEvent.setup()
+    const { router } = renderApp(DETAILS)
+    await user.click(await panel().findByRole('radio', { name: /Flooding/ }))
+    await user.upload(panel().getByLabelText('Add photos'), jpeg('flood.jpg'))
+    await user.click(panel().getByRole('button', { name: 'Submit report' }))
+    await waitFor(() => expect(router.state.location.pathname).toBe('/report/submitted/458'))
+    expect(await panel().findByText(/Your report was sent, but 1 photo couldn't be uploaded/)).toBeInTheDocument()
+  })
+
+  it('takes at most three photos and only images', async () => {
+    signIn()
+    mockApi(API)
+    const user = userEvent.setup({ applyAccept: false })  // as when a file is dragged in or the filter is bypassed
+    renderApp(DETAILS)
+    const input = await panel().findByLabelText('Add photos')
+    await user.upload(input, new File(['%PDF'], 'notes.pdf', { type: 'application/pdf' }))
+    expect(panel().getByRole('alert')).toHaveTextContent("notes.pdf isn't a JPEG, PNG or WebP photo.")
+    expect(panel().getByText('0/3')).toBeInTheDocument()
+
+    await user.upload(input, [jpeg('1.jpg'), jpeg('2.jpg'), jpeg('3.jpg'), jpeg('4.jpg')])
+    expect(panel().getByText('3/3')).toBeInTheDocument()
+    expect(panel().getByRole('alert')).toHaveTextContent('A report can have up to 3 photos.')
+    expect(panel().queryByRole('button', { name: /Add photo/ })).not.toBeInTheDocument()
   })
 
   it('needs a hazard type', async () => {

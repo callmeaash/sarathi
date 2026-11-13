@@ -52,7 +52,7 @@ def client(app_client):
     state = app_client.app.state.routing
     for incident_id in active_closures(state):
         lift_closure(state, incident_id)
-    sql(app_client, "TRUNCATE incidents, audit_log RESTART IDENTITY")
+    sql(app_client, "TRUNCATE incidents, audit_log RESTART IDENTITY CASCADE")
 
 
 def sql(client, statement, **params):
