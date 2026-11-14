@@ -4,7 +4,7 @@ import { Link } from 'react-router'
 import { Icon } from '../../components/Icon'
 import { buttonClass } from '../../components/form/buttonStyles'
 import { Logo } from '../../components/Logo'
-import { BrandPanel, MapLines } from '../../layouts/BrandPanel'
+import { AuthBackdrop, BrandPanel, MapLines } from '../../layouts/BrandPanel'
 import { FEATURES } from '../../layouts/brand'
 import { InstallCard } from '../../pwa/InstallCard'
 import { markWelcomed } from './welcomed'
@@ -29,8 +29,9 @@ export function WelcomePage() {
   useEffect(markWelcomed, [])
 
   return (
-    <div className="min-h-dvh bg-surface-container-lowest lg:grid lg:grid-cols-[46%_1fr]">
+    <div className="relative min-h-dvh overflow-hidden bg-surface-container-lowest lg:grid lg:grid-cols-[46%_1fr] lg:bg-surface-tint-light">
       <title>Welcome · Sarathi</title>
+      <AuthBackdrop />
       <BrandPanel logo="nepali" />
 
       {/* Phones: introduction on top, choices below */}
@@ -63,8 +64,8 @@ export function WelcomePage() {
       </div>
 
       {/* Desktop: the brand panel tells the story; the choices sit on the right */}
-      <main className="hidden min-h-dvh items-center justify-center px-12 lg:flex">
-        <div className="w-full max-w-105">
+      <main className="relative hidden min-h-dvh items-center justify-center px-12 lg:flex">
+        <div className="w-full max-w-105 lg:max-w-[31rem] lg:rounded-2xl lg:border lg:border-border-muted lg:bg-surface-container-lowest lg:p-10 lg:shadow-(--shadow-modal)">
           <h1 className="text-headline-lg">Welcome to Sarathi</h1>
           <p className="mt-2 mb-8 text-body-lg text-text-secondary">
             Create an account to report hazards, or explore the map without one.

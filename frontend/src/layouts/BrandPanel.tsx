@@ -35,13 +35,45 @@ export function MapLines({ className = 'text-primary' }: { className?: string })
   )
 }
 
+/**
+ * Desktop: the same kind of street map, drawn wide, behind the whole sign-in screen. It fades a little on the
+ * left, behind the brand text; the form on the right sits on a white card.
+ */
+export function AuthBackdrop() {
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 hidden text-primary lg:block">
+      <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" className="absolute inset-0 size-full">
+        <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+          {/* River */}
+          <path d="M-40 240 C 260 300, 420 520, 760 560 S 1320 600, 1660 780" strokeOpacity=".13" strokeWidth="38" />
+          {/* Side streets */}
+          <g strokeOpacity=".2" strokeWidth="3">
+            <path d="M-20 95 L 1620 55 M -20 255 L 1620 205 M -20 430 L 1620 385 M -20 600 L 1620 550 M -20 850 L 1620 790" />
+            <path d="M150 -20 L 195 920 M 320 -20 L 350 920 M 520 -20 L 495 920 M 700 -20 L 725 920 M 900 -20 L 870 920 M 1090 -20 L 1120 920 M 1280 -20 L 1250 920 M 1470 -20 L 1500 920" />
+            <path d="M60 330 L 250 470 L 230 650 M 560 110 L 640 300 L 820 360 M 980 640 L 1130 770 L 1330 750 M 1180 120 L 1330 250 L 1560 280 M 380 690 L 600 770" />
+          </g>
+          {/* Main roads */}
+          <g strokeOpacity=".24" strokeWidth="8">
+            <path d="M40 -20 L 100 920" />
+            <path d="M620 -20 L 580 920" />
+            <path d="M1380 -20 L 1340 920" />
+            <path d="M-20 170 L 1620 125" />
+            <path d="M-20 725 L 1620 660" />
+          </g>
+          {/* Ring road, with its centre line */}
+          <ellipse cx="800" cy="450" rx="700" ry="390" strokeOpacity=".26" strokeWidth="16" />
+          <ellipse cx="800" cy="450" rx="700" ry="390" stroke="#fff" strokeOpacity=".85" strokeWidth="2" strokeDasharray="10 14" />
+        </g>
+      </svg>
+      <div className="absolute inset-0 bg-linear-to-r from-surface-tint-light/80 via-surface-tint-light/35 to-transparent" />
+    </div>
+  )
+}
+
 /** Left half of the desktop sign-in screens: what Sarathi does. The welcome screen uses the Nepali-first logo. */
 export function BrandPanel({ logo = 'horizontal' }: { logo?: 'horizontal' | 'nepali' }) {
   return (
-    <aside className="relative hidden flex-col justify-between overflow-hidden border-r border-border-muted bg-surface-tint-light p-14 lg:flex">
-      <MapLines />
-      {/* Softens the map a little behind the text, so the text stays easy to read. */}
-      <div className="absolute inset-0 bg-linear-to-t from-surface-tint-light/85 via-surface-tint-light/45 to-transparent" aria-hidden />
+    <aside className="relative hidden flex-col justify-between p-14 lg:flex">
       <Link to="/" aria-label="Sarathi home" className="relative self-start">
         <Logo variant={logo} className="h-14" />
       </Link>

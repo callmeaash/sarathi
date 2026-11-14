@@ -3,7 +3,7 @@ import { Link, Outlet, useNavigate } from 'react-router'
 import { Icon } from '../components/Icon'
 import { LiveStatusChip } from '../components/LiveStatusChip'
 import { Logo } from '../components/Logo'
-import { BrandPanel } from './BrandPanel'
+import { AuthBackdrop, BrandPanel } from './BrandPanel'
 
 /** Phones: back button and live status above the form. */
 function TopBar() {
@@ -33,22 +33,23 @@ function MobileBrand() {
   )
 }
 
-/** Sign-in screens: the brand panel on the left on desktop; on phones one aligned column with the brand on top. */
+/**
+ * Sign-in screens. Desktop: a street map behind everything, what Sarathi does on the left, and the form on a
+ * white card on the right. Phones: one aligned column with the brand on top.
+ */
 export function AuthLayout() {
   return (
-    <div className="min-h-dvh bg-surface lg:grid lg:grid-cols-[46%_1fr] lg:bg-surface-container-lowest">
+    <div className="relative min-h-dvh overflow-hidden bg-surface lg:grid lg:grid-cols-[46%_1fr] lg:bg-surface-tint-light">
+      <AuthBackdrop />
       <BrandPanel />
       <main className="relative flex min-h-dvh flex-col px-5 sm:px-8 lg:items-center lg:justify-center lg:px-12">
-        {/* Desktop has no top bar, so the way back to the map sits above the form. */}
-        <Link
-          to="/"
-          className="absolute top-8 left-12 hidden items-center gap-2 rounded-md px-3 py-2 text-label-lg text-primary hover:bg-surface-container lg:inline-flex"
-        >
-          <Icon name="arrow_back" className="text-[20px]" />
-          Back to map
-        </Link>
-        <div className="mx-auto flex w-full max-w-105 flex-1 flex-col lg:flex-none">
+        <div className="mx-auto flex w-full max-w-105 flex-1 flex-col lg:flex-none lg:max-w-[31rem] lg:rounded-2xl lg:border lg:border-border-muted lg:bg-surface-container-lowest lg:p-10 lg:shadow-(--shadow-modal)">
           <TopBar />
+          {/* Desktop has no top bar, so the way back to the map sits at the top of the card. */}
+          <Link to="/" className="-mt-2 mb-5 -ml-2 hidden items-center gap-2 self-start rounded-md px-2 py-1.5 text-label-lg text-primary hover:bg-surface-container lg:inline-flex">
+            <Icon name="arrow_back" className="text-[20px]" />
+            Back to map
+          </Link>
           {/* my-auto centres the brand and form between the top bar and the footer on tall phones. */}
           <div className="my-auto flex flex-col py-6 lg:py-0">
             <MobileBrand />
