@@ -163,6 +163,15 @@ export function AccountPage() {
         <Stats />
       </section>
 
+      {user.role === 'moderator' && (
+        <section className="mt-6">
+          <SectionHeading title="Moderation" />
+          <ul className={LIST}>
+            <Row icon="shield_person" title="Moderator panel" detail="Review reports, closures and accounts" to="/moderation" />
+          </ul>
+        </section>
+      )}
+
       <section className="mt-6">
         <SectionHeading title="Account" />
         <ul className={LIST}>

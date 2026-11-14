@@ -49,6 +49,7 @@ function AccountButton({ compact = false }: { compact?: boolean }) {
 
 /** Desktop header: logo, search, report button and account. */
 function DesktopHeader() {
+  const { user } = useAuth()
   return (
     <header className="relative z-30 hidden h-14 shrink-0 items-center gap-4 border-b border-border-muted bg-surface-container-lowest px-4 lg:flex">
       <Link to="/" aria-label="Sarathi home" className="min-w-60">
@@ -58,6 +59,12 @@ function DesktopHeader() {
         <div className="w-full max-w-130"><HeaderSearch variant="desktop" /></div>
       </div>
       <div className="flex min-w-60 items-center justify-end gap-2">
+        {user?.role === 'moderator' && (
+          <Link to="/moderation" className="flex h-9 items-center gap-2 rounded-md border border-border-muted bg-surface-container-lowest px-3.5 text-label-lg text-on-surface hover:bg-surface">
+            <Icon name="shield_person" className="text-[18px]" />
+            Moderate
+          </Link>
+        )}
         <Link
           to="/report"
           className="flex h-9 items-center gap-2 rounded-md bg-hazard-closure-red px-3.5 text-label-lg text-white hover:bg-[#b91c1c]"

@@ -23,6 +23,12 @@ import { NearbyPage } from '../pages/NearbyPage'
 import { ReportPage } from '../pages/ReportPage'
 import { ReportSubmittedPage } from '../pages/ReportSubmittedPage'
 import { MyReportsPage } from '../pages/MyReportsPage'
+import { AuditPage } from '../moderation/AuditPage'
+import { ClosuresPage } from '../moderation/ClosuresPage'
+import { ModeratorLayout } from '../moderation/ModeratorLayout'
+import { OverviewPage } from '../moderation/OverviewPage'
+import { ReportsPage } from '../moderation/ReportsPage'
+import { UsersPage } from '../moderation/UsersPage'
 
 const MAP_PAGE = { map: true }
 
@@ -42,6 +48,20 @@ export const routes: RouteObject[] = [
       { path: 'verify', element: <VerifyEmailPage /> },
       { path: 'forgot-password', element: <ForgotPasswordPage /> },
       { path: 'reset-password', element: <ResetPasswordPage /> },
+    ],
+  },
+  {
+    // The moderator panel has its own frame and lets only moderators in.
+    path: 'moderation',
+    element: <ModeratorLayout />,
+    errorElement: <RouteErrorPage />,
+    children: [
+      { index: true, element: <OverviewPage /> },
+      { path: 'reports', element: <ReportsPage /> },
+      { path: 'reports/:id', element: <ReportsPage /> },
+      { path: 'closures', element: <ClosuresPage /> },
+      { path: 'audit', element: <AuditPage /> },
+      { path: 'users', element: <UsersPage /> },
     ],
   },
   {

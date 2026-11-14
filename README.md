@@ -198,6 +198,8 @@ Open http://localhost:5173. The map background uses Stadia Maps' "OSM Bright" ti
 
 API calls go through `src/api/client.ts`, a client typed from the backend's OpenAPI schema, so a renamed field or a wrong parameter fails the type check instead of failing in the browser.
 
+Moderator panel: moderators get a separate area at `/moderation` (linked from the header and the Account page) with an overview, the review queue, active closures, the audit log and accounts. A report's page shows where the pin was dropped, the reporter's record, photos, nearby reports, and exactly which roads would close at the chosen radius before anything is closed. Other signed-in users are told the area is for moderators; visitors are sent to log in.
+
 Sign-in: the access token is kept only in memory and the session in the httpOnly cookie, so nothing secret is stored where page scripts can read it. On load the app restores the session from the cookie; an expired access token is renewed and the request retried automatically. Pages that need an account send visitors to log in and back again afterwards.
 
 ## Tests

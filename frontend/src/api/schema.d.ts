@@ -493,6 +493,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/moderation/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Stats
+         * @description The overview numbers: reports waiting, roads closed, and today's reports and decisions.
+         */
+        get: operations["stats_api_moderation_stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/moderation/queue": {
         parameters: {
             query?: never;
@@ -505,6 +525,66 @@ export interface paths {
          * @description Reports waiting for review, oldest first, with what moderators need to judge them.
          */
         get: operations["review_queue_api_moderation_queue_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/moderation/incidents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Reviewed Reports
+         * @description Reports that have been decided (including rejected and merged ones), most recent decision first.
+         */
+        get: operations["reviewed_reports_api_moderation_incidents_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/moderation/incidents/{incident_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Report For Review
+         * @description One report in full, whatever its status, with the open reports close to it.
+         */
+        get: operations["report_for_review_api_moderation_incidents__incident_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/moderation/incidents/{incident_id}/closure-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Closure Preview
+         * @description Which roads verifying this report with the given radius would close, before doing it.
+         */
+        get: operations["closure_preview_api_moderation_incidents__incident_id__closure_preview_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -613,6 +693,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/moderation/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Users
+         * @description Accounts, newest first, searched by name or email and filtered by role or status, with their report record.
+         */
+        get: operations["list_users_api_moderation_users_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/moderation/users/{user_id}/suspend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Suspend User
+         * @description Shut an account out and sign it out everywhere; the reason goes in the audit log.
+         */
+        post: operations["suspend_user_api_moderation_users__user_id__suspend_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/moderation/users/{user_id}/reinstate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reinstate User
+         * @description Let a suspended account back in.
+         */
+        post: operations["reinstate_user_api_moderation_users__user_id__reinstate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/moderation/users/{user_id}/role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Change User Role
+         * @description Make someone a moderator, or an ordinary user again.
+         */
+        post: operations["change_user_role_api_moderation_users__user_id__role_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/search": {
         parameters: {
             query?: never;
@@ -694,6 +854,12 @@ export interface components {
             details: {
                 [key: string]: unknown;
             };
+            /** Incident Kind */
+            incident_kind?: string | null;
+            /** Incident Road */
+            incident_road?: string | null;
+            /** User Name */
+            user_name?: string | null;
         };
         /** AvoidedClosure */
         AvoidedClosure: {
@@ -741,6 +907,23 @@ export interface components {
             lat: number;
             /** Edges */
             edges: number;
+            /** Length M */
+            length_m: number;
+            /** Geometry */
+            geometry: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** ClosurePreview */
+        ClosurePreview: {
+            /** Radius M */
+            radius_m: number;
+            /** Edges */
+            edges: number;
+            /** Length M */
+            length_m: number;
+            /** Roads */
+            roads: string[];
             /** Geometry */
             geometry: {
                 [key: string]: unknown;
@@ -939,6 +1122,34 @@ export interface components {
             /** Password */
             password: string;
         };
+        /** ManagedUser */
+        ManagedUser: {
+            /** Id */
+            id: number;
+            /** Full Name */
+            full_name: string;
+            /** Email */
+            email: string;
+            /** Role */
+            role: string;
+            /** Email Verified */
+            email_verified: boolean;
+            /** Status */
+            status: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Last Login At */
+            last_login_at: string | null;
+            /** Reports */
+            reports: number;
+            /** Verified */
+            verified: number;
+            /** Rejected */
+            rejected: number;
+        };
         /** MergeIn */
         MergeIn: {
             /** Into Id */
@@ -963,6 +1174,25 @@ export interface components {
              */
             reopened_edges: number;
         };
+        /** ModerationStats */
+        ModerationStats: {
+            /** Pending */
+            pending: number;
+            /** Oldest Pending At */
+            oldest_pending_at: string | null;
+            /** Active Closures */
+            active_closures: number;
+            /** Closed Edges */
+            closed_edges: number;
+            /** Reports Today */
+            reports_today: number;
+            /** Verified Today */
+            verified_today: number;
+            /** Rejected Today */
+            rejected_today: number;
+            /** Median Verify S */
+            median_verify_s: number | null;
+        };
         /** NearbyOut */
         NearbyOut: {
             facility: components["schemas"]["FacilitySummary"];
@@ -973,6 +1203,24 @@ export interface components {
             /** Straight Line M */
             straight_line_m: number;
             geometry: components["schemas"]["LineString"];
+        };
+        /** NearbyReport */
+        NearbyReport: {
+            /** Id */
+            id: number;
+            /** Kind */
+            kind: string;
+            /** Status */
+            status: string;
+            /** Road Name */
+            road_name: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Distance M */
+            distance_m: number;
         };
         /** NearestOut */
         NearestOut: {
@@ -1048,6 +1296,17 @@ export interface components {
             reporter: components["schemas"]["ReporterOut"] | null;
             /** Similar Reports */
             similar_reports: number;
+            /** Reported Lon */
+            reported_lon: number;
+            /** Reported Lat */
+            reported_lat: number;
+            /** Reviewer Name */
+            reviewer_name?: string | null;
+            /**
+             * Nearby
+             * @default []
+             */
+            nearby: components["schemas"]["NearbyReport"][];
         };
         /** RegisterIn */
         RegisterIn: {
@@ -1108,6 +1367,14 @@ export interface components {
             duration_s: number;
             /** Straight Line M */
             straight_line_m: number;
+        };
+        /** RoleIn */
+        RoleIn: {
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "user" | "moderator";
         };
         /** RouteOut */
         RouteOut: {
@@ -1194,6 +1461,11 @@ export interface components {
             /** Distance M */
             distance_m: number;
         };
+        /** SuspendIn */
+        SuspendIn: {
+            /** Reason */
+            reason: string;
+        };
         /** UnverifiedOnRoute */
         UnverifiedOnRoute: {
             /** Incident Id */
@@ -1212,6 +1484,17 @@ export interface components {
             /** Lat */
             lat: number;
         };
+        /** UserCounts */
+        UserCounts: {
+            /** Users */
+            users: number;
+            /** Moderators */
+            moderators: number;
+            /** Suspended */
+            suspended: number;
+            /** Unverified */
+            unverified: number;
+        };
         /** UserOut */
         UserOut: {
             /** Id */
@@ -1229,6 +1512,14 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+        };
+        /** UserPage */
+        UserPage: {
+            /** Items */
+            items: components["schemas"]["ManagedUser"][];
+            /** Total */
+            total: number;
+            counts: components["schemas"]["UserCounts"];
         };
         /** ValidationError */
         ValidationError: {
@@ -2061,6 +2352,26 @@ export interface operations {
             };
         };
     };
+    stats_api_moderation_stats_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModerationStats"];
+                };
+            };
+        };
+    };
     review_queue_api_moderation_queue_get: {
         parameters: {
             query?: {
@@ -2079,6 +2390,103 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["QueueItem"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reviewed_reports_api_moderation_incidents_get: {
+        parameters: {
+            query: {
+                status: ("verified" | "rejected" | "cleared" | "merged")[];
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QueueItem"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    report_for_review_api_moderation_incidents__incident_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incident_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QueueItem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    closure_preview_api_moderation_incidents__incident_id__closure_preview_get: {
+        parameters: {
+            query?: {
+                radius_m?: number;
+            };
+            header?: never;
+            path: {
+                incident_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClosurePreview"];
                 };
             };
             /** @description Validation Error */
@@ -2233,6 +2641,7 @@ export interface operations {
             query?: {
                 limit?: number;
                 before_id?: number | null;
+                action?: ("verify" | "reject" | "clear" | "merge" | "suspend" | "reinstate" | "role") | null;
             };
             header?: never;
             path?: never;
@@ -2247,6 +2656,142 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuditOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_users_api_moderation_users_get: {
+        parameters: {
+            query?: {
+                q?: string;
+                role?: ("user" | "moderator") | null;
+                status?: ("active" | "suspended" | "unverified") | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    suspend_user_api_moderation_users__user_id__suspend_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SuspendIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManagedUser"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reinstate_user_api_moderation_users__user_id__reinstate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManagedUser"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    change_user_role_api_moderation_users__user_id__role_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RoleIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManagedUser"];
                 };
             };
             /** @description Validation Error */
