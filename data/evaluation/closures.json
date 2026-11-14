@@ -1,0 +1,11 @@
+{
+  "routes": 200,
+  "rerouted": 200,
+  "cut_off": 0,
+  "extra_time_s_median": 26.579532224098784,
+  "extra_time_s_mean": 37.34929112721072,
+  "extra_time_s_max": 188.87134081201089,
+  "extra_length_m_median": 55.648987330883756,
+  "under_one_minute": 156,
+  "over_five_minutes": 0
+}

@@ -1,0 +1,7 @@
+32,613 road nodes; facilities skipped (not on the network): 0
+
+kind          points   differ    share  when they differ
+hospital         500      166    33.2%  median extra 0.7 min, worst 23.1 min
+police           500      141    28.2%  median extra 0.6 min, worst 18.7 min
+pharmacy         500      177    35.4%  median extra 0.4 min, worst 21.2 min
+fire_station     500       27     5.4%  median extra 1.6 min, worst 7.2 min

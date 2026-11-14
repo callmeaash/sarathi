@@ -175,6 +175,14 @@ Measure how often the facility nearest in a straight line is not the nearest by 
 ..\.venv\Scripts\python -m app.routing.evaluate_nearest --points 500
 ```
 
+Measure what closing a road costs: close the middle road of each of 200 random fastest routes and route again:
+
+```
+..\.venv\Scripts\python -m app.routing.evaluate_closures --pairs 200 --json ..\data\evaluation\closures.json
+```
+
+The results used in the project report are kept in `data/evaluation/`.
+
 ## Frontend
 
 React + TypeScript + Vite, styled with Tailwind. The design tokens are in `src/index.css`: slate neutrals, white surfaces with thin borders, the Inter font and 6/8/12 px corners (the same design system as the GeoKitta project), including its teal primary colour, which the Sarathi logo is drawn in too. Icons are line icons drawn in `src/components/icons.ts`, so no icon font is downloaded. Run the API first, then from `frontend/`:
