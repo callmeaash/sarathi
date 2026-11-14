@@ -6,6 +6,7 @@ import { setSession } from '../auth/session'
 import { reloadKinds } from '../facilities/filter'
 import { reloadBaseMap } from '../map/baseMap'
 import { reloadLayers } from '../map/layers'
+import { resetInstall } from '../pwa/install'
 
 // The whole app renders in every test, map included; give async checks room when the suite runs in parallel.
 configure({ asyncUtilTimeout: 3000 })
@@ -21,6 +22,7 @@ afterEach(() => {
   reloadKinds()  // back to showing every kind of facility
   reloadLayers()
   reloadBaseMap()  // back to the street map
+  resetInstall()
   vi.unstubAllGlobals()
   vi.useRealTimers()
 })

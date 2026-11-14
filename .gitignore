@@ -5,9 +5,9 @@ data/cache/
 data/explore/
 data/raw/
 .pytest_cache/
-scripts/
-ui/
-brand/
+/scripts/
+/ui/
+/brand/
 CLAUDE.md
 backend/db/
 data/uploads/

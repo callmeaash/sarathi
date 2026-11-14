@@ -5,6 +5,7 @@ import { useAuth } from '../auth/context'
 import { Icon } from '../components/Icon'
 import { Logo } from '../components/Logo'
 import { useHazardAlert } from '../hazards/useHazardAlert'
+import { OfflineBanner } from '../pwa/OfflineBanner'
 import { HeaderSearch } from '../search/HeaderSearch'
 import { useAppMap } from '../map/context'
 import { MapView } from '../map/MapView'
@@ -210,6 +211,7 @@ export function AppShell() {
 
   return (
     <div className="flex h-dvh flex-col">
+      <OfflineBanner />
       <DesktopHeader />
       {!mapPage && <MobileHeader />}
       <div

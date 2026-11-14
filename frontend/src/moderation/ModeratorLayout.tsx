@@ -6,6 +6,7 @@ import { Icon } from '../components/Icon'
 import type { IconName } from '../components/icons'
 import { Logo } from '../components/Logo'
 import { Spinner } from '../components/Spinner'
+import { OfflineBanner } from '../pwa/OfflineBanner'
 import { buttonClass } from '../components/form/buttonStyles'
 import { useStats } from './api'
 
@@ -145,14 +146,17 @@ export function ModeratorLayout() {
 function Frame() {
   const badges = useBadges()
   return (
-    <div className="flex h-dvh flex-col bg-surface lg:flex-row">
-      <Sidebar badges={badges} />
-      <PhoneBars badges={badges} />
-      <main className="min-h-0 min-w-0 flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-7xl px-4 py-5 lg:px-8 lg:py-7">
-          <Outlet />
-        </div>
-      </main>
+    <div className="flex h-dvh flex-col bg-surface">
+      <OfflineBanner />
+      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+        <Sidebar badges={badges} />
+        <PhoneBars badges={badges} />
+        <main className="min-h-0 min-w-0 flex-1 overflow-y-auto">
+          <div className="mx-auto max-w-7xl px-4 py-5 lg:px-8 lg:py-7">
+            <Outlet />
+          </div>
+        </main>
+      </div>
     </div>
   )
 }

@@ -193,10 +193,13 @@ Open http://localhost:5173. The map background uses Stadia Maps' "OSM Bright" ti
 | `npm run typecheck` | TypeScript check |
 | `npm run lint` | Lint (oxlint) |
 | `npm run build` | Production build into `frontend/dist/` |
+| `npm run preview` | Serve the production build (with the service worker) on port 4173, forwarding `/api` like the dev server |
 | `npm run api:types` | Regenerate `src/api/schema.d.ts` from the backend after changing an endpoint |
 | `npm run tunnel` | Temporary public HTTPS link to the dev server for testing on a phone anywhere (needs [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/); anyone with the link can use the app while it runs) |
 
 API calls go through `src/api/client.ts`, a client typed from the backend's OpenAPI schema, so a renamed field or a wrong parameter fails the type check instead of failing in the browser.
+
+Installable app: Sarathi is a Progressive Web App. Browsers that support it (Chrome, Edge, Android) offer to install it, with the app's own Install button on the welcome and Account pages; on an iPhone the app explains Share → Add to Home Screen. In a production build a service worker (`public/sw.js`) keeps the app's own files on the device, so it opens quickly and still opens with no connection, where a banner says it is offline. Live data (`/api/...`) and map tiles are never stored: closures always come from the server. The build lists the app's files in the service worker and stamps it with a version (see `vite.config.ts`), so a new build replaces the old copy. Installing and the service worker need HTTPS (or localhost).
 
 Moderator panel: moderators get a separate area at `/moderation` (linked from the header and the Account page) with an overview, the review queue, active closures, the audit log and accounts. A report's page shows where the pin was dropped, the reporter's record, photos, nearby reports, and exactly which roads would close at the chosen radius before anything is closed. Other signed-in users are told the area is for moderators; visitors are sent to log in.
 

@@ -10,6 +10,7 @@ import { Icon } from '../../components/Icon'
 import type { IconName } from '../../components/icons'
 import { SectionHeading } from '../../components/SectionHeading'
 import { Button } from '../../components/form/Button'
+import { InstallCard } from '../../pwa/InstallCard'
 
 /** How many hazards the user has reported and how many were verified. */
 function useSummary() {
@@ -186,6 +187,8 @@ export function AccountPage() {
           <SignOutEverywhere />
         </ul>
       </section>
+
+      <InstallCard className="mt-6" />
 
       <section className="mt-6">
         <SectionHeading title="About" />

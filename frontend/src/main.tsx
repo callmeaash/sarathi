@@ -6,7 +6,11 @@ import { RouterProvider } from 'react-router/dom'
 import { AppProviders } from './app/AppProviders'
 import { createQueryClient } from './app/queryClient'
 import { routes } from './app/routes'
+import { registerServiceWorker, watchInstall } from './pwa/install'
 import './index.css'
+
+watchInstall()
+registerServiceWorker()
 
 const router = createBrowserRouter(routes)
 const queryClient = createQueryClient()

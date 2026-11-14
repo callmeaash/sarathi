@@ -6,6 +6,7 @@ import { buttonClass } from '../../components/form/buttonStyles'
 import { Logo } from '../../components/Logo'
 import { BrandPanel, MapLines } from '../../layouts/BrandPanel'
 import { FEATURES } from '../../layouts/brand'
+import { InstallCard } from '../../pwa/InstallCard'
 import { markWelcomed } from './welcomed'
 
 const FEATURE_TINTS = ['bg-error-container text-hazard-closure-red', 'bg-[#fde4e8] text-facility-hospital-pink',
@@ -18,6 +19,7 @@ function Choices() {
       <Link to="/signup" className={buttonClass('primary', true)}>Create account</Link>
       <Link to="/login" className={buttonClass('tonal', true)}>Log in</Link>
       <Link to="/" className={buttonClass('text', true)}>Continue without an account</Link>
+      <InstallCard className="mt-5" />
     </div>
   )
 }

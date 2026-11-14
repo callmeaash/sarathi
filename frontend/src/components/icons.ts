@@ -74,6 +74,9 @@ export const ICONS = {
   campaign: '<path d="M4 10v4h3l7 4V6l-7 4z"/><path d="M17.500 9a4 4 0 0 1 0 6M7 14l1 5h2.500l-1-4.500"/>',
   flag: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
 
+  // Installing the app
+  ios_share: '<path d="M12 15V3M8 7l4-4 4 4"/><path d="M8 11H6a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-2"/>',
+
   // Photos
   add_a_photo: '<path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.500" r="3.500"/>',
 
