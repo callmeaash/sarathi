@@ -37,7 +37,7 @@ export function WelcomePage() {
       <div className="lg:hidden">
         <section className="relative overflow-hidden border-b border-border-muted bg-surface-tint-light px-6 pt-[max(env(safe-area-inset-top),2.5rem)] pb-8">
           <MapLines />
-          <div className="absolute inset-0 bg-linear-to-t from-surface-tint-light via-surface-tint-light/80 to-transparent" aria-hidden />
+          <div className="absolute inset-0 bg-linear-to-t from-surface-tint-light/85 via-surface-tint-light/45 to-transparent" aria-hidden />
           <div className="relative">
             <Logo variant="nepali" className="h-16" />
             <h1 className="mt-8 text-display-lg-mobile text-on-surface">Find open roads in Kathmandu</h1>

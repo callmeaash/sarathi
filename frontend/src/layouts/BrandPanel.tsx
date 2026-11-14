@@ -7,13 +7,30 @@ import { FEATURES } from './brand'
 // Fixed when the page loads; good enough for a copyright line.
 const YEAR = new Date().getFullYear()
 
-/** Faint ring road and river lines behind the brand areas, in the brand teal on a light background. */
+/** A stylised street map behind the brand areas: a river, the ring road, main roads and side streets, in teal. */
 export function MapLines({ className = 'text-primary' }: { className?: string }) {
   return (
     <svg viewBox="0 0 600 900" preserveAspectRatio="xMidYMid slice" aria-hidden className={`pointer-events-none absolute inset-0 size-full ${className}`}>
-      <ellipse cx="330" cy="430" rx="420" ry="330" fill="none" stroke="currentColor" strokeOpacity=".16" strokeWidth="18" strokeDasharray="2 26" strokeLinecap="round" />
-      <path d="M-40 300 C 120 360, 180 520, 330 560 S 560 600, 660 720" fill="none" stroke="currentColor" strokeOpacity=".10" strokeWidth="26" strokeLinecap="round" />
-      <path d="M40 -20 L 90 920 M 480 -20 L 430 920 M -20 180 L 640 140 M -20 760 L 640 700" stroke="currentColor" strokeOpacity=".08" strokeWidth="6" />
+      <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+        {/* River */}
+        <path d="M-40 250 C 110 320, 170 500, 330 545 S 560 600, 660 730" strokeOpacity=".13" strokeWidth="34" />
+        {/* Side streets */}
+        <g strokeOpacity=".2" strokeWidth="3">
+          <path d="M-20 90 L 640 60 M -20 250 L 640 215 M -20 420 L 640 390 M -20 590 L 640 555 M -20 840 L 640 790" />
+          <path d="M150 -20 L 190 920 M 270 -20 L 300 920 M 385 -20 L 350 920 M 560 -20 L 520 920" />
+          <path d="M60 330 L 230 470 L 215 640 M 400 120 L 470 300 L 610 360 M 330 660 L 470 780 L 640 760 M 95 700 L 235 760" />
+        </g>
+        {/* Main roads */}
+        <g strokeOpacity=".24" strokeWidth="8">
+          <path d="M40 -20 L 95 920" />
+          <path d="M480 -20 L 430 920" />
+          <path d="M-20 170 L 640 135" />
+          <path d="M-20 720 L 640 665" />
+        </g>
+        {/* Ring road, with its centre line */}
+        <ellipse cx="330" cy="430" rx="400" ry="320" strokeOpacity=".26" strokeWidth="16" />
+        <ellipse cx="330" cy="430" rx="400" ry="320" stroke="#fff" strokeOpacity=".85" strokeWidth="2" strokeDasharray="10 14" />
+      </g>
     </svg>
   )
 }
@@ -23,8 +40,8 @@ export function BrandPanel({ logo = 'horizontal' }: { logo?: 'horizontal' | 'nep
   return (
     <aside className="relative hidden flex-col justify-between overflow-hidden border-r border-border-muted bg-surface-tint-light p-14 lg:flex">
       <MapLines />
-      {/* Fades the lines out towards the text, so it stays easy to read. */}
-      <div className="absolute inset-0 bg-linear-to-t from-surface-tint-light via-surface-tint-light/80 to-transparent" aria-hidden />
+      {/* Softens the map a little behind the text, so the text stays easy to read. */}
+      <div className="absolute inset-0 bg-linear-to-t from-surface-tint-light/85 via-surface-tint-light/45 to-transparent" aria-hidden />
       <Link to="/" aria-label="Sarathi home" className="relative self-start">
         <Logo variant={logo} className="h-14" />
       </Link>
