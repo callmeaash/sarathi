@@ -5,9 +5,12 @@ import { FACILITY_KINDS, type FacilityKind } from './kinds'
 
 // Which kinds of facility the map shows; shared by every page and remembered between visits.
 const KEY = 'sarathi.facilityKinds'
+// Shown until the user chooses otherwise: the emergency services. Pharmacies are by far the most numerous and
+// would bury the map, so they wait behind their filter chip.
+const DEFAULT_KINDS: FacilityKind[] = ['hospital', 'police', 'fire_station']
 const listeners = new Set<() => void>()
 
-/** The saved choice, or every kind if nothing valid was saved. */
+/** The saved choice, or the emergency services if nothing valid was saved. */
 function load(): FacilityKind[] {
   try {
     const saved = JSON.parse(storage.get(KEY) ?? 'null')
@@ -15,7 +18,7 @@ function load(): FacilityKind[] {
   } catch {
     // ignore broken data
   }
-  return [...FACILITY_KINDS]
+  return [...DEFAULT_KINDS]
 }
 
 let shown = load()

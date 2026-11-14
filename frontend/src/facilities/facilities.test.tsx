@@ -30,7 +30,7 @@ const BIR = {
 afterEach(() => vi.restoreAllMocks())
 
 describe('facilities on the map', () => {
-  it('shows hospitals, police and fire stations at the starting zoom, and pharmacies once zoomed in', async () => {
+  it('shows hospitals, police and fire stations to start with; pharmacies wait for their filter', async () => {
     mockApi({ '/api/health': HEALTHY, '/api/facilities': FACILITIES })
     renderApp('/')
     expect(await screen.findByTitle('Bir Hospital')).toBeInTheDocument()
@@ -56,7 +56,7 @@ describe('facilities on the map', () => {
     await user.click(within(panelChips).getByRole('button', { name: /Hospitals/ }))
     expect(screen.queryByTitle('Bir Hospital')).not.toBeInTheDocument()
     expect(within(panelChips).getByRole('button', { name: /Hospitals/ })).toHaveAttribute('aria-pressed', 'false')
-    expect(JSON.parse(window.localStorage.getItem('sarathi.facilityKinds')!)).toEqual(['police', 'pharmacy', 'fire_station'])
+    expect(JSON.parse(window.localStorage.getItem('sarathi.facilityKinds')!)).toEqual(['police', 'fire_station'])
   })
 
   it('says to zoom in when switching on a kind that is hidden at this zoom', async () => {
@@ -64,8 +64,8 @@ describe('facilities on the map', () => {
     const user = userEvent.setup()
     renderApp('/')
     const [chips] = screen.getAllByRole('group', { name: 'Show on map' })
-    await user.click(within(chips).getByRole('button', { name: /Pharmacies/ }))  // off
-    await user.click(within(chips).getByRole('button', { name: /Pharmacies/ }))  // on again
+    expect(within(chips).getByRole('button', { name: /Pharmacies/ })).toHaveAttribute('aria-pressed', 'false')
+    await user.click(within(chips).getByRole('button', { name: /Pharmacies/ }))
     expect(await screen.findByText('Zoom in to see pharmacies on the map.')).toBeInTheDocument()
   })
 
@@ -92,6 +92,20 @@ describe('facilities on the map', () => {
     renderApp('/')
     expect(await screen.findByTitle('Named Clinic')).toBeInTheDocument()
     expect(screen.getByTitle('Hospital')).toBeInTheDocument()
+  })
+
+  it('keeps one marker per patch of screen whatever the kind, hospitals first', async () => {
+    const mixed = { body: { type: 'FeatureCollection', features: [
+      feature(30, 'police', 'Ward Police', 85.3200, 27.7000),
+      feature(31, 'hospital', 'Model Hospital', 85.3201, 27.7001),   // about 15 m from the police post
+      feature(32, 'fire_station', 'Far Fire Station', 85.3300, 27.7100),  // over a kilometre away
+    ] } }
+    window.localStorage.setItem('sarathi.mapView', JSON.stringify({ lat: 27.7, lon: 85.32, zoom: 15 }))
+    mockApi({ '/api/health': HEALTHY, '/api/facilities': mixed })
+    renderApp('/')
+    expect(await screen.findByTitle('Model Hospital')).toBeInTheDocument()
+    expect(screen.getByTitle('Far Fire Station')).toBeInTheDocument()
+    expect(screen.queryByTitle('Ward Police')).not.toBeInTheDocument()
   })
 
   it('opens a place when its marker is tapped', async () => {

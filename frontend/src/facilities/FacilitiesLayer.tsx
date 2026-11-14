@@ -42,12 +42,13 @@ function facilityIcon(kind: string, selected: boolean): L.DivIcon {
 }
 
 const VIEW_PADDING = 0.25  // also draw markers a little beyond the edges, so panning doesn't show gaps
-// Zoomed out, keep one marker of each kind per small square of screen, so the city isn't buried under badges.
-const SHOW_ALL_FROM_ZOOM = 16
-const CELL_PX = 60
-// Below street level facilities are small dots, thinned to one per square of this size (any kind).
+// Markers are thinned to one per square of screen (whatever the kind), so the map never disappears under them:
+// every facility is only drawn once the map is zoomed right in to a few streets.
+const SHOW_ALL_FROM_ZOOM = 17
+const CELL_PX = 64
+// Below street level facilities are small dots, in larger squares still.
 const BADGE_FROM_ZOOM = 15
-const DOT_CELL_PX = 28
+const DOT_CELL_PX = 44
 // Which kind keeps a crowded spot: hospitals first.
 const KIND_ORDER: Record<string, number> = { hospital: 0, fire_station: 1, police: 2, pharmacy: 3 }
 
@@ -76,9 +77,8 @@ export function FacilitiesLayer({ selectedId, compact = false }: { selectedId?: 
       if (!shown || (sized && !view.bounds.contains([facility.lat, facility.lon]))) return false
       if (!dots && view.zoom >= SHOW_ALL_FROM_ZOOM) return true
       const point = map.project([facility.lat, facility.lon], view.zoom)
-      const cell = dots
-        ? `${Math.floor(point.x / DOT_CELL_PX)}:${Math.floor(point.y / DOT_CELL_PX)}`
-        : `${facility.kind}:${Math.floor(point.x / CELL_PX)}:${Math.floor(point.y / CELL_PX)}`
+      const size = dots ? DOT_CELL_PX : CELL_PX
+      const cell = `${Math.floor(point.x / size)}:${Math.floor(point.y / size)}`
       if (taken.has(cell)) return false
       taken.add(cell)
       return true
